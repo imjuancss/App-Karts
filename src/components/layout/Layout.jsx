@@ -21,16 +21,19 @@ export default function Layout({ children }) {
           <h2>KartSocial</h2>
         </div>
         <nav className="sidebar-nav">
-          {navLinks.map(({ to, icon: Icon, label }) => (
-            <NavLink 
-              key={to} 
-              to={to} 
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-            >
-              <Icon size={20} />
-              <span>{label}</span>
-            </NavLink>
-          ))}
+          {navLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink 
+                key={item.to} 
+                to={item.to} 
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
       </aside>
 
@@ -56,17 +59,20 @@ export default function Layout({ children }) {
               <Flag size={28} color="var(--accent)" />
               <h2>KartSocial</h2>
             </div>
-            {navLinks.map(({ to, icon: Icon, label }) => (
-              <NavLink 
-                key={to} 
-                to={to} 
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Icon size={20} />
-                <span>{label}</span>
-              </NavLink>
-            ))}
+            {navLinks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink 
+                  key={item.to} 
+                  to={item.to} 
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
           </nav>
         </div>
       )}

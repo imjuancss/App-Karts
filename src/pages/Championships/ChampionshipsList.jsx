@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, Trophy } from 'lucide-react';
 import './Championships.css';
