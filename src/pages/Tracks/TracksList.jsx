@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Plus, Search } from 'lucide-react';
+import { MapPin, Star, Search } from 'lucide-react';
 import './Tracks.css';
 
 export const MOCK_TRACKS_DATA = [
@@ -46,9 +46,6 @@ export default function TracksList() {
           <h1>Pistas de Karts</h1>
           <p className="subtitle">Encuentra los mejores circuitos para correr</p>
         </div>
-        <button className="primary-btn" onClick={() => navigate('/tracks/create')}>
-          <Plus size={20}/> Crear Circuito
-        </button>
       </div>
 
       <div className="search-bar glass-panel">
