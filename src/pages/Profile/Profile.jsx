@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Trophy, Calendar, Map, MessageSquare } from 'lucide-react';
+import { MapPin, Trophy, Calendar, MessageSquare } from 'lucide-react';
 import './Profile.css';
 
 // Mock Data
@@ -12,15 +12,10 @@ const MOCK_USER = {
   avatar: "https://i.pravatar.cc/150?u=juancamilo",
   stats: {
     championships: 4,
-    tracks: 2,
+    podiums: 12,
     races: 34
   }
 };
-
-const MOCK_TRACKS = [
-  { id: 1, name: "Circuito Xtreme Karts", location: "Cajicá", rating: 4.8 },
-  { id: 2, name: "Kartódromo XRP", location: "Cajicá", rating: 4.5 }
-];
 
 const MOCK_CHAMPS = [
   { id: 1, name: "Copa Primavera 2026", status: "Activo" },
@@ -61,12 +56,12 @@ export default function Profile() {
             <span className="stat-label">Carreras</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">{MOCK_USER.stats.championships}</span>
-            <span className="stat-label">Campeonatos</span>
+            <span className="stat-value">{MOCK_USER.stats.podiums}</span>
+            <span className="stat-label">Podios</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">{MOCK_USER.stats.tracks}</span>
-            <span className="stat-label">Pistas Creadas</span>
+            <span className="stat-value">{MOCK_USER.stats.championships}</span>
+            <span className="stat-label">Campeonatos</span>
           </div>
         </div>
       </section>
@@ -79,12 +74,7 @@ export default function Profile() {
         >
           <Trophy size={18}/> Mis Campeonatos
         </button>
-        <button 
-          className={`tab-btn ${activeTab === 'pistas' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pistas')}
-        >
-          <Map size={18}/> Mis Pistas
-        </button>
+
         <button 
           className={`tab-btn ${activeTab === 'actividad' ? 'active' : ''}`}
           onClick={() => setActiveTab('actividad')}
@@ -110,20 +100,7 @@ export default function Profile() {
           </div>
         )}
 
-        {activeTab === 'pistas' && (
-          <div className="content-grid list-view fade-in">
-            {MOCK_TRACKS.map(track => (
-              <div key={track.id} className="list-item">
-                <div className="item-icon"><Map size={24} color="var(--text-secondary)"/></div>
-                <div className="item-details">
-                  <h3>{track.name}</h3>
-                  <p>{track.location} • ⭐ {track.rating}</p>
-                </div>
-                <button className="secondary-btn" style={{padding: '0.5rem 1rem'}}>Ver Pista</button>
-              </div>
-            ))}
-          </div>
-        )}
+
 
         {activeTab === 'actividad' && (
           <div className="activity-feed fade-in">
