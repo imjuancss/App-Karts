@@ -12,7 +12,7 @@ const MOCK_USER = {
   avatar: "https://i.pravatar.cc/150?u=juancamilo",
   stats: {
     championships: 4,
-    tracks: 2,
+    podiums: 12,
     races: 34
   }
 };
@@ -54,6 +54,10 @@ export default function Profile() {
           <div className="stat-card">
             <span className="stat-value">{MOCK_USER.stats.races}</span>
             <span className="stat-label">Carreras</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-value">{MOCK_USER.stats.podiums}</span>
+            <span className="stat-label">Podios</span>
           </div>
           <div className="stat-card">
             <span className="stat-value">{MOCK_USER.stats.championships}</span>
