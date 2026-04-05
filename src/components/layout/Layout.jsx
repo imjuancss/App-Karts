@@ -7,7 +7,8 @@ export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { to: "/championships", icon: Trophy, label: "Campeonatos" },
+    { to: "/", icon: Trophy, label: "Home" },
+    // { to: "/championships", icon: Trophy, label: "Campeonatos" },
     { to: "/tracks", icon: Map, label: "Pistas" },
     { to: "/profile", icon: User, label: "Perfil" }
   ];
