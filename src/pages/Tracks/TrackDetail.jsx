@@ -1,15 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Star, Clock, DollarSign, Calendar } from 'lucide-react';
-import { MOCK_TRACKS_DATA } from './TracksList';
+import { getTrackById } from '../../services/api';
 import './Tracks.css';
 
 export default function TrackDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('info');
+  const [track, setTrack] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const track = MOCK_TRACKS_DATA.find(t => t.id === parseInt(id)) || MOCK_TRACKS_DATA[0];
+  useEffect(() => {
+    async function loadTrack() {
+      setIsLoading(true);
+      const data = await getTrackById(id);
+      setTrack(data);
+      setIsLoading(false);
+    }
+    loadTrack();
+  }, [id]);
+
+  if (isLoading) {
+    return <div className="track-detail-container fade-in"><p>Cargando información de la pista...</p></div>;
+  }
+
+  if (!track) {
+    return <div className="track-detail-container fade-in"><p>Pista no encontrada o eliminada.</p></div>;
+  }
 
   return (
     <div className="track-detail-container fade-in">
@@ -18,18 +36,18 @@ export default function TrackDetail() {
       </button>
 
       <div className="track-header glass-panel">
-        <img src={track.image} alt={track.name} className="track-cover-large" />
+        <img src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} alt={track.name} className="track-cover-large" />
         <div className="track-header-content">
           <div className="track-title-row">
             <h1>{track.name}</h1>
             <div className="rating-badge">
               <Star size={18} fill="var(--accent)" color="var(--accent)"/>
-              <span>{track.rating}</span>
+              <span>{track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
             </div>
           </div>
           <div className="track-meta-row">
             <span><MapPin size={18}/> {track.location}</span>
-            <span><DollarSign size={18}/> {track.cost}</span>
+            <span><DollarSign size={18}/> {track.cost_info || 'Consultar costo'}</span>
             <span><Clock size={18}/> Mar-Dom, 10am-10pm</span>
           </div>
           

@@ -6,6 +6,7 @@ import TrackDetail from './pages/Tracks/TrackDetail';
 import ChampionshipsList from './pages/Championships/ChampionshipsList';
 import ChampionshipDetail from './pages/Championships/ChampionshipDetail';
 import HomeLeaderboard from './pages/HomeLeaderboard/HomeLeaderboard';
+import Auth from './pages/Auth/Auth';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/tracks/:id" element={<TrackDetail />} />
 
           <Route path="/profile" element={<Profile />} />
+          <Route path="/login" element={<Auth />} />
         </Routes>
       </Layout>
     </Router>

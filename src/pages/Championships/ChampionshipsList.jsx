@@ -1,31 +1,23 @@
-/* eslint-disable react-refresh/only-export-components */
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, Trophy } from 'lucide-react';
+import { getChampionships } from '../../services/api';
 import './Championships.css';
-
-export const MOCK_CHAMPS_DATA = [
-  {
-    id: 1,
-    name: "Copa Primavera 2026",
-    track: "Circuito Xtreme Karts",
-    date: "15-Abril a 30-Mayo",
-    participants: 24,
-    status: "Inscripciones Abiertas",
-    type: "Amateur"
-  },
-  {
-    id: 2,
-    name: "Liga Nocturna",
-    track: "Kartódromo XRP",
-    date: "01-Junio a 30-Julio",
-    participants: 12,
-    status: "Próximamente",
-    type: "Pro"
-  }
-];
 
 export default function ChampionshipsList() {
   const navigate = useNavigate();
+  const [champs, setChamps] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadChamps() {
+      setIsLoading(true);
+      const data = await getChampionships();
+      setChamps(data || []);
+      setIsLoading(false);
+    }
+    loadChamps();
+  }, []);
 
   return (
     <div className="champs-container fade-in">
@@ -40,22 +32,29 @@ export default function ChampionshipsList() {
       </div>
 
       <div className="champs-grid">
-        {MOCK_CHAMPS_DATA.map(champ => (
-          <div key={champ.id} className="champ-card glass-panel" onClick={() => navigate(`/championships/${champ.id}`)}>
-            <div className="champ-card-header">
-              <span className={`status-badge ${champ.status.includes('Abiertas') ? 'open' : ''}`}>{champ.status}</span>
-              <span className="type-badge">{champ.type}</span>
+        {isLoading ? (
+          <p style={{color: 'var(--text-secondary)'}}>Cargando campeonatos...</p>
+        ) : (
+          champs.map(champ => (
+            <div key={champ.id} className="champ-card glass-panel" onClick={() => navigate(`/championships/${champ.id}`)}>
+              <div className="champ-card-header">
+                <span className={`status-badge ${champ.status?.includes('Abiertas') ? 'open' : ''}`}>{champ.status || 'Definido'}</span>
+                <span className="type-badge">{champ.type || 'Open'}</span>
+              </div>
+              
+              <h3 className="champ-name">{champ.name}</h3>
+              <p className="champ-track">{champ.tracks?.name || 'Pista no asignada'}</p>
+              
+              <div className="champ-meta">
+                <span><Calendar size={16}/> {champ.start_date || 'TBD'} a {champ.end_date || 'TBD'}</span>
+                <span><Users size={16}/> - Pilotos</span>
+              </div>
             </div>
-            
-            <h3 className="champ-name">{champ.name}</h3>
-            <p className="champ-track">{champ.track}</p>
-            
-            <div className="champ-meta">
-              <span><Calendar size={16}/> {champ.date}</span>
-              <span><Users size={16}/> {champ.participants} Pilotos</span>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
+        {!isLoading && champs.length === 0 && (
+          <p style={{color: 'var(--text-secondary)'}}>No se encontraron campeonatos activos.</p>
+        )}
       </div>
     </div>
   );

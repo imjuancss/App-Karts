@@ -1,29 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Trophy, Calendar, MessageSquare } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { getProfile } from '../../services/api';
 import './Profile.css';
 
-// Mock Data
-const MOCK_USER = {
-  name: "Juan Camilo",
-  username: "@juancakart",
-  bio: "Amante de la velocidad y los motores. Siempre buscando romper mis propios récords.",
-  location: "Bogotá, Colombia",
-  joined: "Marzo 2026",
-  avatar: "https://i.pravatar.cc/150?u=juancamilo",
-  stats: {
-    championships: 4,
-    podiums: 12,
-    races: 34
-  }
-};
-
-const MOCK_CHAMPS = [
-  { id: 1, name: "Copa Primavera 2026", status: "Activo" },
-  { id: 2, name: "Liga Nocturna", status: "Próximamente" }
-];
-
 export default function Profile() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('campeonatos');
+  const [userProfile, setUserProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadUser() {
+      setIsLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const p = await getProfile(user.id);
+        setUserProfile(p);
+      }
+      setIsLoading(false);
+    }
+    loadUser();
+  }, []);
+
+  if (isLoading) return <div className="profile-container fade-in"><p>Cargando perfil...</p></div>;
+
+  if (!userProfile) {
+    return (
+      <div className="profile-container fade-in" style={{ textAlign: 'center', padding: '4rem 0' }}>
+        <h2>Aún no has iniciado sesión</h2>
+        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Conéctate para ver tus campeonatos y estadísticas.</p>
+        <button className="primary-btn" style={{ marginTop: '1.5rem' }} onClick={() => navigate('/login')}>Iniciar Sesión / Registro</button>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-container fade-in">
@@ -31,36 +43,36 @@ export default function Profile() {
       <section className="profile-header glass-panel">
         <div className="profile-cover"></div>
         <div className="profile-info-wrapper">
-          <img src={MOCK_USER.avatar} alt="Avatar" className="profile-avatar" />
+          <img src={userProfile.avatar_url || 'https://i.pravatar.cc/150'} alt="Avatar" className="profile-avatar" />
           <div className="profile-details">
             <div className="profile-title">
-              <h1>{MOCK_USER.name}</h1>
-              <span className="username">{MOCK_USER.username}</span>
+              <h1>{userProfile.full_name || 'Piloto'}</h1>
+              <span className="username">@{userProfile.username || 'usuario'}</span>
             </div>
-            <p className="profile-bio">{MOCK_USER.bio}</p>
+            <p className="profile-bio">{userProfile.bio || 'Sin biografía.'}</p>
             <div className="profile-meta">
-              <span><MapPin size={16}/> {MOCK_USER.location}</span>
-              <span><Calendar size={16}/> Miembro desde {MOCK_USER.joined}</span>
+              <span><MapPin size={16}/> {userProfile.location || 'Ubicación desconocida'}</span>
+              <span><Calendar size={16}/> Creado: {new Date(userProfile.created_at).toLocaleDateString()}</span>
             </div>
           </div>
           <div className="profile-actions">
             <button className="primary-btn">Editar Perfil</button>
-            <button className="secondary-btn">Compartir</button>
+            <button className="secondary-btn" onClick={async () => await supabase.auth.signOut()}>Cerrar Sesión</button>
           </div>
         </div>
         
         {/* Stats */}
         <div className="profile-stats">
           <div className="stat-card">
-            <span className="stat-value">{MOCK_USER.stats.races}</span>
+            <span className="stat-value">0</span>
             <span className="stat-label">Carreras</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">{MOCK_USER.stats.podiums}</span>
+            <span className="stat-value">0</span>
             <span className="stat-label">Podios</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">{MOCK_USER.stats.championships}</span>
+            <span className="stat-value">0</span>
             <span className="stat-label">Campeonatos</span>
           </div>
         </div>
@@ -87,20 +99,9 @@ export default function Profile() {
       <section className="tab-content glass-panel">
         {activeTab === 'campeonatos' && (
           <div className="content-grid list-view fade-in">
-            {MOCK_CHAMPS.map(champ => (
-              <div key={champ.id} className="list-item">
-                <div className="item-icon"><Trophy size={24} color="var(--accent)"/></div>
-                <div className="item-details">
-                  <h3>{champ.name}</h3>
-                  <p>Estado: {champ.status}</p>
-                </div>
-                <button className="secondary-btn" style={{padding: '0.5rem 1rem'}}>Ver Detalles</button>
-              </div>
-            ))}
+             <p style={{color: 'var(--text-secondary)'}}>Aún no te has inscrito a ningún campeonato.</p>
           </div>
         )}
-
-
 
         {activeTab === 'actividad' && (
           <div className="activity-feed fade-in">

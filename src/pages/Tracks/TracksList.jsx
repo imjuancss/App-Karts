@@ -1,44 +1,31 @@
-/* eslint-disable react-refresh/only-export-components */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Search } from 'lucide-react';
+import { getTracks } from '../../services/api';
 import './Tracks.css';
-
-export const MOCK_TRACKS_DATA = [
-  { 
-    id: 1, 
-    name: "Circuito Xtreme Karts", 
-    location: "Cajicá", 
-    rating: 4.8, 
-    cost: "$50.000 / heat",
-    image: "https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop"
-  },
-  { 
-    id: 2, 
-    name: "Kartódromo XRP", 
-    location: "Cajicá", 
-    rating: 4.5,
-    cost: "$45.000 / heat",
-    image: "https://images.unsplash.com/photo-1511994298241-608e28f14fde?w=600&h=400&fit=crop"
-  },
-  { 
-    id: 3, 
-    name: "Indoor Karts Bogotá", 
-    location: "Bogotá", 
-    rating: 4.2,
-    cost: "$35.000 / heat",
-    image: "https://images.unsplash.com/photo-1534158485743-c0d11ce8e18b?w=600&h=400&fit=crop"
-  }
-];
 
 export default function TracksList() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [tracks, setTracks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredTracks = MOCK_TRACKS_DATA.filter(t => 
-    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.location.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    async function loadTracks() {
+      setIsLoading(true);
+      const data = await getTracks();
+      setTracks(data || []);
+      setIsLoading(false);
+    }
+    loadTracks();
+  }, []);
+
+  const filteredTracks = tracks.filter(t => 
+    t.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.location?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+
 
   return (
     <div className="tracks-container fade-in">
@@ -60,20 +47,24 @@ export default function TracksList() {
       </div>
 
       <div className="tracks-grid">
-        {filteredTracks.map(track => (
-          <div key={track.id} className="track-card glass-panel" onClick={() => navigate(`/tracks/${track.id}`)}>
-            <img src={track.image} alt={track.name} className="track-image" />
-            <div className="track-info">
-              <h3>{track.name}</h3>
-              <div className="track-meta">
-                <span><MapPin size={16}/> {track.location}</span>
-                <span className="rating"><Star size={16} fill="var(--accent)" color="var(--accent)"/> {track.rating}</span>
+        {isLoading ? (
+          <p style={{color: 'var(--text-secondary)'}}>Cargando pistas...</p>
+        ) : (
+          filteredTracks.map(track => (
+            <div key={track.id} className="track-card glass-panel" onClick={() => navigate(`/tracks/${track.id}`)}>
+              <img src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} alt={track.name} className="track-image" />
+              <div className="track-info">
+                <h3>{track.name}</h3>
+                <div className="track-meta">
+                  <span><MapPin size={16}/> {track.location}</span>
+                  <span className="rating"><Star size={16} fill="var(--accent)" color="var(--accent)"/> {track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
+                </div>
+                <p className="track-cost">{track.cost_info || 'Consultar costo'}</p>
               </div>
-              <p className="track-cost">{track.cost}</p>
             </div>
-          </div>
-        ))}
-        {filteredTracks.length === 0 && (
+          ))
+        )}
+        {!isLoading && filteredTracks.length === 0 && (
           <p style={{color: 'var(--text-secondary)'}}>No se encontraron pistas.</p>
         )}
       </div>
