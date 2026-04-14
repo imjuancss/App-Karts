@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, MapPin, Trophy, MessageSquare } from 'lucide-react';
-import { MOCK_CHAMPS_DATA } from './ChampionshipsList';
+import { getChampionshipById } from '../../services/api';
 import './Championships.css';
 
 const MOCK_LEADERBOARD = [
@@ -16,8 +16,21 @@ export default function ChampionshipDetail() {
   const [activeTab, setActiveTab] = useState('ranking');
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [champ, setChamp] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const champ = MOCK_CHAMPS_DATA.find(c => c.id === parseInt(id)) || MOCK_CHAMPS_DATA[0];
+  useEffect(() => {
+    async function loadChamp() {
+      setIsLoading(true);
+      const data = await getChampionshipById(id);
+      setChamp(data);
+      setIsLoading(false);
+    }
+    loadChamp();
+  }, [id]);
+
+  if (isLoading) return <div className="champ-detail-container fade-in"><p>Cargando información del evento...</p></div>;
+  if (!champ) return <div className="champ-detail-container fade-in"><p>Campeonato no encontrado.</p></div>;
 
   const handleCheckout = () => {
     console.log("Preparando integración con Wompi...");
@@ -40,9 +53,9 @@ export default function ChampionshipDetail() {
           </div>
         </div>
         <div className="champ-meta-row">
-          <span><MapPin size={18}/> {champ.track}</span>
-          <span><Calendar size={18}/> {champ.date}</span>
-          <span><Users size={18}/> {champ.participants} Inscritos</span>
+          <span><MapPin size={18}/> {champ.tracks?.name || 'Pista no asignada'}</span>
+          <span><Calendar size={18}/> {champ.start_date || 'TBD'} a {champ.end_date || 'TBD'}</span>
+          <span><Users size={18}/> - Inscritos</span>
         </div>
       </div>
 
