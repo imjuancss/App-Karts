@@ -1,4 +1,11 @@
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Geist+Mono:ital,wght@0,400;0,700;1,800&display=swap');
+
+@theme {
+  --font-space: "Space Grotesk", sans-serif;
+  --font-mono: "Geist Mono", monospace;
+}
 
 :root {
   --bg-dark: #0f1115;
@@ -7,10 +14,11 @@
   --bg-card-hover: rgba(35, 41, 49, 0.8);
   --text-primary: #e2e8f0;
   --text-secondary: #94a3b8;
-  --accent: #facc15; /* Racing yellow accent */
+  --accent: #facc15;
+  /* Racing yellow accent */
   --accent-hover: #eab308;
   --border-color: rgba(255, 255, 255, 0.08);
-  --glass-border: 1px solid rgba(255,255,255,0.05);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.05);
   --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -22,7 +30,6 @@
 * {
   box-sizing: border-box;
   margin: 0;
-  padding: 0;
 }
 
 body {
@@ -43,13 +50,18 @@ body::before {
   left: -10%;
   width: 50%;
   height: 50%;
-  background: radial-gradient(circle, rgba(250,204,21,0.08) 0%, rgba(15,17,21,0) 70%);
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.08) 0%, rgba(15, 17, 21, 0) 70%);
   filter: blur(100px);
   z-index: -1;
   pointer-events: none;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   color: #fff;
   letter-spacing: -0.02em;
@@ -80,19 +92,17 @@ button {
 }
 
 /* Form inputs */
-input, textarea, select {
+input,
+textarea,
+select {
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  color: #fff;
   font-family: var(--font-family);
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
   transition: var(--transition);
-  outline: none;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: var(--accent);
   background: rgba(255, 255, 255, 0.05);
   box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.2);
@@ -104,23 +114,33 @@ input:focus, textarea:focus, select:focus {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-dark);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .primary-btn {
