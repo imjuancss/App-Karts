@@ -46,7 +46,7 @@
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   color: #fff;
 }
 
@@ -79,14 +79,15 @@
   gap: 0.5rem;
 }
 
-.mobile-trigger, .close-menu {
+.mobile-trigger,
+.close-menu {
   color: #fff;
 }
 
 .mobile-menu-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   z-index: 200;
   display: flex;
@@ -135,6 +136,7 @@
   .sidebar {
     width: 240px;
   }
+
   .main-content {
     margin-left: calc(240px + 2rem);
   }
@@ -144,11 +146,13 @@
   .sidebar {
     display: none;
   }
+
   .mobile-header {
     display: flex;
   }
+
   .main-content {
     margin-left: 0;
-    padding: calc(70px + 1.5rem) 1rem 2rem;
+    padding: calc(70px + 0rem) 0rem 0rem;
   }
 }
