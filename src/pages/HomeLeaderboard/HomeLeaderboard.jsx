@@ -1,92 +1,222 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const MOCK_LEADERBOARD = [
-  { id: 1, position: 1, name: "Diego Montoya", bestTime: "00:44.120", gap: "Leader", teamColor: "border-yellow-300", hasPole: true, textColor: "text-yellow-300", textShadow: "[text-shadow:_0px_0px_8px_rgb(255_212_58_/_0.50)]", filterColor: "0 0 0 0 1 0 0 0 0 0.831373 0 0 0 0 0.227451 0 0 0 0.5 0", poleSvgFill: "#B28B00", timeStroke: "#AA22DC", timeTextColor: "text-fuchsia-600" },
-  { id: 2, position: 2, name: "Adrestappen", bestTime: "00:44.118", gap: "+0.002s", teamColor: "border-zinc-400", hasPole: true, textColor: "text-zinc-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(186_186_186_/_0.50)]", filterColor: "0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0.5 0", poleSvgFill: "#898989", timeStroke: "white", timeTextColor: "text-lime-400" },
-  { id: 3, position: 3, name: "Carlos Sainz Perez", bestTime: "00:44.075", gap: "+0.045s", teamColor: "border-orange-400", hasPole: true, textColor: "text-orange-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(207_136_50_/_0.50)]", filterColor: "0 0 0 0 0.811765 0 0 0 0 0.533333 0 0 0 0 0.196078 0 0 0 0.5 0", poleSvgFill: "#9D6119", timeStroke: "white", timeTextColor: "text-lime-400" },
-  { id: 4, position: 4, name: "Maria Gomez", bestTime: "00:44.101", gap: "+0.019s", hasPole: false, timeStroke: "white", timeTextColor: "text-white" },
-  { id: 5, position: 5, name: "Mario Tsunoda", bestTime: "00:44.095", gap: "+0.025s", hasPole: false, timeStroke: "white", timeTextColor: "text-white" },
-  { id: 6, position: 6, name: "ElenaRod", bestTime: "00:44.080", gap: "+0.040s", hasPole: false, timeStroke: "white", timeTextColor: "text-white" },
-  { id: 7, position: 7, name: "Lucia Chen", bestTime: "00:44.045", gap: "+0.075s", hasPole: false, timeStroke: "white", timeTextColor: "text-white" },
-  { id: 8, position: 8, name: "VicDriver", bestTime: "00:44.050", gap: "+0.070s", hasPole: false, timeStroke: "white", timeTextColor: "text-white" },
-  { id: 9, position: 9, name: "Jamal Thompson", bestTime: "00:44.030", gap: "+0.090s", hasPole: false, timeStroke: "white", timeTextColor: "text-white" },
-  { id: 10, position: 10, name: "Ayrton Silva", bestTime: "00:44.020", gap: "+0.100s", hasPole: false, timeStroke: "white", timeTextColor: "text-white" },
+const formatMsToTime = (ms) => {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  const milliseconds = ms % 1000;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+};
+
+const formatGap = (leaderMs, currentMs) => {
+  if (leaderMs === currentMs) return "Leader";
+  const diff = currentMs - leaderMs;
+  const seconds = Math.floor(diff / 1000);
+  const milliseconds = diff % 1000;
+  return `+${seconds}.${milliseconds.toString().padStart(3, '0')}s`;
+};
+
+const MASTER_LEADERBOARD = [
+  // Track 1
+  { id: 1, name: "Diego Montoya", lapTimeMs: 44120, date: new Date(Date.now() - 2 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 2, name: "Adrestappen", lapTimeMs: 44118, date: new Date(Date.now() - 5 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 3, name: "Carlos Sainz Perez", lapTimeMs: 44075, date: new Date(Date.now() - 15 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 4, name: "Maria Gomez", lapTimeMs: 44101, date: new Date(Date.now() - 1 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 5, name: "Mario Tsunoda", lapTimeMs: 44095, date: new Date(Date.now() - 40 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 6, name: "ElenaRod", lapTimeMs: 44080, date: new Date(Date.now() - 10 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 7, name: "Lucia Chen", lapTimeMs: 44045, date: new Date(Date.now() - 20 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 8, name: "VicDriver", lapTimeMs: 44050, date: new Date(Date.now() - 3 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 9, name: "Jamal Thompson", lapTimeMs: 44030, date: new Date(Date.now() - 100 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 10, name: "Ayrton Silva", lapTimeMs: 44020, date: new Date(Date.now() - 60 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 11, name: "Fernando A.", lapTimeMs: 44015, date: new Date(Date.now() - 6 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 12, name: "Checo P.", lapTimeMs: 44010, date: new Date(Date.now() - 25 * 86400000).toISOString(), trackId: 'track1' },
+  { id: 13, name: "Charles L.", lapTimeMs: 44005, date: new Date(Date.now() - 120 * 86400000).toISOString(), trackId: 'track1' },
+  
+  // Track 2
+  { id: 14, name: "Lando N.", lapTimeMs: 45001, date: new Date(Date.now() - 1 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 15, name: "Oscar P.", lapTimeMs: 44998, date: new Date(Date.now() - 4 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 16, name: "George R.", lapTimeMs: 44990, date: new Date(Date.now() - 12 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 17, name: "Lewis H.", lapTimeMs: 44985, date: new Date(Date.now() - 20 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 18, name: "Alex A.", lapTimeMs: 44980, date: new Date(Date.now() - 40 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 19, name: "Yuki T.", lapTimeMs: 44975, date: new Date(Date.now() - 50 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 20, name: "Daniel R.", lapTimeMs: 44970, date: new Date(Date.now() - 60 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 21, name: "Kevin M.", lapTimeMs: 45100, date: new Date(Date.now() - 2 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 22, name: "Nico H.", lapTimeMs: 45150, date: new Date(Date.now() - 15 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 23, name: "Valtteri B.", lapTimeMs: 45200, date: new Date(Date.now() - 80 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 24, name: "Zhou G.", lapTimeMs: 45250, date: new Date(Date.now() - 5 * 86400000).toISOString(), trackId: 'track2' },
+  { id: 25, name: "Logan S.", lapTimeMs: 45300, date: new Date(Date.now() - 28 * 86400000).toISOString(), trackId: 'track2' }
+];
+
+const ORIGINAL_VISUAL_STYLES = [
+  { teamColor: "border-yellow-300", hasPole: true, textColor: "text-yellow-300", textShadow: "[text-shadow:_0px_0px_8px_rgb(255_212_58_/_0.50)]", filterColor: "0 0 0 0 1 0 0 0 0 0.831373 0 0 0 0 0.227451 0 0 0 0.5 0", poleSvgFill: "#B28B00", timeStroke: "#AA22DC", timeTextColor: "text-fuchsia-600" },
+  { teamColor: "border-zinc-400", hasPole: true, textColor: "text-zinc-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(186_186_186_/_0.50)]", filterColor: "0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0.5 0", poleSvgFill: "#898989", timeStroke: "white", timeTextColor: "text-lime-400" },
+  { teamColor: "border-orange-400", hasPole: true, textColor: "text-orange-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(207_136_50_/_0.50)]", filterColor: "0 0 0 0 0.811765 0 0 0 0 0.533333 0 0 0 0 0.196078 0 0 0 0.5 0", poleSvgFill: "#9D6119", timeStroke: "white", timeTextColor: "text-lime-400" }
 ];
 
 export default function HomeLeaderboard() {
   const [selectedTrackId, setSelectedTrackId] = useState('track1');
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState('historical');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [filteredLeaderboard, setFilteredLeaderboard] = useState([]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      // 1. Filter by Track
+      let filteredData = MASTER_LEADERBOARD.filter(d => d.trackId === selectedTrackId);
+      
+      // 2. Filter by Time
+      const now = Date.now();
+      const weekInMs = 7 * 86400000;
+      const monthInMs = 30 * 86400000;
+      
+      if (selectedTimeFilter === 'week') {
+        filteredData = filteredData.filter(d => (now - new Date(d.date).getTime()) <= weekInMs);
+      } else if (selectedTimeFilter === 'month') {
+        filteredData = filteredData.filter(d => (now - new Date(d.date).getTime()) <= monthInMs);
+      }
+      
+      // 3. Sort by lapTimeMs (lowest first)
+      filteredData.sort((a, b) => a.lapTimeMs - b.lapTimeMs);
+      
+      // 4. Map into visual UI shape strictly preserving original design
+      if (filteredData.length > 0) {
+        const leaderMs = filteredData[0].lapTimeMs;
+        const mappedData = filteredData.map((driver, index) => {
+          const visualStyle = index < 3 ? ORIGINAL_VISUAL_STYLES[index] : {
+            hasPole: false,
+            timeStroke: "white",
+            timeTextColor: "text-white"
+          };
+          
+          return {
+            ...driver,
+            ...visualStyle,
+            position: index + 1,
+            bestTime: formatMsToTime(driver.lapTimeMs),
+            gap: formatGap(leaderMs, driver.lapTimeMs)
+          };
+        });
+        setFilteredLeaderboard(mappedData);
+      } else {
+        setFilteredLeaderboard([]);
+      }
+      
+      setIsLoading(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [selectedTrackId, selectedTimeFilter]);
 
   return (
-    <div className="w-full min-h-screen bg-[#121212] flex justify-center overflow-auto font-sans">
-      <div className="w-full max-w-md mx-auto md:max-w-2xl relative bg-[#121212] flex flex-col justify-start items-center min-h-screen overflow-hidden">
+    <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col bg-[#121212] items-center font-sans">
+      <div className="w-full h-full max-w-md mx-auto md:max-w-2xl relative flex flex-col">
 
-        {/* Content area: the leaderboard and filters */}
-        <div className="self-stretch flex-1 px-4 pt-4 flex flex-col justify-start items-start gap-2 relative overflow-y-auto pb-32">
+        {/* Zona Superior Fija */}
+        <div className="flex-shrink-0 z-40 bg-[#121212] pb-2 pt-4 px-4 w-full">
 
           {/* Header text and location */}
           <div className="self-stretch flex flex-col justify-start items-start gap-2">
             <div className="self-stretch inline-flex justify-start items-center gap-2.5">
               <div className="text-center justify-start text-white text-base font-bold font-space uppercase">Standings</div>
             </div>
-            <div className="self-stretch h-14 px-2 relative inline-flex justify-center items-center gap-2 overflow-hidden">
-              <img className="w-full h-auto object-cover absolute top-[50%] left-0 pointer-events-none opacity-50 transform -translate-y-1/2" src="https://placehold.co/369x492" alt="Track cover" />
-              <div className="flex flex-1 justify-start items-center gap-1 z-10">
-                <div data-svg-wrapper className="relative">
+            <div className="self-stretch h-14 px-2 relative inline-flex justify-center items-center gap-2 overflow-visible">
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <img className="w-full h-auto object-cover absolute top-[50%] left-0 opacity-50 transform -translate-y-1/2" src="https://placehold.co/369x492" alt="Track cover" />
+              </div>
+              <div 
+                className="flex flex-1 justify-between items-center gap-1 z-20 cursor-pointer relative"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <div className="flex items-center gap-2">
+                  <div data-svg-wrapper className="relative">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <g clipPath="url(#clip0_88_765)">
+                        <path d="M8 8.5C9.10457 8.5 10 7.60457 10 6.5C10 5.39543 9.10457 4.5 8 4.5C6.89543 4.5 6 5.39543 6 6.5C6 7.60457 6.89543 8.5 8 8.5Z" stroke="#FF3100" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M13 6.5C13 11 8 14.5 8 14.5C8 14.5 3 11 3 6.5C3 5.17392 3.52678 3.90215 4.46447 2.96447C5.40215 2.02678 6.67392 1.5 8 1.5C9.32608 1.5 10.5979 2.02678 11.5355 2.96447C12.4732 3.90215 13 5.17392 13 6.5Z" stroke="#FF3100" strokeLinecap="round" strokeLinejoin="round" />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_88_765">
+                          <rect width="16" height="16" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </div>
+
+                  <div className="flex-1 justify-start text-white text-xs font-bold font-sans uppercase select-none">
+                    {selectedTrackId === 'track1' ? 'CITY KARTS - CC. SANTAFÉ BOGOTÁ' : 'XTREME KARTS CAJICÁ'}
+                  </div>
+                </div>
+                
+                <div data-svg-wrapper className={`relative pointer-events-none transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <g clipPath="url(#clip0_88_765)">
-                      <path d="M8 8.5C9.10457 8.5 10 7.60457 10 6.5C10 5.39543 9.10457 4.5 8 4.5C6.89543 4.5 6 5.39543 6 6.5C6 7.60457 6.89543 8.5 8 8.5Z" stroke="#FF3100" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M13 6.5C13 11 8 14.5 8 14.5C8 14.5 3 11 3 6.5C3 5.17392 3.52678 3.90215 4.46447 2.96447C5.40215 2.02678 6.67392 1.5 8 1.5C9.32608 1.5 10.5979 2.02678 11.5355 2.96447C12.4732 3.90215 13 5.17392 13 6.5Z" stroke="#FF3100" strokeLinecap="round" strokeLinejoin="round" />
+                    <g clipPath="url(#clip0_88_770)">
+                      <path d="M13 6L8 11L3 6" stroke="white" strokeOpacity="0.8" strokeLinecap="round" strokeLinejoin="round" />
                     </g>
                     <defs>
-                      <clipPath id="clip0_88_765">
+                      <clipPath id="clip0_88_770">
                         <rect width="16" height="16" fill="white" />
                       </clipPath>
                     </defs>
                   </svg>
                 </div>
 
-                {/* Select Track logic mapped here */}
-                <select
-                  value={selectedTrackId}
-                  onChange={(e) => setSelectedTrackId(e.target.value)}
-                  className="flex-1 justify-start text-white text-xs font-bold font-sans bg-transparent outline-none appearance-none cursor-pointer uppercase"
-                >
-                  <option value="track1" className="bg-[#1a1a1a] text-white">CITY KARTS - CC. SANTAFÉ BOGOTÁ</option>
-                  <option value="track2" className="bg-[#1a1a1a] text-white">XTREME KARTS CAJICÁ</option>
-                </select>
-              </div>
-              <div data-svg-wrapper className="relative pointer-events-none z-10">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <g clipPath="url(#clip0_88_770)">
-                    <path d="M13 6L8 11L3 6" stroke="white" strokeOpacity="0.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_88_770">
-                      <rect width="16" height="16" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
+                {/* Custom Dropdown Menu */}
+                {isDropdownOpen && (
+                  <ul className="absolute top-[120%] left-0 w-full z-50 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
+                    <li 
+                      onClick={(e) => { e.stopPropagation(); setSelectedTrackId('track1'); setIsDropdownOpen(false); }}
+                      className={`px-4 py-3 text-xs font-bold uppercase cursor-pointer transition-colors ${selectedTrackId === 'track1' ? 'text-white bg-white/5' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+                    >
+                      CITY KARTS - CC. SANTAFÉ BOGOTÁ
+                    </li>
+                    <li 
+                      onClick={(e) => { e.stopPropagation(); setSelectedTrackId('track2'); setIsDropdownOpen(false); }}
+                      className={`px-4 py-3 text-xs font-bold uppercase cursor-pointer transition-colors border-t border-white/5 ${selectedTrackId === 'track2' ? 'text-white bg-white/5' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+                    >
+                      XTREME KARTS CAJICÁ
+                    </li>
+                  </ul>
+                )}
               </div>
             </div>
 
             {/* Time filters */}
             <div className="self-stretch p-1 bg-transparent inline-flex justify-start items-center gap-2">
-              <div className="flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer">
-                <div className="text-center justify-start text-white/50 text-sm font-normal font-sans">Esta semana</div>
+              <div 
+                onClick={() => setSelectedTimeFilter('week')}
+                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'week' ? 'bg-[#1a1a1a]' : 'hover:bg-white/5'}`}
+              >
+                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'week' ? 'text-white' : 'text-white/50'}`}>Esta semana</div>
               </div>
-              <div className="flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer">
-                <div className="text-center justify-start text-white/50 text-sm font-normal font-sans">Este mes</div>
+              <div 
+                onClick={() => setSelectedTimeFilter('month')}
+                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'month' ? 'bg-[#1a1a1a]' : 'hover:bg-white/5'}`}
+              >
+                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'month' ? 'text-white' : 'text-white/50'}`}>Este mes</div>
               </div>
-              <div className="flex-1 h-8 p-2 bg-[#1a1a1a] flex justify-center items-center gap-2.5 cursor-pointer">
-                <div className="text-center justify-start text-white text-sm font-normal font-sans">Histórico</div>
+              <div 
+                onClick={() => setSelectedTimeFilter('historical')}
+                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'historical' ? 'bg-[#1a1a1a]' : 'hover:bg-white/5'}`}
+              >
+                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'historical' ? 'text-white' : 'text-white/50'}`}>Histórico</div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Zona de Scroll (Lista) */}
+        <div className="flex-1 overflow-y-auto px-4 pb-24 w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
           {/* List Wrapper */}
           <div className="self-stretch flex-1 inline-flex justify-center items-start gap-2.5 w-full">
-            <div className="flex-1 inline-flex flex-col justify-start items-start gap-1 overflow-hidden w-full">
-              {MOCK_LEADERBOARD.map((driver) => {
+            <div className="flex-1 inline-flex flex-col justify-start items-start gap-1 w-full">
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center w-full py-16 gap-4 opacity-70">
+                  <div className="w-8 h-8 border-[3px] border-[#FF3100] border-t-transparent rounded-full animate-spin"></div>
+                  <div className="text-white/60 text-sm font-sans tracking-wide">Cargando tiempos...</div>
+                </div>
+              ) : filteredLeaderboard.map((driver) => {
                 if (driver.hasPole) {
                   return (
                     <div key={driver.id} data-pole="Yes" className={`self-stretch h-[64px] pl-[4px] pr-[8px] bg-[#1a1a1a] border-l-2 ${driver.teamColor} inline-flex justify-between items-center overflow-visible`}>
@@ -97,7 +227,7 @@ export default function HomeLeaderboard() {
                               <div className={`text-center justify-center ${driver.textColor} text-lg font-extrabold font-mono ${driver.textShadow} italic`}>{driver.position}</div>
                             </div>
                             <div data-svg-wrapper>
-                              <svg width="40" height="8" viewBox="0 8 40 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <svg width="40" height="8" viewBox="0 8 40 8" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ overflow: 'visible' }}>
                                 <g filter={`url(#filter0_d_89_${driver.id})`}>
                                   <path d="M31.9743 8C32.1067 8.9978 31.7342 9.60834 30.837 9.92299C30.5622 10.2515 30.2292 10.6121 29.8359 10.9833C30.4761 10.7597 31.067 10.9338 31.5814 11.4208C31.3067 11.731 30.8511 11.9568 30.443 11.9766C29.9432 12.0007 29.5799 11.835 29.2209 11.529C28.8625 11.8284 28.4664 12.1283 28.0323 12.4185C28.8671 12.2835 29.5292 12.6599 29.9776 13.4341C29.5772 13.6743 29.0182 13.7661 28.5702 13.6484C28.0594 13.5143 27.7198 13.2156 27.443 12.7913C27.0584 13.0215 26.6484 13.2424 26.212 13.4475C26.5197 13.4532 26.7691 13.4974 27.0937 13.6607C27.5634 13.897 27.986 14.3968 28.1495 14.904C27.0107 15.3504 25.9198 14.8848 25.395 13.7991C25.0279 13.9438 24.6448 14.0767 24.2455 14.1953C24.4069 14.2326 24.5647 14.2862 24.7142 14.3605C25.3676 14.6891 25.6885 15.2274 25.9151 15.9029C24.9922 16.1417 24.0683 15.9342 23.4676 15.144C23.2995 14.9229 23.2005 14.7219 23.1082 14.481C22.1525 14.6811 21.1172 14.8002 20 14.8002C18.8837 14.8002 17.849 14.6819 16.8939 14.4821C16.4001 15.6916 15.395 16.2369 14.0937 15.904C14.3792 15.0183 14.9014 14.3899 15.7567 14.1964C15.3587 14.0783 14.9765 13.9466 14.6105 13.8024C14.104 14.9015 12.9833 15.3256 11.8571 14.9029C11.947 14.6119 12.1881 14.239 12.4073 14.0324C12.876 13.5907 13.2547 13.4707 13.7935 13.4509C13.3573 13.2461 12.947 13.0257 12.5625 12.7957C11.9938 13.7069 10.971 13.9414 10.0279 13.433C10.4694 12.6627 11.1383 12.2869 11.9643 12.4163C11.5329 12.1277 11.1389 11.83 10.7823 11.5324C10.0393 12.1792 9.12834 12.1163 8.42186 11.4208C8.93928 10.927 9.51816 10.7679 10.1629 10.9844C9.7694 10.613 9.43666 10.2516 9.16182 9.92299C8.44392 9.70965 7.97412 9.1102 8.0011 8.31808C8.00475 8.21149 8.01865 8.10691 8.03124 8.00112C8.85262 8.18334 9.30368 8.7432 9.33927 9.50892C9.40796 9.57751 9.47876 9.64738 9.55132 9.71875C9.50289 9.32345 9.62392 8.94608 9.87945 8.54129C10.558 9.03445 10.7445 9.81571 10.423 10.5368C10.6116 10.7046 10.8108 10.874 11.0201 11.0446C10.9216 10.5981 11.026 10.1548 11.2924 9.702C12.0466 10.202 12.2612 10.9752 11.9765 11.769C12.2042 11.9273 12.4421 12.0835 12.6908 12.2355C12.4244 11.6842 12.4685 11.0745 12.7801 10.4554C13.6217 10.9469 14.0221 11.8282 13.6886 12.7879C13.9962 12.9423 14.3176 13.0891 14.654 13.2254C14.153 12.5543 14.1168 11.8024 14.4799 10.9386C15.278 11.3353 15.8018 12.0913 15.7466 13.0145C15.7342 13.2222 15.6953 13.3965 15.6395 13.5792C16.0779 13.7176 16.5384 13.8371 17.0223 13.9353C16.2843 13.3439 16.0786 12.5536 16.2689 11.51C17.3039 11.8157 17.9021 12.441 18.0513 13.5379C18.0558 13.7973 18.0571 13.9174 18.0323 14.1027C18.6527 14.1824 19.3077 14.2288 20 14.2288C20.6955 14.2288 21.3535 14.182 21.9765 14.1015C21.8342 12.8154 22.469 11.8827 23.7366 11.5112C23.9446 12.5495 23.7129 13.3427 22.9799 13.9353C23.4642 13.8369 23.9251 13.7168 24.3638 13.5781C24.0209 12.5005 24.5036 11.4437 25.5256 10.9397C25.9099 11.7627 25.8397 12.5601 25.3493 13.2232C25.6876 13.0859 26.0111 12.9389 26.3203 12.7835C26.008 11.8345 26.3288 10.9949 27.2254 10.4565C27.3854 10.7344 27.4946 11.144 27.4888 11.4654C27.4833 11.7592 27.4259 12.0044 27.3203 12.2277C27.565 12.0778 27.7991 11.9239 28.0234 11.7678C27.7279 10.9736 27.9828 10.2071 28.7109 9.70312C28.829 9.87064 28.9439 10.1544 28.9821 10.356C29.0303 10.6106 29.03 10.8293 28.9865 11.0368C29.1932 10.8682 29.3906 10.7016 29.5769 10.5357C29.2509 9.81316 29.4585 9.05297 30.1249 8.54018C30.3896 8.93492 30.5018 9.31766 30.4508 9.71651C30.52 9.64843 30.5871 9.58118 30.6528 9.51562C30.6699 8.75718 31.2009 8.18815 31.9743 8Z" fill={driver.poleSvgFill} />
                                 </g>
@@ -190,8 +320,8 @@ export default function HomeLeaderboard() {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-0 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center gap-2.5 p-4 bg-gradient-to-b from-[#121212]/0 to-[#121212]/80 backdrop-blur-[2px]">
-          <div className="self-stretch w-full h-10 px-3 py-2 bg-[#FF3100] shadow-[0px_-4px_28px_-4px_rgba(#FF3100)] inline-flex justify-center items-center gap-2 cursor-pointer pointer-events-auto">
+        <div className="fixed bottom-0 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center gap-2.5 p-4 bg-gradient-to-t from-[#121212] via-[#121212]/90 to-transparent backdrop-blur-[0px]">
+          <div className="self-stretch w-full h-10 px-3 py-2 bg-[#FF3100] shadow-[0px_-4px_28px_-4px_#FF3100] inline-flex justify-center items-center gap-2 cursor-pointer pointer-events-auto">
             <div data-svg-wrapper className="relative">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_45_2173)">
