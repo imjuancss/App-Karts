@@ -1,4 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MapPin } from 'lucide-react';
 
 const formatMsToTime = (ms) => {
   const minutes = Math.floor(ms / 60000);
@@ -30,7 +38,7 @@ const MASTER_LEADERBOARD = [
   { id: 11, name: "Fernando A.", lapTimeMs: 44015, date: new Date(Date.now() - 6 * 86400000).toISOString(), trackId: 'track1' },
   { id: 12, name: "Checo P.", lapTimeMs: 44010, date: new Date(Date.now() - 25 * 86400000).toISOString(), trackId: 'track1' },
   { id: 13, name: "Charles L.", lapTimeMs: 44005, date: new Date(Date.now() - 120 * 86400000).toISOString(), trackId: 'track1' },
-  
+
   // Track 2
   { id: 14, name: "Lando N.", lapTimeMs: 45001, date: new Date(Date.now() - 1 * 86400000).toISOString(), trackId: 'track2' },
   { id: 15, name: "Oscar P.", lapTimeMs: 44998, date: new Date(Date.now() - 4 * 86400000).toISOString(), trackId: 'track2' },
@@ -55,30 +63,77 @@ const ORIGINAL_VISUAL_STYLES = [
 export default function HomeLeaderboard() {
   const [selectedTrackId, setSelectedTrackId] = useState('track1');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('historical');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [filteredLeaderboard, setFilteredLeaderboard] = useState([]);
+
+  // Scroll-Linked Animation — DOM-direct, zero re-render
+  const scrollContainerRef = useRef(null);
+  const mapContainerRef = useRef(null);
+  const rafId = useRef(null);
+  const lastScrollTop = useRef(0);
+  const currentHeaderHeight = useRef(0);
+
+  const MOBILE_MAX_H = 100;
+  const DESKTOP_BREAKPOINT = 768;
+
+  const handleScroll = () => {
+    // Desktop: CSS classes handle static layout, skip JS entirely
+    if (window.innerWidth >= DESKTOP_BREAKPOINT) return;
+    if (rafId.current) return;
+    rafId.current = requestAnimationFrame(() => {
+      rafId.current = null;
+      const el = mapContainerRef.current;
+      const container = scrollContainerRef.current;
+      if (!el || !container) return;
+
+      const currentScrollTop = container.scrollTop;
+      const delta = lastScrollTop.current - currentScrollTop; // positive = scroll up, negative = scroll down
+
+      let newH = currentHeaderHeight.current + delta;
+      newH = Math.min(MOBILE_MAX_H, Math.max(0, newH));
+
+      const ratio = newH / MOBILE_MAX_H;
+      el.style.height = `${newH}px`;
+      el.style.opacity = ratio;
+      el.style.marginTop = `${ratio * 8}px`;
+
+      lastScrollTop.current = currentScrollTop;
+      currentHeaderHeight.current = newH;
+    });
+  };
+
+  // Seed initial styles on mobile only
+  useEffect(() => {
+    if (window.innerWidth >= DESKTOP_BREAKPOINT) return;
+    const el = mapContainerRef.current;
+    if (!el) return;
+    currentHeaderHeight.current = MOBILE_MAX_H;
+    el.style.height = `${MOBILE_MAX_H}px`;
+    el.style.opacity = '1';
+    el.style.marginTop = '8px';
+    el.style.marginBottom = '8px';
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => {
       // 1. Filter by Track
       let filteredData = MASTER_LEADERBOARD.filter(d => d.trackId === selectedTrackId);
-      
+
       // 2. Filter by Time
       const now = Date.now();
       const weekInMs = 7 * 86400000;
       const monthInMs = 30 * 86400000;
-      
+
       if (selectedTimeFilter === 'week') {
         filteredData = filteredData.filter(d => (now - new Date(d.date).getTime()) <= weekInMs);
       } else if (selectedTimeFilter === 'month') {
         filteredData = filteredData.filter(d => (now - new Date(d.date).getTime()) <= monthInMs);
       }
-      
+
       // 3. Sort by lapTimeMs (lowest first)
       filteredData.sort((a, b) => a.lapTimeMs - b.lapTimeMs);
-      
+
       // 4. Map into visual UI shape strictly preserving original design
       if (filteredData.length > 0) {
         const leaderMs = filteredData[0].lapTimeMs;
@@ -88,7 +143,7 @@ export default function HomeLeaderboard() {
             timeStroke: "white",
             timeTextColor: "text-white"
           };
-          
+
           return {
             ...driver,
             ...visualStyle,
@@ -101,7 +156,7 @@ export default function HomeLeaderboard() {
       } else {
         setFilteredLeaderboard([]);
       }
-      
+
       setIsLoading(false);
     }, 300);
 
@@ -113,100 +168,88 @@ export default function HomeLeaderboard() {
       <div className="w-full h-full max-w-md mx-auto md:max-w-2xl relative flex flex-col">
 
         {/* Zona Superior Fija */}
-        <div className="flex-shrink-0 z-40 bg-[#121212] pb-2 pt-4 px-4 w-full">
+        <div className="flex-shrink-0 z-40 bg-[#121212] pb-2 pt-4 px-4 w-full flex flex-col gap-4">
 
           {/* Header text and location */}
-          <div className="self-stretch flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch inline-flex justify-start items-center gap-2.5">
-              <div className="text-center justify-start text-white text-base font-bold font-space uppercase">Standings</div>
+          <div className="self-stretch flex flex-col justify-start items-start md:gap-4">
+
+            {/* Track Selector (Shadcn UI) */}
+            <div className="w-full md:mb-0">
+              <Select value={selectedTrackId} onValueChange={setSelectedTrackId}>
+                <SelectTrigger className="w-full rounded-none font-bold uppercase text-xs tracking-wide border-none bg-transparent shadow-none p-0 h-auto justify-start focus:ring-0">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={16} className="text-[#FF3100]" />
+                    <SelectValue placeholder="Selecciona una pista">
+                      {selectedTrackId === 'track1' ? 'CITY KARTS - CC. SANTAFÉ BOGOTÁ' : 'XTREME KARTS CAJICÁ'}
+                    </SelectValue>
+                  </div>
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false} align="start" sideOffset={8} className="rounded-none bg-[#1a1a1a] border-white/10 text-white">
+                  <SelectItem value="track1" className="text-xs font-bold uppercase cursor-pointer py-3">CITY KARTS - CC. SANTAFÉ BOGOTÁ</SelectItem>
+                  <SelectItem value="track2" className="text-xs font-bold uppercase cursor-pointer py-3">XTREME KARTS CAJICÁ</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="self-stretch h-14 px-2 relative inline-flex justify-center items-center gap-2 overflow-visible">
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <img className="w-full h-auto object-cover absolute top-[50%] left-0 opacity-50 transform -translate-y-1/2" src="https://placehold.co/369x492" alt="Track cover" />
-              </div>
-              <div 
-                className="flex flex-1 justify-between items-center gap-1 z-20 cursor-pointer relative"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                <div className="flex items-center gap-2">
-                  <div data-svg-wrapper className="relative">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <g clipPath="url(#clip0_88_765)">
-                        <path d="M8 8.5C9.10457 8.5 10 7.60457 10 6.5C10 5.39543 9.10457 4.5 8 4.5C6.89543 4.5 6 5.39543 6 6.5C6 7.60457 6.89543 8.5 8 8.5Z" stroke="#FF3100" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M13 6.5C13 11 8 14.5 8 14.5C8 14.5 3 11 3 6.5C3 5.17392 3.52678 3.90215 4.46447 2.96447C5.40215 2.02678 6.67392 1.5 8 1.5C9.32608 1.5 10.5979 2.02678 11.5355 2.96447C12.4732 3.90215 13 5.17392 13 6.5Z" stroke="#FF3100" strokeLinecap="round" strokeLinejoin="round" />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_88_765">
-                          <rect width="16" height="16" fill="white" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  </div>
 
-                  <div className="flex-1 justify-start text-white text-xs font-bold font-sans uppercase select-none">
-                    {selectedTrackId === 'track1' ? 'CITY KARTS - CC. SANTAFÉ BOGOTÁ' : 'XTREME KARTS CAJICÁ'}
-                  </div>
-                </div>
-                
-                <div data-svg-wrapper className={`relative pointer-events-none transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <g clipPath="url(#clip0_88_770)">
-                      <path d="M13 6L8 11L3 6" stroke="white" strokeOpacity="0.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_88_770">
-                        <rect width="16" height="16" fill="white" />
-                      </clipPath>
-                    </defs>
+            {/* Map Silhouette & Background — scroll-linked mobile / static desktop */}
+            <div
+              ref={mapContainerRef}
+              className="w-full rounded-none overflow-hidden shrink-0 mb-2 md:h-[140px] md:opacity-100 md:mb-4"
+              style={{ willChange: 'height, opacity' }}
+            >
+              <div className="w-full h-full relative rounded-none flex items-center justify-center border border-white/5 bg-[#121212]" style={{ minHeight: '100%' }}>
+                <img className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity" src="https://placehold.co/800x400/121212/333333" alt="Track cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/40 to-transparent"></div>
+
+                <div className="z-10 flex flex-col items-center justify-center pointer-events-none">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-2 drop-shadow-md">
+                    <path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8Z" strokeDasharray="4 4" />
+                    <path d="M12 8v4l3 3" />
                   </svg>
+                  <span className="text-white/50 text-[10px] font-mono tracking-widest uppercase">Mapa del Circuito</span>
                 </div>
-
-                {/* Custom Dropdown Menu */}
-                {isDropdownOpen && (
-                  <ul className="absolute top-[120%] left-0 w-full z-50 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
-                    <li 
-                      onClick={(e) => { e.stopPropagation(); setSelectedTrackId('track1'); setIsDropdownOpen(false); }}
-                      className={`px-4 py-3 text-xs font-bold uppercase cursor-pointer transition-colors ${selectedTrackId === 'track1' ? 'text-white bg-white/5' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
-                    >
-                      CITY KARTS - CC. SANTAFÉ BOGOTÁ
-                    </li>
-                    <li 
-                      onClick={(e) => { e.stopPropagation(); setSelectedTrackId('track2'); setIsDropdownOpen(false); }}
-                      className={`px-4 py-3 text-xs font-bold uppercase cursor-pointer transition-colors border-t border-white/5 ${selectedTrackId === 'track2' ? 'text-white bg-white/5' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
-                    >
-                      XTREME KARTS CAJICÁ
-                    </li>
-                  </ul>
-                )}
               </div>
             </div>
 
             {/* Time filters */}
-            <div className="self-stretch p-1 bg-transparent inline-flex justify-start items-center gap-2">
-              <div 
+            <div className="self-stretch p-1 bg-[#1a1a1a] inline-flex justify-start items-center gap-2">
+              <div
                 onClick={() => setSelectedTimeFilter('week')}
-                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'week' ? 'bg-[#1a1a1a]' : 'hover:bg-white/5'}`}
+                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'week' ? 'bg-white/10' : 'hover:bg-white/5'}`}
               >
-                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'week' ? 'text-white' : 'text-white/50'}`}>Esta semana</div>
+                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'week' ? 'text-white' : 'text-white/60'}`}>Esta semana</div>
               </div>
-              <div 
+              <div
                 onClick={() => setSelectedTimeFilter('month')}
-                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'month' ? 'bg-[#1a1a1a]' : 'hover:bg-white/5'}`}
+                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'month' ? 'bg-white/10' : 'hover:bg-white/5'}`}
               >
-                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'month' ? 'text-white' : 'text-white/50'}`}>Este mes</div>
+                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'month' ? 'text-white' : 'text-white/60'}`}>Este mes</div>
               </div>
-              <div 
+              <div
                 onClick={() => setSelectedTimeFilter('historical')}
-                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'historical' ? 'bg-[#1a1a1a]' : 'hover:bg-white/5'}`}
+                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'historical' ? 'bg-white/10' : 'hover:bg-white/5'}`}
               >
-                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'historical' ? 'text-white' : 'text-white/50'}`}>Histórico</div>
+                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'historical' ? 'text-white' : 'text-white/60'}`}>Histórico</div>
               </div>
             </div>
+          </div>
+
+          {/* Títulos de Columnas */}
+          <div className="flex justify-between items-center w-full px-2 mt-2">
+            <div className="flex items-center gap-5">
+              <div className="text-white/40 text-[10px] font-bold font-sans tracking-widest w-[32px] text-center">POS</div>
+              <div className="text-white/40 text-[10px] font-bold font-sans tracking-widest text-left">DRIVER</div>
+            </div>
+            <div className="text-white/40 text-[10px] font-bold font-sans tracking-widest text-right">LAP</div>
           </div>
         </div>
 
         {/* Zona de Scroll (Lista) */}
-        <div className="flex-1 overflow-y-auto px-4 pb-24 w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto px-4 pb-24 w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
 
           {/* List Wrapper */}
           <div className="self-stretch flex-1 inline-flex justify-center items-start gap-2.5 w-full">
@@ -219,10 +262,10 @@ export default function HomeLeaderboard() {
               ) : filteredLeaderboard.map((driver) => {
                 if (driver.hasPole) {
                   return (
-                    <div key={driver.id} data-pole="Yes" className={`self-stretch h-[64px] pl-[4px] pr-[8px] bg-[#1a1a1a] border-l-2 ${driver.teamColor} inline-flex justify-between items-center overflow-visible`}>
+                    <div key={driver.id} data-pole="Yes" className={`self-stretch h-[52px] pl-[4px] pr-[8px] bg-[#1a1a1a] border-l-2 ${driver.teamColor} inline-flex justify-between items-center overflow-visible`}>
                       <div className="flex-1 flex justify-start items-center gap-1">
                         <div className="flex-1 flex justify-start items-center gap-1">
-                          <div data-position={driver.position} data-type="Number" className=" inline-flex flex-col justify-start items-center">
+                          <div data-position={driver.position} data-type="Number" className="w-[42px] inline-flex flex-col justify-start items-center">
                             <div className="w-4 h-4 flex flex-col justify-center items-center gap-2.5">
                               <div className={`text-center justify-center ${driver.textColor} text-lg font-extrabold font-mono ${driver.textShadow} italic`}>{driver.position}</div>
                             </div>
@@ -247,7 +290,7 @@ export default function HomeLeaderboard() {
                             </div>
                           </div>
                           <div className="flex justify-start items-center gap-2">
-                            <img src={`https://i.pravatar.cc/150?u=${driver.id}`} className="w-10 h-10 object-cover" alt={driver.name} />
+                            <img src={`https://i.pravatar.cc/150?u=${driver.id}`} className="w-8 h-8 object-cover" alt={driver.name} />
                             <div className="text-center justify-start text-white text-base font-medium font-space">{driver.name}</div>
                           </div>
                         </div>
