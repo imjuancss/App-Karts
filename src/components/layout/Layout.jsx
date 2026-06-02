@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Trophy, Map, User, Menu, X, Flag } from 'lucide-react';
+import { Trophy, Map, User, Menu, X, Flag, Home } from 'lucide-react';
 import './Layout.css';
 
 export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { to: "/", icon: Trophy, label: "Home" },
-    // { to: "/championships", icon: Trophy, label: "Campeonatos" },
+    { to: "/", icon: Home, label: "Home" },
+    { to: "/championships", icon: Trophy, label: "Campeonatos" },
     { to: "/tracks", icon: Map, label: "Pistas" },
     { to: "/profile", icon: User, label: "Perfil" }
   ];

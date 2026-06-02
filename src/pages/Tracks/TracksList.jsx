@@ -29,11 +29,14 @@ export default function TracksList() {
 
   return (
     <div className="tracks-container fade-in">
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1>Pistas de Karts</h1>
           <p className="subtitle">Encuentra los mejores circuitos para correr</p>
         </div>
+        <button className="primary-btn" onClick={() => navigate('/tracks/new')}>
+          Registrar Nueva Pista
+        </button>
       </div>
 
       <div className="search-bar glass-panel">
