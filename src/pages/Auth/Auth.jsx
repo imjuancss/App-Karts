@@ -11,6 +11,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorDesc, setErrorDesc] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -25,6 +26,14 @@ export default function Auth() {
     } else {
       const res = await supabase.auth.signUp({ email, password });
       error = res.error;
+      // If sign‑up succeeded but no session (email verification required),
+      // inform the user and stop navigation.
+      if (!error && !res.session) {
+        setSuccessMsg('Registro exitoso. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.');
+        setErrorDesc('');
+        setIsLoading(false);
+        return;
+      }
     }
 
     if (error) {
@@ -66,6 +75,12 @@ export default function Auth() {
         {errorDesc && (
           <div className="auth-error">
             <p>{errorDesc}</p>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="auth-success">
+            <p>{successMsg}</p>
           </div>
         )}
 

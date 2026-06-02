@@ -112,7 +112,13 @@ export default function TrackDetail() {
       </button>
 
       <div className="track-header glass-panel">
-        <img src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} alt={track.name} className="track-cover-large" />
+        <img 
+          src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} 
+          alt={track.name} 
+          className="track-cover-large" 
+          fetchpriority="high"
+          decoding="async"
+        />
         <div className="track-header-content">
           <div className="track-title-row">
             <h1>{track.name}</h1>

@@ -1,33 +1,49 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
-import Profile from './pages/Profile/Profile';
-import TracksList from './pages/Tracks/TracksList';
-import TrackDetail from './pages/Tracks/TrackDetail';
-import CreateTrack from './pages/Tracks/CreateTrack';
-import ChampionshipsList from './pages/Championships/ChampionshipsList';
-import ChampionshipDetail from './pages/Championships/ChampionshipDetail';
-import CreateChampionship from './pages/Championships/CreateChampionship';
-import HomeLeaderboard from './pages/HomeLeaderboard/HomeLeaderboard';
-import Auth from './pages/Auth/Auth';
+import { Loader2 } from 'lucide-react';
+
+// Lazy loading de páginas para optimizar la carga inicial
+const HomeLeaderboard = lazy(() => import('./pages/HomeLeaderboard/HomeLeaderboard'));
+const ChampionshipsList = lazy(() => import('./pages/Championships/ChampionshipsList'));
+const CreateChampionship = lazy(() => import('./pages/Championships/CreateChampionship'));
+const ChampionshipDetail = lazy(() => import('./pages/Championships/ChampionshipDetail'));
+const TracksList = lazy(() => import('./pages/Tracks/TracksList'));
+const CreateTrack = lazy(() => import('./pages/Tracks/CreateTrack'));
+const TrackDetail = lazy(() => import('./pages/Tracks/TrackDetail'));
+const Profile = lazy(() => import('./pages/Profile/Profile'));
+const Auth = lazy(() => import('./pages/Auth/Auth'));
+
+// Loader no intrusivo y moderno para transiciones de ruta
+function RouteLoader() {
+  return (
+    <div className="w-full min-h-[50vh] flex flex-col items-center justify-center gap-3 opacity-85">
+      <Loader2 className="animate-spin text-[#FF3100]" size={36} />
+      <span className="text-white/60 text-sm font-sans tracking-wide">Cargando circuito...</span>
+    </div>
+  );
+}
 
 function App() {
   return (
     <Router>
       <Layout>
-        <Routes>
-          <Route path="/" element={<HomeLeaderboard />} />
-          
-          <Route path="/championships" element={<ChampionshipsList />} />
-          <Route path="/championships/new" element={<CreateChampionship />} />
-          <Route path="/championships/:id" element={<ChampionshipDetail />} />
-          
-          <Route path="/tracks" element={<TracksList />} />
-          <Route path="/tracks/new" element={<CreateTrack />} />
-          <Route path="/tracks/:id" element={<TrackDetail />} />
+        <Suspense fallback={<RouteLoader />}>
+          <Routes>
+            <Route path="/" element={<HomeLeaderboard />} />
+            
+            <Route path="/championships" element={<ChampionshipsList />} />
+            <Route path="/championships/new" element={<CreateChampionship />} />
+            <Route path="/championships/:id" element={<ChampionshipDetail />} />
+            
+            <Route path="/tracks" element={<TracksList />} />
+            <Route path="/tracks/new" element={<CreateTrack />} />
+            <Route path="/tracks/:id" element={<TrackDetail />} />
 
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/login" element={<Auth />} />
-        </Routes>
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/login" element={<Auth />} />
+          </Routes>
+        </Suspense>
       </Layout>
     </Router>
   );

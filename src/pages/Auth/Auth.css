@@ -59,6 +59,16 @@
   text-align: center;
 }
 
+.auth-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 .google-btn {
   display: flex;
   align-items: center;

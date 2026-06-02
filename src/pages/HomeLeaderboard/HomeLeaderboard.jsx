@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MapPin } from 'lucide-react';
-
+import { supabase } from '@/lib/supabase';
 const formatMsToTime = (ms) => {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
@@ -23,36 +23,60 @@ const formatGap = (leaderMs, currentMs) => {
   return `+${seconds}.${milliseconds.toString().padStart(3, '0')}s`;
 };
 
-const MASTER_LEADERBOARD = [
-  // Track 1
-  { id: 1, name: "Diego Montoya", lapTimeMs: 44120, date: new Date(Date.now() - 2 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 2, name: "Adrestappen", lapTimeMs: 44118, date: new Date(Date.now() - 5 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 3, name: "Carlos Sainz Perez", lapTimeMs: 44075, date: new Date(Date.now() - 15 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 4, name: "Maria Gomez", lapTimeMs: 44101, date: new Date(Date.now() - 1 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 5, name: "Mario Tsunoda", lapTimeMs: 44095, date: new Date(Date.now() - 40 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 6, name: "ElenaRod", lapTimeMs: 44080, date: new Date(Date.now() - 10 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 7, name: "Lucia Chen", lapTimeMs: 44045, date: new Date(Date.now() - 20 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 8, name: "VicDriver", lapTimeMs: 44050, date: new Date(Date.now() - 3 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 9, name: "Jamal Thompson", lapTimeMs: 44030, date: new Date(Date.now() - 100 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 10, name: "Ayrton Silva", lapTimeMs: 44020, date: new Date(Date.now() - 60 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 11, name: "Fernando A.", lapTimeMs: 44015, date: new Date(Date.now() - 6 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 12, name: "Checo P.", lapTimeMs: 44010, date: new Date(Date.now() - 25 * 86400000).toISOString(), trackId: 'track1' },
-  { id: 13, name: "Charles L.", lapTimeMs: 44005, date: new Date(Date.now() - 120 * 86400000).toISOString(), trackId: 'track1' },
 
-  // Track 2
-  { id: 14, name: "Lando N.", lapTimeMs: 45001, date: new Date(Date.now() - 1 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 15, name: "Oscar P.", lapTimeMs: 44998, date: new Date(Date.now() - 4 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 16, name: "George R.", lapTimeMs: 44990, date: new Date(Date.now() - 12 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 17, name: "Lewis H.", lapTimeMs: 44985, date: new Date(Date.now() - 20 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 18, name: "Alex A.", lapTimeMs: 44980, date: new Date(Date.now() - 40 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 19, name: "Yuki T.", lapTimeMs: 44975, date: new Date(Date.now() - 50 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 20, name: "Daniel R.", lapTimeMs: 44970, date: new Date(Date.now() - 60 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 21, name: "Kevin M.", lapTimeMs: 45100, date: new Date(Date.now() - 2 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 22, name: "Nico H.", lapTimeMs: 45150, date: new Date(Date.now() - 15 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 23, name: "Valtteri B.", lapTimeMs: 45200, date: new Date(Date.now() - 80 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 24, name: "Zhou G.", lapTimeMs: 45250, date: new Date(Date.now() - 5 * 86400000).toISOString(), trackId: 'track2' },
-  { id: 25, name: "Logan S.", lapTimeMs: 45300, date: new Date(Date.now() - 28 * 86400000).toISOString(), trackId: 'track2' }
-];
+
+// Fetch realtime leaderboard data from Supabase
+useEffect(() => {
+    setIsLoading(true);
+    const fetchLeaderboard = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('lap_times')
+          .select(`
+            lap_time_ms,
+            profiles (username, full_name),
+            tracks (name, location, cover_image),
+            created_at`
+          )
+          .eq('track_id', selectedTrackId)
+          .order('lap_time_ms', { ascending: true });
+        if (error) throw error;
+
+        // Apply time filters
+        const now = Date.now();
+        const weekMs = 7 * 86400000;
+        const monthMs = 30 * 86400000;
+        let filtered = data;
+        if (selectedTimeFilter === 'week') {
+          filtered = data.filter(d => (now - new Date(d.created_at).getTime()) <= weekMs);
+        } else if (selectedTimeFilter === 'month') {
+          filtered = data.filter(d => (now - new Date(d.created_at).getTime()) <= monthMs);
+        }
+
+        // Map to UI format
+        const leaderMs = filtered[0]?.lap_time_ms;
+        const mapped = filtered.map((row, idx) => {
+          const visualStyle = idx < 3 ? ORIGINAL_VISUAL_STYLES[idx] : { hasPole: false, timeStroke: "white", timeTextColor: "text-white" };
+          return {
+            id: row.id,
+            name: row.profiles?.full_name || row.profiles?.username || 'Piloto',
+            lapTimeMs: row.lap_time_ms,
+            trackId: selectedTrackId,
+            position: idx + 1,
+            bestTime: formatMsToTime(row.lap_time_ms),
+            gap: leaderMs !== undefined ? formatGap(leaderMs, row.lap_time_ms) : '',
+            ...visualStyle,
+          };
+        });
+        setFilteredLeaderboard(mapped);
+      } catch (e) {
+        console.error('Error loading leaderboard:', e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, [selectedTrackId, selectedTimeFilter]);
 
 const ORIGINAL_VISUAL_STYLES = [
   { teamColor: "border-yellow-300", hasPole: true, textColor: "text-yellow-300", textShadow: "[text-shadow:_0px_0px_8px_rgb(255_212_58_/_0.50)]", filterColor: "0 0 0 0 1 0 0 0 0 0.831373 0 0 0 0 0.227451 0 0 0 0.5 0", poleSvgFill: "#B28B00", timeStroke: "#AA22DC", timeTextColor: "text-fuchsia-600" },
@@ -114,54 +138,7 @@ export default function HomeLeaderboard() {
     el.style.marginBottom = '8px';
   }, []);
 
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      // 1. Filter by Track
-      let filteredData = MASTER_LEADERBOARD.filter(d => d.trackId === selectedTrackId);
 
-      // 2. Filter by Time
-      const now = Date.now();
-      const weekInMs = 7 * 86400000;
-      const monthInMs = 30 * 86400000;
-
-      if (selectedTimeFilter === 'week') {
-        filteredData = filteredData.filter(d => (now - new Date(d.date).getTime()) <= weekInMs);
-      } else if (selectedTimeFilter === 'month') {
-        filteredData = filteredData.filter(d => (now - new Date(d.date).getTime()) <= monthInMs);
-      }
-
-      // 3. Sort by lapTimeMs (lowest first)
-      filteredData.sort((a, b) => a.lapTimeMs - b.lapTimeMs);
-
-      // 4. Map into visual UI shape strictly preserving original design
-      if (filteredData.length > 0) {
-        const leaderMs = filteredData[0].lapTimeMs;
-        const mappedData = filteredData.map((driver, index) => {
-          const visualStyle = index < 3 ? ORIGINAL_VISUAL_STYLES[index] : {
-            hasPole: false,
-            timeStroke: "white",
-            timeTextColor: "text-white"
-          };
-
-          return {
-            ...driver,
-            ...visualStyle,
-            position: index + 1,
-            bestTime: formatMsToTime(driver.lapTimeMs),
-            gap: formatGap(leaderMs, driver.lapTimeMs)
-          };
-        });
-        setFilteredLeaderboard(mappedData);
-      } else {
-        setFilteredLeaderboard([]);
-      }
-
-      setIsLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [selectedTrackId, selectedTimeFilter]);
 
   return (
     <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col bg-[#121212] items-center font-sans">
@@ -198,7 +175,13 @@ export default function HomeLeaderboard() {
               style={{ willChange: 'height, opacity' }}
             >
               <div className="w-full h-full relative rounded-none flex items-center justify-center border border-white/5 bg-[#121212]" style={{ minHeight: '100%' }}>
-                <img className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity" src="https://placehold.co/800x400/121212/333333" alt="Track cover" />
+                <img 
+                  className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity" 
+                  src="https://placehold.co/800x400/121212/333333" 
+                  alt="Track cover" 
+                  fetchpriority="high"
+                  decoding="async"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/40 to-transparent"></div>
 
                 <div className="z-10 flex flex-col items-center justify-center pointer-events-none">
