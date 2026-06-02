@@ -26,7 +26,7 @@ export default function ChampionshipsList() {
           <h1>Campeonatos Activos</h1>
           <p className="subtitle">Únete a torneos y compite por la victoria</p>
         </div>
-        <button className="primary-btn">
+        <button className="primary-btn" onClick={() => navigate('/championships/new')}>
           <Trophy size={20}/> Nuevo Campeonato
         </button>
       </div>
