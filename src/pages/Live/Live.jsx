@@ -217,7 +217,7 @@ export default function Live() {
             variant="outlined" 
             onClick={() => loadData(true)} 
             disabled={isUpdating}
-            style={{ minWidth: 'auto', p: '8px' }}
+            style={{ minWidth: 'auto', padding: '8px' }}
           >
             <RotateCw size={18} className={isUpdating ? "animate-spin text-[#FF3100]" : "text-white"} />
           </KineticButton>
@@ -251,9 +251,9 @@ export default function Live() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 slide-up">
-              {filteredNews.map((item) => (
+              {filteredNews.map((item, index) => (
                 <KineticCard
-                  key={item.id}
+                  key={item.id || item.link || index}
                   className="news-card"
                   sx={{
                     display: 'flex',
@@ -279,7 +279,7 @@ export default function Live() {
                     </div>
                   </div>
 
-                  <Stack spacing={1.5} p={3} flexGrow={1}>
+                  <Stack spacing={1.5} sx={{ p: 3, flexGrow: 1 }}>
                     <div className="flex justify-between items-center text-xs text-white/50">
                       <span className="font-bold">{item.source}</span>
                       <span className="flex items-center gap-1 font-mono">
@@ -326,7 +326,7 @@ export default function Live() {
             
             {/* Widget 1: Próximas Sesiones */}
             <KineticCard sx={{ p: 3 }}>
-              <Stack direction="row" spacing={1.5} alignItems="center" mb={2} borderBottom="1px solid rgba(255, 255, 255, 0.05)" pb={1.5}>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, borderBottom: '1px solid rgba(255, 255, 255, 0.05)', pb: 1.5 }}>
                 <Calendar className="text-[#FF3100]" size={20} />
                 <div>
                   <Typography variant="h6" fontWeight="bold" color="white">Próximas Sesiones</Typography>
