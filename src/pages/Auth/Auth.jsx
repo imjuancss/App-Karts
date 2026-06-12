@@ -65,7 +65,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="auth-container fade-in px-4 py-8">
+    <div className="auth-container fade-in">
       <KineticCard sx={{ width: '100%', maxWidth: '400px', mx: 'auto', p: 2 }}>
         <Stack spacing={3} alignItems="center" mb={3}>
           <div className="logo-icon mb-2">

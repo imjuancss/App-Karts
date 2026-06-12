@@ -55,6 +55,45 @@ export async function updateTrack(id, trackData) {
 }
 
 // ========================================
+// TRACK REVIEWS
+// ========================================
+export async function getTrackReviews(trackId) {
+  const { data, error } = await supabase
+    .from('track_reviews')
+    .select(`
+      *,
+      profiles (username, full_name, avatar_url)
+    `)
+    .eq('track_id', trackId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error("Error fetching track reviews:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function addTrackReview(trackId, rating, comment) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+  
+  const { data, error } = await supabase
+    .from('track_reviews')
+    .insert([{
+      track_id: trackId,
+      user_id: user.id,
+      rating: rating,
+      comment: comment
+    }])
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return data;
+}
+
+// ========================================
 // LAP TIMES (Tiempos generales por pista)
 // ========================================
 export async function registerLapTime(trackId, lapTimeMs) {

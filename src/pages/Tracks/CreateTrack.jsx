@@ -55,7 +55,7 @@ export default function CreateTrack() {
   };
 
   return (
-    <div className="create-track-container fade-in px-4 py-6 md:py-10">
+    <div className="create-track-container fade-in">
       <Stack direction="row" mb={3}>
         <KineticButton 
           variant="text" 

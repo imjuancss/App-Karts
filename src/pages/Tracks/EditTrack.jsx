@@ -123,19 +123,18 @@ export default function EditTrack() {
 
   if (isLoading) {
     return (
-      <div className="create-track-container fade-in px-4 py-10" style={{ textAlign: 'center' }}>
+      <div className="create-track-container fade-in" style={{ textAlign: 'center' }}>
         <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography variant="body1" color="text.secondary">Verificando permisos y cargando datos del circuito...</Typography>
+        <Typography color="text.secondary">Cargando pista...</Typography>
       </div>
     );
   }
 
   if (errorMsg) {
     return (
-      <div className="create-track-container fade-in px-4 py-10 text-center">
+      <div className="create-track-container fade-in text-center">
         <KineticCard sx={{ maxWidth: 500, mx: 'auto', p: 4 }}>
-          <Typography variant="h4" color="error" mb={2}>Atención</Typography>
-          <Typography variant="body1" color="text.secondary" mb={4}>{errorMsg}</Typography>
+          <Typography color="error" mb={2}>Pista no encontrada o no tienes permisos para editarla.</Typography>
           <KineticButton variant="contained" onClick={() => navigate('/tracks')}>Volver a pistas</KineticButton>
         </KineticCard>
       </div>
@@ -143,7 +142,7 @@ export default function EditTrack() {
   }
 
   return (
-    <div className="create-track-container fade-in px-4 py-6 md:py-10">
+    <div className="create-track-container fade-in">
       <Stack direction="row" mb={3}>
         <KineticButton 
           variant="text" 

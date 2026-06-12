@@ -190,11 +190,11 @@ export default function Profile() {
     }
   };
 
-  if (isLoading) return <div className="fade-in px-4 py-8"><Typography color="text.secondary">Cargando perfil...</Typography></div>;
+  if (isLoading) return <div className="fade-in"><Typography color="text.secondary">Cargando perfil...</Typography></div>;
 
   if (!sessionUser || !userProfile) {
     return (
-      <div className="fade-in px-4 py-16 text-center max-w-md mx-auto">
+      <div className="fade-in text-center max-w-md mx-auto mt-10">
         <Typography variant="h4" fontWeight="bold" color="white" mb={2}>Aún no has iniciado sesión</Typography>
         <Typography color="text.secondary" mb={4}>Conéctate o vuelve a iniciar sesión con tu cuenta recién creada.</Typography>
         <KineticButton variant="contained" fullWidth onClick={() => navigate('/login')}>Iniciar Sesión / Registro</KineticButton>
@@ -203,7 +203,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="fade-in px-4 py-6 md:py-10 max-w-6xl mx-auto pb-24">
+    <div className="fade-in max-w-7xl mx-auto">
       {/* Invitaciones Pendientes Banner */}
       {pendingInvites.length > 0 && (
         <KineticCard sx={{ p: 3, mb: 4, borderColor: '#FF3100', background: 'rgba(255, 49, 0, 0.05)' }}>

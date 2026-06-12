@@ -180,17 +180,20 @@ export default function ChampionshipDetail() {
 
   if (isLoading) {
     return (
-      <div className="champ-detail-container fade-in px-4 py-10" style={{ textAlign: 'center' }}>
+      <div className="champ-detail-container fade-in" style={{ textAlign: 'center' }}>
         <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando información del evento...</Typography>
+        <Typography color="text.secondary">Cargando campeonato...</Typography>
       </div>
     );
   }
 
   if (!champ) {
     return (
-      <div className="champ-detail-container fade-in px-4 py-10 text-center">
+      <div className="champ-detail-container fade-in text-center">
         <Typography color="error">Campeonato no encontrado.</Typography>
+        <KineticButton variant="outlined" sx={{ mt: 3 }} onClick={() => navigate('/championships')}>
+          Volver a campeonatos
+        </KineticButton>
       </div>
     );
   }
@@ -200,7 +203,7 @@ export default function ChampionshipDetail() {
   const activeRound = champ.rounds[selectedRoundIdx] || null;
 
   return (
-    <div className="champ-detail-container fade-in px-4 py-6 md:py-10 max-w-6xl mx-auto pb-20">
+    <div className="champ-detail-container fade-in max-w-6xl mx-auto pb-20">
       <Stack direction="row" mb={3}>
         <KineticButton 
           variant="text" 

@@ -118,15 +118,15 @@ export default function CreateChampionship() {
 
   if (isLoadingTracks) {
     return (
-      <div className="create-track-container fade-in px-4 py-10" style={{ textAlign: 'center' }}>
+      <div className="create-track-container fade-in" style={{ textAlign: 'center' }}>
         <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando pistas disponibles...</Typography>
+        <Typography color="text.secondary">Cargando formulario...</Typography>
       </div>
     );
   }
 
   return (
-    <div className="create-track-container fade-in px-4 py-6 md:py-10 pb-20">
+    <div className="create-track-container fade-in max-w-5xl mx-auto">
       <Stack direction="row" mb={3}>
         <KineticButton 
           variant="text" 

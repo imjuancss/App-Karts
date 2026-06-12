@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Star, Clock, DollarSign, Loader2, Edit3 } from 'lucide-react';
-import { getTrackById, getRecentTrackLapTimes, registerLapTime, getProfile } from '../../services/api';
+import { getTrackById, getRecentTrackLapTimes, registerLapTime, getProfile, getTrackReviews, addTrackReview } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import KineticButton from '../../components/ui/KineticButton';
 import KineticCard from '../../components/ui/KineticCard';
@@ -64,6 +64,11 @@ export default function TrackDetail() {
   const [timeError, setTimeError] = useState('');
   const [sessionUser, setSessionUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  
+  const [reviews, setReviews] = useState([]);
+  const [newReviewText, setNewReviewText] = useState('');
+  const [newReviewRating, setNewReviewRating] = useState(0);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   const loadTrackData = async () => {
     setIsLoading(true);
@@ -84,6 +89,9 @@ export default function TrackDetail() {
     if (data) {
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
+      
+      const loadedReviews = await getTrackReviews(id);
+      setReviews(loadedReviews || []);
     }
     setIsLoading(false);
   };
@@ -119,25 +127,55 @@ export default function TrackDetail() {
     }
   };
 
+  const handleAddReview = async () => {
+    if (!newReviewText.trim() || newReviewRating < 1 || newReviewRating > 5) {
+      alert('Por favor escribe un comentario y selecciona una calificación (1-5 estrellas).');
+      return;
+    }
+    if (!sessionUser) {
+      alert('Debes iniciar sesión para publicar una reseña.');
+      return;
+    }
+    setIsSubmittingReview(true);
+    try {
+      await addTrackReview(id, newReviewRating, newReviewText);
+      setNewReviewText('');
+      setNewReviewRating(0);
+      const updatedReviews = await getTrackReviews(id);
+      setReviews(updatedReviews || []);
+      // Refresh track data to update rating_avg
+      const updatedTrack = await getTrackById(id);
+      if (updatedTrack) setTrack(updatedTrack);
+    } catch (err) {
+      console.error(err);
+      alert('Hubo un error al publicar la reseña.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="track-detail-container fade-in px-4 py-10" style={{ textAlign: 'center' }}>
+      <div className="track-detail-container fade-in" style={{ textAlign: 'center' }}>
         <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando información de la pista...</Typography>
+        <Typography color="text.secondary">Cargando detalles de la pista...</Typography>
       </div>
     );
   }
 
   if (!track) {
     return (
-      <div className="track-detail-container fade-in px-4 py-10 text-center">
+      <div className="track-detail-container fade-in text-center">
         <Typography color="error">Pista no encontrada o eliminada.</Typography>
+        <KineticButton variant="outlined" sx={{ mt: 3 }} onClick={() => navigate('/tracks')}>
+          Volver a pistas
+        </KineticButton>
       </div>
     );
   }
 
   return (
-    <div className="track-detail-container fade-in px-4 py-6 md:py-10 max-w-6xl mx-auto">
+    <div className="track-detail-container fade-in max-w-6xl mx-auto">
       <Stack direction="row" mb={3}>
         <KineticButton 
           variant="text" 
@@ -281,17 +319,85 @@ export default function TrackDetail() {
 
           {activeTab === 'comments' && (
              <div className="fade-in">
-               <Stack spacing={2} sx={{ maxWidth: 600 }}>
-                 <KineticInput
-                   placeholder="Escribe un comentario o reseña..."
-                   multiline
-                   rows={3}
-                   fullWidth
-                 />
-                 <div className="text-right">
-                   <KineticButton variant="contained">Publicar</KineticButton>
+               <div className="mb-10 max-w-2xl">
+                 <Typography variant="h5" mb={3}>Reseñas y Comentarios</Typography>
+                 
+                 {/* Lista de reseñas */}
+                 <Stack spacing={3} mb={5}>
+                   {reviews.length === 0 ? (
+                     <Typography color="text.secondary">No hay reseñas todavía. ¡Sé el primero en comentar!</Typography>
+                   ) : (
+                     reviews.map(review => (
+                       <div key={review.id} className="p-4 bg-white/5 rounded-lg border border-white/5">
+                         <div className="flex justify-between items-start mb-2">
+                           <div className="flex items-center gap-2">
+                             {review.profiles?.avatar_url ? (
+                               <img src={review.profiles.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
+                             ) : (
+                               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">
+                                 {(review.profiles?.username || 'U')[0].toUpperCase()}
+                               </div>
+                             )}
+                             <div>
+                               <Typography variant="subtitle2" fontWeight="bold">@{review.profiles?.username || 'Usuario'}</Typography>
+                               <Typography variant="caption" color="text.secondary">
+                                 {new Date(review.created_at).toLocaleDateString()}
+                               </Typography>
+                             </div>
+                           </div>
+                           <div className="flex gap-0.5">
+                             {[...Array(5)].map((_, i) => (
+                               <Star key={i} size={14} color={i < review.rating ? "var(--accent)" : "rgba(255,255,255,0.2)"} fill={i < review.rating ? "var(--accent)" : "transparent"} />
+                             ))}
+                           </div>
+                         </div>
+                         <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'rgba(255,255,255,0.8)' }}>
+                           {review.comment}
+                         </Typography>
+                       </div>
+                     ))
+                   )}
+                 </Stack>
+
+                 {/* Formulario de nueva reseña */}
+                 <div className="p-5 bg-black/40 rounded-xl border border-white/10">
+                   <Typography variant="h6" mb={2}>Deja tu reseña</Typography>
+                   <Stack spacing={2}>
+                     <div className="flex items-center gap-2 mb-1">
+                       <Typography variant="body2" color="text.secondary">Calificación:</Typography>
+                       <div className="flex gap-1 cursor-pointer">
+                         {[1, 2, 3, 4, 5].map(star => (
+                           <Star 
+                             key={star} 
+                             size={24} 
+                             color={star <= newReviewRating ? "var(--accent)" : "rgba(255,255,255,0.3)"} 
+                             fill={star <= newReviewRating ? "var(--accent)" : "transparent"}
+                             onClick={() => setNewReviewRating(star)}
+                             className="transition-colors hover:scale-110"
+                           />
+                         ))}
+                       </div>
+                     </div>
+                     <KineticInput
+                       placeholder="Escribe tu experiencia en esta pista..."
+                       multiline
+                       rows={3}
+                       fullWidth
+                       value={newReviewText}
+                       onChange={(e) => setNewReviewText(e.target.value)}
+                     />
+                     <div className="text-right mt-2">
+                       <KineticButton 
+                         variant="contained" 
+                         onClick={handleAddReview}
+                         disabled={isSubmittingReview || !sessionUser}
+                       >
+                         {isSubmittingReview ? <Loader2 className="animate-spin" size={20} /> : (sessionUser ? 'Publicar Reseña' : 'Inicia Sesión para Publicar')}
+                       </KineticButton>
+                     </div>
+                   </Stack>
                  </div>
-               </Stack>
+               </div>
              </div>
           )}
         </div>
