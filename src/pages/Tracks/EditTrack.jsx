@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { createTrack } from '../../services/api';
+import { getTrackById, updateTrack, getProfile } from '../../services/api';
+import { supabase } from '../../lib/supabase';
 import KineticButton from '../../components/ui/KineticButton';
 import KineticCard from '../../components/ui/KineticCard';
 import KineticInput from '../../components/ui/KineticInput';
@@ -10,8 +11,10 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 
-export default function CreateTrack() {
+export default function EditTrack() {
+  const { id } = useParams();
   const navigate = useNavigate();
+
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [costInfo, setCostInfo] = useState('');
@@ -19,8 +22,71 @@ export default function CreateTrack() {
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [trazado, setTrazado] = useState('');
+  
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    async function checkPermissionsAndLoad() {
+      setIsLoading(true);
+      setErrorMsg('');
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        
+        if (!user) {
+          setErrorMsg('Debes iniciar sesión para editar un circuito.');
+          setIsLoading(false);
+          return;
+        }
+
+        const trackData = await getTrackById(id);
+        if (!trackData) {
+          setErrorMsg('Circuito no encontrado.');
+          setIsLoading(false);
+          return;
+        }
+
+        const userProfile = await getProfile(user.id);
+        const isAdmin = userProfile?.role === 'admin';
+        const isCreator = trackData.creator_id === user.id;
+
+        if (!isCreator && !isAdmin) {
+          alert('No tienes permisos para editar esta pista. Solo el creador o un administrador pueden editarla.');
+          navigate(`/tracks/${id}`);
+          return;
+        }
+
+        setName(trackData.name || '');
+        setLocation(trackData.location || '');
+        setCostInfo(trackData.cost_info || '');
+        setDescription(trackData.description || '');
+        setCoverImage(trackData.cover_image || '');
+        setTrazado(trackData.trazado || '');
+
+        if (trackData.schedule) {
+          if (typeof trackData.schedule === 'string') {
+            setSchedule(trackData.schedule);
+          } else if (typeof trackData.schedule === 'object') {
+            if (trackData.schedule.horario) {
+              setSchedule(trackData.schedule.horario);
+            } else {
+              setSchedule(JSON.stringify(trackData.schedule));
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar pista para edición:", error);
+        setErrorMsg('Error al cargar la información de la pista.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkPermissionsAndLoad();
+  }, [id, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +101,7 @@ export default function CreateTrack() {
         }
       } catch (err) {}
 
-      await createTrack({
+      await updateTrack(id, {
         name,
         location,
         cost_info: costInfo,
@@ -45,14 +111,36 @@ export default function CreateTrack() {
         trazado: trazado || null
       });
 
-      navigate('/tracks');
+      alert('¡Circuito actualizado exitosamente!');
+      navigate(`/tracks/${id}`);
     } catch (error) {
-      console.error("Error al crear la pista:", error);
-      setErrorMsg(error.message || 'Error al registrar el circuito.');
+      console.error("Error al actualizar la pista:", error);
+      setErrorMsg(error.message || 'Error al actualizar el circuito.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="create-track-container fade-in px-4 py-10" style={{ textAlign: 'center' }}>
+        <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
+        <Typography variant="body1" color="text.secondary">Verificando permisos y cargando datos del circuito...</Typography>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="create-track-container fade-in px-4 py-10 text-center">
+        <KineticCard sx={{ maxWidth: 500, mx: 'auto', p: 4 }}>
+          <Typography variant="h4" color="error" mb={2}>Atención</Typography>
+          <Typography variant="body1" color="text.secondary" mb={4}>{errorMsg}</Typography>
+          <KineticButton variant="contained" onClick={() => navigate('/tracks')}>Volver a pistas</KineticButton>
+        </KineticCard>
+      </div>
+    );
+  }
 
   return (
     <div className="create-track-container fade-in px-4 py-6 md:py-10">
@@ -60,21 +148,15 @@ export default function CreateTrack() {
         <KineticButton 
           variant="text" 
           color="secondary" 
-          onClick={() => navigate('/tracks')}
+          onClick={() => navigate(`/tracks/${id}`)}
           startIcon={<ArrowLeft size={20}/>}
         >
-          Volver
+          Cancelar
         </KineticButton>
       </Stack>
 
       <KineticCard sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
-        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Circuito</Typography>
-        
-        {errorMsg && (
-          <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded text-red-400">
-            <p>{errorMsg}</p>
-          </div>
-        )}
+        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Editar Circuito</Typography>
 
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
@@ -128,7 +210,7 @@ export default function CreateTrack() {
 
             <KineticInput
               label="URL de Imagen del Trazado (Opcional)"
-              placeholder="Ej: https://images.unsplash.com/... (Mapa del circuito)"
+              placeholder="Ej: https://images.unsplash.com/... (Imagen del trazado del circuito)"
               type="url"
               value={trazado}
               onChange={e => setTrazado(e.target.value)}
@@ -153,7 +235,7 @@ export default function CreateTrack() {
               disabled={isSubmitting}
               sx={{ mt: 2, py: 1.5 }}
             >
-              {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Registrar Circuito'}
+              {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Guardar Cambios'}
             </KineticButton>
           </Stack>
         </form>

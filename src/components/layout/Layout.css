@@ -153,6 +153,6 @@
 
   .main-content {
     margin-left: 0;
-    padding: calc(70px + 0rem) 0rem 0rem;
+    padding: calc(70px + 1rem) 1rem 1.5rem;
   }
 }

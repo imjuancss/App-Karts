@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Trophy, Map, User, Menu, X, Flag, Home } from 'lucide-react';
+import { Trophy, Map, User, Menu, X, Flag, Home, Radio } from 'lucide-react';
+import IconButton from '@mui/material/IconButton';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -10,8 +11,10 @@ export default function Layout({ children }) {
     { to: "/", icon: Home, label: "Home" },
     { to: "/championships", icon: Trophy, label: "Campeonatos" },
     { to: "/tracks", icon: Map, label: "Pistas" },
+    { to: "/live", icon: Radio, label: "En Vivo" },
     { to: "/profile", icon: User, label: "Perfil" }
   ];
+
 
   return (
     <div className="layout-container">
@@ -44,18 +47,18 @@ export default function Layout({ children }) {
           <Flag size={24} color="var(--accent)" />
           <h2>KartSocial</h2>
         </div>
-        <button className="mobile-trigger" onClick={() => setMobileMenuOpen(true)}>
+        <IconButton onClick={() => setMobileMenuOpen(true)} sx={{ color: 'white' }}>
           <Menu size={24} />
-        </button>
+        </IconButton>
       </header>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)}>
           <nav className="mobile-nav glass-panel" onClick={e => e.stopPropagation()}>
-            <button className="close-menu" onClick={() => setMobileMenuOpen(false)}>
+            <IconButton onClick={() => setMobileMenuOpen(false)} sx={{ color: 'white', position: 'absolute', top: 16, right: 16 }}>
               <X size={24} />
-            </button>
+            </IconButton>
             <div className="mobile-logo">
               <Flag size={28} color="var(--accent)" />
               <h2>KartSocial</h2>

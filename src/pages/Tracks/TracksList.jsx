@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Search } from 'lucide-react';
+import { MapPin, Star, Search, Plus } from 'lucide-react';
 import { getTracks } from '../../services/api';
-import './Tracks.css';
+import KineticButton from '../../components/ui/KineticButton';
+import KineticCard from '../../components/ui/KineticCard';
+import KineticInput from '../../components/ui/KineticInput';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
 
 export default function TracksList() {
   const navigate = useNavigate();
@@ -25,50 +29,77 @@ export default function TracksList() {
     t.location?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-
-
   return (
-    <div className="tracks-container fade-in">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="fade-in px-4 py-6 md:py-10 max-w-6xl mx-auto pb-24">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1>Pistas de Karts</h1>
-          <p className="subtitle">Encuentra los mejores circuitos para correr</p>
+          <Typography variant="h3" fontWeight="bold" color="white" mb={1}>Pistas de Karts</Typography>
+          <Typography variant="subtitle1" color="text.secondary">Encuentra los mejores circuitos para correr</Typography>
         </div>
-        <button className="primary-btn" onClick={() => navigate('/tracks/new')}>
+        <KineticButton variant="contained" onClick={() => navigate('/tracks/new')} startIcon={<Plus size={20}/>}>
           Registrar Nueva Pista
-        </button>
+        </KineticButton>
       </div>
 
-      <div className="search-bar glass-panel">
-        <Search size={20} color="var(--text-secondary)"/>
-        <input 
-          type="text" 
-          placeholder="Buscar pista por nombre o ciudad..." 
+      <KineticCard sx={{ p: '12px 20px', mb: 6, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Search size={20} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
+        <KineticInput
+          fullWidth
+          variant="outlined"
+          placeholder="Buscar pista por nombre o ciudad..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          slotProps={{
+            input: {
+              style: { color: 'white', fontSize: '1.05rem' }
+            }
+          }}
         />
-      </div>
+      </KineticCard>
 
-      <div className="tracks-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          <p style={{color: 'var(--text-secondary)'}}>Cargando pistas...</p>
+          <Typography color="text.secondary">Cargando pistas...</Typography>
         ) : (
           filteredTracks.map(track => (
-            <div key={track.id} className="track-card glass-panel" onClick={() => navigate(`/tracks/${track.id}`)}>
-              <img src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} alt={track.name} className="track-image" />
-              <div className="track-info">
-                <h3>{track.name}</h3>
-                <div className="track-meta">
-                  <span><MapPin size={16}/> {track.location}</span>
-                  <span className="rating"><Star size={16} fill="var(--accent)" color="var(--accent)"/> {track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
+            <KineticCard 
+              key={track.id} 
+              onClick={() => navigate(`/tracks/${track.id}`)}
+              sx={{ 
+                cursor: 'pointer', 
+                overflow: 'hidden',
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '100%',
+                p: 0,
+                transition: 'transform 0.2s, border-color 0.2s',
+                '&:hover': { transform: 'translateY(-4px)', borderColor: 'rgba(255, 49, 0, 0.4)' }
+              }}
+            >
+              <img 
+                src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} 
+                alt={track.name} 
+                className="w-full h-48 object-cover" 
+              />
+              <Stack spacing={2} p={3} flexGrow={1}>
+                <Typography variant="h5" fontWeight="bold" color="white">{track.name}</Typography>
+                
+                <div className="flex justify-between items-center text-sm text-gray-400">
+                  <span className="flex items-center gap-1"><MapPin size={16}/> {track.location}</span>
+                  <span className="flex items-center gap-1 font-bold text-[#FF3100]">
+                    <Star size={16} fill="currentColor" /> {track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}
+                  </span>
                 </div>
-                <p className="track-cost">{track.cost_info || 'Consultar costo'}</p>
-              </div>
-            </div>
+                
+                <div className="mt-auto pt-4 border-t border-white/10">
+                  <Typography variant="body2" color="text.secondary">{track.cost_info || 'Consultar costo'}</Typography>
+                </div>
+              </Stack>
+            </KineticCard>
           ))
         )}
         {!isLoading && filteredTracks.length === 0 && (
-          <p style={{color: 'var(--text-secondary)'}}>No se encontraron pistas.</p>
+          <Typography color="text.secondary" className="col-span-full">No se encontraron pistas.</Typography>
         )}
       </div>
     </div>

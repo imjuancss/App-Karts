@@ -3,7 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Trophy, Calendar, MessageSquare, Clock, Plus, MailOpen, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
-import './Profile.css';
+import KineticButton from '../../components/ui/KineticButton';
+import KineticCard from '../../components/ui/KineticCard';
+import KineticInput from '../../components/ui/KineticInput';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import MenuItem from '@mui/material/MenuItem';
+
 
 const formatMsToTime = (ms) => {
   if (!ms) return "00:00.000";
@@ -28,7 +39,7 @@ const parseTimeToMs = (timeStr) => {
     return (secs * 1000) + ms;
   }
   return 0;
-};
+}
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -179,131 +190,164 @@ export default function Profile() {
     }
   };
 
-  if (isLoading) return <div className="profile-container fade-in"><p>Cargando perfil...</p></div>;
+  if (isLoading) return <div className="fade-in px-4 py-8"><Typography color="text.secondary">Cargando perfil...</Typography></div>;
 
   if (!sessionUser || !userProfile) {
     return (
-      <div className="profile-container fade-in" style={{ textAlign: 'center', padding: '4rem 0' }}>
-        <h2>Aún no has iniciado sesión</h2>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Conéctate o vuelve a iniciar sesión con tu cuenta recién creada.</p>
-        <button className="primary-btn" style={{ marginTop: '1.5rem' }} onClick={() => navigate('/login')}>Iniciar Sesión / Registro</button>
+      <div className="fade-in px-4 py-16 text-center max-w-md mx-auto">
+        <Typography variant="h4" fontWeight="bold" color="white" mb={2}>Aún no has iniciado sesión</Typography>
+        <Typography color="text.secondary" mb={4}>Conéctate o vuelve a iniciar sesión con tu cuenta recién creada.</Typography>
+        <KineticButton variant="contained" fullWidth onClick={() => navigate('/login')}>Iniciar Sesión / Registro</KineticButton>
       </div>
     );
   }
 
   return (
-    <div className="profile-container fade-in">
+    <div className="fade-in px-4 py-6 md:py-10 max-w-6xl mx-auto pb-24">
       {/* Invitaciones Pendientes Banner */}
       {pendingInvites.length > 0 && (
-        <div className="pending-invitations-banner glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', border: '1px solid var(--accent)', background: 'rgba(250, 204, 21, 0.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-            <MailOpen size={24} color="var(--accent)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>¡Tienes invitaciones a torneos!</h3>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <KineticCard sx={{ p: 3, mb: 4, borderColor: '#FF3100', background: 'rgba(255, 49, 0, 0.05)' }}>
+          <Stack direction="row" alignItems="center" gap={1.5} mb={2}>
+            <MailOpen size={24} color="#FF3100" />
+            <Typography variant="h6" fontWeight="bold" color="white">¡Tienes invitaciones a torneos!</Typography>
+          </Stack>
+          <Stack spacing={2}>
             {pendingInvites.map(invite => (
-              <div key={invite.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '0.75rem 1rem', borderRadius: '8px' }}>
-                <span style={{ fontSize: '0.9rem' }}>Te invitaron a participar en: <strong>{invite.championships?.name}</strong></span>
-                <button 
-                  className="primary-btn" 
-                  style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+              <div key={invite.id} className="flex flex-col md:flex-row justify-between items-start md:items-center bg-black/20 p-3 md:p-4 rounded-lg gap-3">
+                <Typography variant="body2" color="white">
+                  Te invitaron a participar en: <span className="font-bold">{invite.championships?.name}</span>
+                </Typography>
+                <KineticButton 
+                  variant="contained" 
+                  size="small"
                   onClick={() => handleAcceptInvite(invite.id, invite.championship_id, invite.championships?.name)}
                 >
                   Aceptar y Unirme
-                </button>
+                </KineticButton>
               </div>
             ))}
-          </div>
-        </div>
+          </Stack>
+        </KineticCard>
       )}
 
       {/* Header */}
-      <section className="profile-header glass-panel">
-        <div className="profile-cover"></div>
-        <div className="profile-info-wrapper">
-          <img src={userProfile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${userProfile.username}`} alt="Avatar" className="profile-avatar" />
-          <div className="profile-details">
-            <div className="profile-title">
-              <h1>{userProfile.full_name || 'Piloto'}</h1>
-              <span className="username">@{userProfile.username || 'usuario'}</span>
-            </div>
-            <p className="profile-bio">{userProfile.bio || 'Sin biografía.'}</p>
-            <div className="profile-meta">
-              <span><MapPin size={16}/> {userProfile.location || 'Bogotá, Colombia'}</span>
-              <span><Calendar size={16}/> Creado: {new Date(userProfile.created_at).toLocaleDateString()}</span>
-            </div>
-          </div>
-          <div className="profile-actions">
-            <button className="primary-btn" onClick={() => setIsTimeModalOpen(true)}><Plus size={16}/> Registrar Tiempo</button>
-            <button className="secondary-btn" onClick={async () => await supabase.auth.signOut()}>Cerrar Sesión</button>
-          </div>
+      <KineticCard sx={{ p: 0, overflow: 'hidden', mb: 6 }}>
+        <div className="h-32 md:h-48 bg-gradient-to-r from-[#FF3100]/20 to-transparent relative">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
         </div>
         
-        {/* Stats */}
-        <div className="profile-stats">
-          <div className="stat-card">
-            <span className="stat-value">{userTimes.length}</span>
-            <span className="stat-label">Récords Pista</span>
+        <div className="px-4 md:px-8 pb-6 md:pb-8">
+          <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-8 -mt-16 md:-mt-20 mb-6">
+            <img 
+              src={userProfile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${userProfile.username}`} 
+              alt="Avatar" 
+              className="w-32 h-32 md:w-40 md:h-40 rounded-xl border-4 border-[#0e0e0e] bg-[#1a1e24] object-cover" 
+            />
+            
+            <div className="flex-grow pt-4 md:pt-0">
+              <Typography variant="h3" fontWeight="bold" color="white" className="leading-tight">{userProfile.full_name || 'Piloto'}</Typography>
+              <Typography variant="subtitle1" color="#FF3100" fontWeight="bold" mb={2}>@{userProfile.username || 'usuario'}</Typography>
+              
+              <Typography variant="body2" color="text.secondary" mb={3} maxWidth="600px">
+                {userProfile.bio || 'Sin biografía.'}
+              </Typography>
+              
+              <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                <span className="flex items-center gap-1"><MapPin size={16}/> {userProfile.location || 'Bogotá, Colombia'}</span>
+                <span className="flex items-center gap-1"><Calendar size={16}/> Miembro desde {new Date(userProfile.created_at).getFullYear()}</span>
+              </div>
+            </div>
+            
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} className="w-full md:w-auto mt-4 md:mt-0">
+              <KineticButton variant="contained" onClick={() => setIsTimeModalOpen(true)} startIcon={<Plus size={16}/>}>
+                Registrar Tiempo
+              </KineticButton>
+              <KineticButton variant="outlined" onClick={async () => await supabase.auth.signOut()}>
+                Cerrar Sesión
+              </KineticButton>
+            </Stack>
           </div>
-          <div className="stat-card">
-            <span className="stat-value">{userChampionships.length}</span>
-            <span className="stat-label">Campeonatos</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-value">
-              {userChampionships.reduce((acc, c) => acc + (c.points || 0), 0)}
-            </span>
-            <span className="stat-label">Puntos Totales</span>
-          </div>
+          
+          {/* Stats */}
+          <Grid container spacing={3} className="pt-6 border-t border-white/10">
+            <Grid item xs={12} sm={4}>
+              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                <Typography variant="h3" fontWeight="bold" color="white">{userTimes.length}</Typography>
+                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Récords Pista</Typography>
+              </div>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                <Typography variant="h3" fontWeight="bold" color="white">{userChampionships.length}</Typography>
+                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Campeonatos</Typography>
+              </div>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                <Typography variant="h3" fontWeight="bold" color="#FF3100">
+                  {userChampionships.reduce((acc, c) => acc + (c.points || 0), 0)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Puntos Totales</Typography>
+              </div>
+            </Grid>
+          </Grid>
         </div>
-      </section>
+      </KineticCard>
 
       {/* Tabs */}
-      <div className="profile-tabs">
-        <button 
-          className={`tab-btn ${activeTab === 'campeonatos' ? 'active' : ''}`}
+      <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
+        <KineticButton
+          variant={activeTab === 'campeonatos' ? 'contained' : 'outlined'}
+          color={activeTab === 'campeonatos' ? 'primary' : 'inherit'}
           onClick={() => setActiveTab('campeonatos')}
+          startIcon={<Trophy size={18}/>}
+          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
         >
-          <Trophy size={18}/> Mis Campeonatos ({userChampionships.length})
-        </button>
+          Mis Campeonatos ({userChampionships.length})
+        </KineticButton>
 
-        <button 
-          className={`tab-btn ${activeTab === 'tiempos' ? 'active' : ''}`}
+        <KineticButton
+          variant={activeTab === 'tiempos' ? 'contained' : 'outlined'}
+          color={activeTab === 'tiempos' ? 'primary' : 'inherit'}
           onClick={() => setActiveTab('tiempos')}
+          startIcon={<Clock size={18}/>}
+          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
         >
-          <Clock size={18}/> Mis Tiempos ({userTimes.length})
-        </button>
+          Mis Tiempos ({userTimes.length})
+        </KineticButton>
 
-        <button 
-          className={`tab-btn ${activeTab === 'actividad' ? 'active' : ''}`}
+        <KineticButton
+          variant={activeTab === 'actividad' ? 'contained' : 'outlined'}
+          color={activeTab === 'actividad' ? 'primary' : 'inherit'}
           onClick={() => setActiveTab('actividad')}
+          startIcon={<MessageSquare size={18}/>}
+          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
         >
-          <MessageSquare size={18}/> Actividad
-        </button>
+          Actividad
+        </KineticButton>
       </div>
 
       {/* Tab Content */}
-      <section className="tab-content glass-panel">
+      <KineticCard sx={{ p: 4, minHeight: '300px' }}>
         {activeTab === 'campeonatos' && (
-          <div className="content-grid list-view fade-in">
+          <div className="fade-in">
              {userChampionships.length === 0 ? (
-               <p style={{color: 'var(--text-secondary)'}}>Aún no te has inscrito a ningún campeonato.</p>
+               <Typography color="text.secondary">Aún no te has inscrito a ningún campeonato.</Typography>
              ) : (
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
+               <div className="flex flex-col gap-4">
                  {userChampionships.map(uc => (
                    <div 
                      key={uc.championship_id} 
-                     className="champ-item-list" 
                      onClick={() => navigate(`/championships/${uc.championship_id}`)}
-                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'all 0.2s' }}
+                     className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white/5 p-4 rounded-xl border border-white/10 cursor-pointer hover:border-[#FF3100]/50 hover:bg-white/10 transition-all gap-4"
                    >
                      <div>
-                       <h4 style={{ margin: 0, color: 'white' }}>{uc.championships?.name}</h4>
-                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Estado: {uc.championships?.status}</span>
+                       <Typography variant="h6" fontWeight="bold" color="white" mb={0.5}>{uc.championships?.name}</Typography>
+                       <Typography variant="body2" color="text.secondary">Estado: {uc.championships?.status}</Typography>
                      </div>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                       <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--accent)' }}>{uc.points} pts</span>
-                       <Trophy size={18} color="var(--accent)" />
+                     <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-lg">
+                       <Typography variant="body1" fontWeight="bold" color="#FF3100">{uc.points} pts</Typography>
+                       <Trophy size={18} color="#FF3100" />
                      </div>
                    </div>
                  ))}
@@ -313,20 +357,22 @@ export default function Profile() {
         )}
 
         {activeTab === 'tiempos' && (
-          <div className="fade-in" style={{ width: '100%' }}>
+          <div className="fade-in">
             {userTimes.length === 0 ? (
-              <p style={{color: 'var(--text-secondary)'}}>No has registrado ningún tiempo todavía.</p>
+              <Typography color="text.secondary">No has registrado ningún tiempo todavía.</Typography>
             ) : (
-              <div className="times-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div className="flex flex-col gap-3">
                 {userTimes.map(time => (
-                  <div key={time.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.15)', borderLeft: '3px solid var(--accent)', borderRadius: '0 8px 8px 0' }}>
+                  <div key={time.id} className="flex justify-between items-center p-4 bg-black/30 border-l-4 border-[#FF3100] rounded-r-xl">
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '0.95rem' }}>{time.tracks?.name}</h4>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><MapPin size={12} style={{ display: 'inline', marginRight: '3px' }}/>{time.tracks?.location}</span>
+                      <Typography variant="subtitle1" fontWeight="bold" color="white" mb={0.5}>{time.tracks?.name}</Typography>
+                      <Typography variant="body2" color="text.secondary" className="flex items-center gap-1">
+                        <MapPin size={12}/>{time.tracks?.location}
+                      </Typography>
                     </div>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1.05rem', color: 'white' }}>
+                    <Typography variant="h6" className="font-mono" fontWeight="bold" color="white">
                       {formatMsToTime(time.lap_time_ms)}
-                    </span>
+                    </Typography>
                   </div>
                 ))}
               </div>
@@ -335,56 +381,70 @@ export default function Profile() {
         )}
 
         {activeTab === 'actividad' && (
-          <div className="activity-feed fade-in">
-            <p style={{color: 'var(--text-secondary)'}}>No hay actividad reciente.</p>
+          <div className="fade-in">
+            <Typography color="text.secondary">No hay actividad reciente.</Typography>
           </div>
         )}
-      </section>
+      </KineticCard>
 
       {/* Modal Registrar Tiempo */}
-      {isTimeModalOpen && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-content glass-panel" style={{ padding: '2rem', width: '90%', maxWidth: '450px', borderRadius: '12px', background: '#1e1e2f' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.25rem' }}>Registrar Tiempo de Vuelta</h3>
-            {timeError && (
-              <p style={{ color: '#f87171', fontSize: '0.875rem', marginBottom: '1rem' }}>{timeError}</p>
-            )}
-            <form onSubmit={handleRegisterLapTime}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', opacity: 0.8 }}>Seleccionar Circuito</label>
-                <select 
-                  value={selectedTrackId} 
-                  onChange={e => setSelectedTrackId(e.target.value)} 
-                  required
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#121212', color: 'white' }}
-                >
-                  <option value="" disabled>Selecciona una pista...</option>
-                  {allTracks.map(t => (
-                    <option key={t.id} value={t.id}>{t.name} ({t.location})</option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', opacity: 0.8 }}>Tu mejor tiempo (mm:ss.SSS o ss.SSS)</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej: 00:44.520 o 44.520" 
-                  value={timeInput} 
-                  onChange={e => setTimeInput(e.target.value)} 
-                  required 
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: 'white', fontFamily: 'monospace' }} 
-                />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" className="secondary-btn" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime}>Cancelar</button>
-                <button type="submit" className="primary-btn" disabled={isSubmittingTime}>
-                  {isSubmittingTime ? <Loader2 className="spinner" size={20} /> : 'Registrar'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <Dialog 
+        open={isTimeModalOpen} 
+        onClose={() => setIsTimeModalOpen(false)}
+        PaperProps={{
+          style: {
+            backgroundColor: '#121212',
+            backgroundImage: 'none',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '400px'
+          }
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="h5" fontWeight="bold" color="white">Registrar Tiempo</Typography>
+        </DialogTitle>
+        <DialogContent>
+          {timeError && (
+            <Typography color="error" variant="body2" mb={2}>{timeError}</Typography>
+          )}
+          <form id="time-form" onSubmit={handleRegisterLapTime}>
+            <Stack spacing={3} mt={1}>
+              <KineticInput
+                select
+                label="Seleccionar Circuito"
+                value={selectedTrackId} 
+                onChange={e => setSelectedTrackId(e.target.value)} 
+                required
+                fullWidth
+              >
+                <MenuItem value="" disabled>Selecciona una pista...</MenuItem>
+                {allTracks.map(t => (
+                  <MenuItem key={t.id} value={t.id}>{t.name} ({t.location})</MenuItem>
+                ))}
+              </KineticInput>
+              <KineticInput
+                label="Tu mejor tiempo"
+                fullWidth
+                placeholder="Ej: 00:44.520 o 44.520"
+                value={timeInput}
+                onChange={e => setTimeInput(e.target.value)}
+                required
+                sx={{ input: { fontFamily: 'monospace' } }}
+              />
+            </Stack>
+          </form>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <KineticButton variant="outlined" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime}>
+            Cancelar
+          </KineticButton>
+          <KineticButton variant="contained" type="submit" form="time-form" disabled={isSubmittingTime}>
+            {isSubmittingTime ? <Loader2 className="animate-spin" size={20} /> : 'Registrar'}
+          </KineticButton>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
