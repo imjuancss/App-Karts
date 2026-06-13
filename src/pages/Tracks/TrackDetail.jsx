@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Star, Clock, DollarSign, Loader2 } from 'lucide-react';
-import { getTrackById, getRecentTrackLapTimes, registerLapTime } from '../../services/api';
-import './Tracks.css';
+import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview } from '../../services/api';
+import { supabase } from '../../lib/supabase';
 
 const formatMsToTime = (ms) => {
   if (!ms) return "00:00.000";
@@ -53,19 +53,49 @@ export default function TrackDetail() {
   const [isSubmittingTime, setIsSubmittingTime] = useState(false);
   const [timeError, setTimeError] = useState('');
 
+  const [reviews, setReviews] = useState([]);
+  const [newReviewText, setNewReviewText] = useState('');
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [sessionUser, setSessionUser] = useState(null);
+
+  const handleAddReview = async (e) => {
+    e.preventDefault();
+    if (!newReviewText) return;
+    setIsSubmittingReview(true);
+    try {
+      await addTrackReview(id, newReviewRating, newReviewText);
+      const loadedReviews = await getTrackReviews(id);
+      setReviews(loadedReviews || []);
+      setNewReviewText('');
+      setNewReviewRating(5);
+      alert('Reseña publicada!');
+    } catch {
+      alert('Error al publicar reseña');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+
   const loadTrackData = async () => {
     setIsLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    setSessionUser(session?.user || null);
     const data = await getTrackById(id);
     setTrack(data);
     if (data) {
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
+      const r = await getTrackReviews(id);
+      setReviews(r || []);
     }
     setIsLoading(false);
   };
 
   useEffect(() => {
     loadTrackData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleRegisterTime = async (e) => {
@@ -138,7 +168,7 @@ export default function TrackDetail() {
             <button className="secondary-btn" onClick={() => setIsTimeModalOpen(true)}>Registrar Tiempo</button>
           </div>
         </div>
-      </KineticCard>
+      </div>
 
       <KineticCard sx={{ p: { xs: 2, md: 4 } }}>
         <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
@@ -306,7 +336,7 @@ export default function TrackDetail() {
              </div>
           )}
         </div>
-      </div>
+      </KineticCard>
 
       {isTimeModalOpen && (
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

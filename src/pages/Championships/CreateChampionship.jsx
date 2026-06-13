@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Trash2, Plus, Loader2, Calendar, Award } from 'lucide-react';
 import { getTracks, createChampionship } from '../../services/api';
-import './Championships.css';
 
 export default function CreateChampionship() {
   const navigate = useNavigate();

@@ -43,6 +43,56 @@ export async function createTrack(trackData) {
   return data;
 }
 
+export async function updateTrack(id, trackData) {
+  const { data, error } = await supabase
+    .from('tracks')
+    .update(trackData)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// ========================================
+// TRACK REVIEWS
+// ========================================
+export async function getTrackReviews(trackId) {
+  const { data, error } = await supabase
+    .from('track_reviews')
+    .select(`
+      *,
+      profiles (username, full_name, avatar_url)
+    `)
+    .eq('track_id', trackId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error("Error fetching track reviews:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function addTrackReview(trackId, rating, comment) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+  
+  const { data, error } = await supabase
+    .from('track_reviews')
+    .insert([{
+      track_id: trackId,
+      user_id: user.id,
+      rating: rating,
+      comment: comment
+    }])
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return data;
+}
+
 // ========================================
 // LAP TIMES (Tiempos generales por pista)
 // ========================================
@@ -424,4 +474,196 @@ export async function getProfile(id) {
   }
   return data;
 }
+
+// ========================================
+// MOTORSPORT NEWS (Noticias En Vivo)
+// ========================================
+
+/**
+ * Obtiene las noticias de motorsport guardadas en Supabase.
+ */
+export async function getMotorsportNews() {
+  const { data, error } = await supabase
+    .from('motorsport_news')
+    .select('*')
+    .order('pub_date', { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("Error fetching motorsport news from DB:", error);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Guarda las noticias en Supabase llamando a la función RPC upsert_motorsport_news.
+ */
+export async function saveMotorsportNews(newsItems) {
+  if (!newsItems || newsItems.length === 0) return;
+
+  const { error } = await supabase.rpc('upsert_motorsport_news', {
+    news_items: newsItems
+  });
+
+  if (error) {
+    console.error("Error calling RPC upsert_motorsport_news:", error);
+    throw error;
+  }
+}
+
+/**
+ * Limpia el texto HTML de las descripciones RSS.
+ */
+function cleanDescription(htmlDesc) {
+  if (!htmlDesc) return '';
+  // Eliminar etiquetas HTML
+  let clean = htmlDesc.replace(/<[^>]*>/g, '');
+  // Decodificar entidades HTML comunes
+  clean = clean
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+  return clean.trim();
+}
+
+/**
+ * Extrae una URL de imagen de la descripción HTML si no hay thumbnail explícito.
+ */
+function extractImageFromHtml(htmlDesc) {
+  if (!htmlDesc) return null;
+  const match = htmlDesc.match(/<img[^>]+src="([^">]+)"/i);
+  return match ? match[1] : null;
+}
+
+/**
+ * Consulta feeds RSS de canales importantes del motorsport en la web y los formatea.
+ */
+export async function fetchExternalMotorsportNews() {
+  const feeds = [
+    {
+      url: 'https://www.motorsport.com/rss/f1/news/',
+      category: 'Formula 1',
+      source: 'Motorsport.com'
+    },
+    {
+      url: 'https://www.motorsport.com/rss/motogp/news/',
+      category: 'MotoGP',
+      source: 'Motorsport.com'
+    },
+    {
+      url: 'https://www.motorsport.com/rss/indycar/news/',
+      category: 'IndyCar',
+      source: 'Motorsport.com'
+    },
+    {
+      url: 'https://www.motorsport.com/rss/wrc/news/',
+      category: 'WRC',
+      source: 'Motorsport.com'
+    },
+    {
+      url: 'https://www.motorsport.com/rss/wec/news/',
+      category: 'WEC',
+      source: 'Motorsport.com'
+    },
+    {
+      url: 'https://racer.com/category/formula-1/feed/',
+      category: 'Formula 1',
+      source: 'Racer.com'
+    }
+  ];
+
+  const allNews = [];
+
+  for (const feed of feeds) {
+    try {
+      const response = await fetch(
+        `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`
+      );
+      
+      if (!response.ok) {
+        console.warn(`No se pudo obtener el feed de ${feed.source} (${feed.category})`);
+        continue;
+      }
+
+      const data = await response.json();
+      if (data.status !== 'ok' || !data.items) continue;
+
+      for (const item of data.items) {
+        const title = item.title;
+        const link = item.link;
+        // Limpiar la descripción de etiquetas HTML
+        const rawDesc = item.description || item.content || '';
+        const description = cleanDescription(rawDesc);
+        
+        // Obtener URL de imagen
+        const image_url = item.thumbnail || 
+                           item.enclosure?.link || 
+                           extractImageFromHtml(rawDesc) || 
+                           'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
+
+        // Formatear fecha a ISO String
+        let pub_date;
+        try {
+          pub_date = new Date(item.pubDate).toISOString();
+        } catch {
+          pub_date = new Date().toISOString();
+        }
+
+        allNews.push({
+          title,
+          link,
+          description: description.substring(0, 300) + (description.length > 300 ? '...' : ''),
+          pub_date,
+          source: feed.source,
+          image_url,
+          category: feed.category
+        });
+      }
+    } catch (err) {
+      console.error(`Error procesando feed ${feed.url}:`, err);
+    }
+  }
+
+  // Ordenar por fecha de publicación descendente
+  return allNews.sort((a, b) => new Date(b.pub_date) - new Date(a.pub_date));
+}
+
+/**
+ * Verifica si es necesario actualizar la base de datos (si no hay noticias o tienen más de 1 hora)
+ * y realiza la sincronización en segundo plano de ser necesario.
+ */
+export async function checkAndUpdateNews() {
+  try {
+    // 1. Obtener la noticia más reciente para ver cuándo fue creada
+    const { data: latestNews, error } = await supabase
+      .from('motorsport_news')
+      .select('created_at')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error("Error al verificar fecha de últimas noticias:", error);
+    }
+
+    const needsUpdate = !latestNews || 
+                         latestNews.length === 0 || 
+                         (new Date() - new Date(latestNews[0].created_at)) > 60 * 60 * 1000; // 1 hora en ms
+
+    if (needsUpdate) {
+      console.log("Las noticias de motorsport han expirado o no existen. Actualizando...");
+      const externalNews = await fetchExternalMotorsportNews();
+      if (externalNews.length > 0) {
+        await saveMotorsportNews(externalNews);
+        console.log(`Se actualizaron ${externalNews.length} noticias de motorsport.`);
+      }
+    }
+  } catch (err) {
+    console.error("Error en checkAndUpdateNews:", err);
+  }
+}
+
 

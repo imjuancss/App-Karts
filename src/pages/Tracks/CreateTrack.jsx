@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { createTrack } from '../../services/api';
-import './Tracks.css';
 
 export default function CreateTrack() {
   const navigate = useNavigate();
@@ -28,7 +27,7 @@ export default function CreateTrack() {
         if (schedule.startsWith('{')) {
           scheduleObj = JSON.parse(schedule);
         }
-      } catch (err) {
+      } catch {
         // Fallback a texto plano
       }
 
@@ -83,7 +82,6 @@ export default function CreateTrack() {
               required 
             />
           </div>
-        )}
 
           <div className="form-row">
             <div className="form-group">

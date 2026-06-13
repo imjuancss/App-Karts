@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, MapPin, Trophy, MessageSquare, Award, Clock, Send, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship } from '../../services/api';
-import './Championships.css';
 
 const formatMsToTime = (ms) => {
   if (!ms) return "00:00.000";
@@ -80,6 +79,7 @@ export default function ChampionshipDetail() {
 
   useEffect(() => {
     loadChampionshipData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Cada vez que cambia la ronda seleccionada, cargar sus tiempos
@@ -439,7 +439,7 @@ export default function ChampionshipDetail() {
             </div>
           )}
         </div>
-      </KineticCard>
+      </div>
 
       {/* Modal Subir Tiempo para Ronda */}
       {isTimeModalOpen && activeRound && (

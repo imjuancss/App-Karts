@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Search } from 'lucide-react';
 import { getTracks } from '../../services/api';
-import './Tracks.css';
 
 export default function TracksList() {
   const navigate = useNavigate();
@@ -83,7 +82,7 @@ export default function TracksList() {
         {!isLoading && filteredTracks.length === 0 && (
           <div className="text-muted-foreground col-span-full">No se encontraron pistas.</div>
         )}
-      </section>
+      </div>
 
       {/* PERFORMANCE STATS SECTION (Bento Style) */}
       <section className="mt-16 grid grid-cols-1 xl:grid-cols-4 gap-8">

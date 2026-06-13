@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Trophy, Calendar, MessageSquare, Clock, Plus, MailOpen, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
-import './Profile.css';
 
 const formatMsToTime = (ms) => {
   if (!ms) return "00:00.000";
@@ -280,7 +279,7 @@ export default function Profile() {
             </Grid>
           </Grid>
         </div>
-      </KineticCard>
+      </section>
 
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
@@ -292,7 +291,7 @@ export default function Profile() {
           sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
         >
           <Trophy size={18}/> Mis Campeonatos ({userChampionships.length})
-        </button>
+        </KineticButton>
 
         <button 
           className={`tab-btn ${activeTab === 'tiempos' ? 'active' : ''}`}
@@ -301,7 +300,7 @@ export default function Profile() {
           <Clock size={18}/> Mis Tiempos ({userTimes.length})
         </button>
 
-        <button 
+        <KineticButton 
           className={`tab-btn ${activeTab === 'actividad' ? 'active' : ''}`}
           onClick={() => setActiveTab('actividad')}
           startIcon={<MessageSquare size={18}/>}
@@ -368,7 +367,7 @@ export default function Profile() {
             <Typography color="text.secondary">No hay actividad reciente.</Typography>
           </div>
         )}
-      </section>
+      </KineticCard>
 
       {/* Modal Registrar Tiempo */}
       {isTimeModalOpen && (

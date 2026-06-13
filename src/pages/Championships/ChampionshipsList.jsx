@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, Trophy } from 'lucide-react';
 import { getChampionships } from '../../services/api';
-import './Championships.css';
 
 export default function ChampionshipsList() {
   const navigate = useNavigate();

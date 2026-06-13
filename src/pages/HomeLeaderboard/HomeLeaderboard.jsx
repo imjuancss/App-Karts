@@ -25,7 +25,19 @@ const formatGap = (leaderMs, currentMs) => {
 
 
 
-// Fetch realtime leaderboard data from Supabase
+const ORIGINAL_VISUAL_STYLES = [
+  { teamColor: "border-yellow-300", hasPole: true, textColor: "text-yellow-300", textShadow: "[text-shadow:_0px_0px_8px_rgb(255_212_58_/_0.50)]", filterColor: "0 0 0 0 1 0 0 0 0 0.831373 0 0 0 0 0.227451 0 0 0 0.5 0", poleSvgFill: "#B28B00", timeStroke: "#AA22DC", timeTextColor: "text-fuchsia-600" },
+  { teamColor: "border-zinc-400", hasPole: true, textColor: "text-zinc-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(186_186_186_/_0.50)]", filterColor: "0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0.5 0", poleSvgFill: "#898989", timeStroke: "white", timeTextColor: "text-lime-400" },
+  { teamColor: "border-orange-400", hasPole: true, textColor: "text-orange-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(207_136_50_/_0.50)]", filterColor: "0 0 0 0 0.811765 0 0 0 0 0.533333 0 0 0 0 0.196078 0 0 0 0.5 0", poleSvgFill: "#9D6119", timeStroke: "white", timeTextColor: "text-lime-400" }
+];
+
+export default function HomeLeaderboard() {
+  const [selectedTrackId, setSelectedTrackId] = useState('track1');
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState('historical');
+  const [isLoading, setIsLoading] = useState(false);
+  const [filteredLeaderboard, setFilteredLeaderboard] = useState([]);
+
+  // Fetch realtime leaderboard data from Supabase
 useEffect(() => {
     setIsLoading(true);
     const fetchLeaderboard = async () => {
@@ -77,18 +89,6 @@ useEffect(() => {
     };
     fetchLeaderboard();
   }, [selectedTrackId, selectedTimeFilter]);
-
-const ORIGINAL_VISUAL_STYLES = [
-  { teamColor: "border-yellow-300", hasPole: true, textColor: "text-yellow-300", textShadow: "[text-shadow:_0px_0px_8px_rgb(255_212_58_/_0.50)]", filterColor: "0 0 0 0 1 0 0 0 0 0.831373 0 0 0 0 0.227451 0 0 0 0.5 0", poleSvgFill: "#B28B00", timeStroke: "#AA22DC", timeTextColor: "text-fuchsia-600" },
-  { teamColor: "border-zinc-400", hasPole: true, textColor: "text-zinc-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(186_186_186_/_0.50)]", filterColor: "0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0 0.729412 0 0 0 0.5 0", poleSvgFill: "#898989", timeStroke: "white", timeTextColor: "text-lime-400" },
-  { teamColor: "border-orange-400", hasPole: true, textColor: "text-orange-400", textShadow: "[text-shadow:_0px_0px_8px_rgb(207_136_50_/_0.50)]", filterColor: "0 0 0 0 0.811765 0 0 0 0 0.533333 0 0 0 0 0.196078 0 0 0 0.5 0", poleSvgFill: "#9D6119", timeStroke: "white", timeTextColor: "text-lime-400" }
-];
-
-export default function HomeLeaderboard() {
-  const [selectedTrackId, setSelectedTrackId] = useState('track1');
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('historical');
-  const [isLoading, setIsLoading] = useState(false);
-  const [filteredLeaderboard, setFilteredLeaderboard] = useState([]);
 
   // Scroll-Linked Animation — DOM-direct, zero re-render
   const scrollContainerRef = useRef(null);

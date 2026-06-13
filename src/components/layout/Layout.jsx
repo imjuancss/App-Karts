@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Trophy, Map, User, Menu, X, Flag, Home } from 'lucide-react';
+import { Trophy, Map, User, Menu, X, Flag, Home, Radio } from 'lucide-react';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -43,7 +43,7 @@ export default function Layout({ children }) {
             );
           })}
         </nav>
-      </aside>
+      </nav>
 
       {/* Mobile Topbar */}
       <header className="mobile-header glass-panel">
