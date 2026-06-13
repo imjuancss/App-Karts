@@ -138,16 +138,37 @@ export default function TrackDetail() {
             <button className="secondary-btn" onClick={() => setIsTimeModalOpen(true)}>Registrar Tiempo</button>
           </div>
         </div>
-      </div>
+      </KineticCard>
 
-      <div className="track-layout glass-panel">
-        <div className="layout-tabs">
-          <button className={`tab-btn ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}>Información General</button>
-          <button className={`tab-btn ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')}>Mapa del Circuito</button>
-          <button className={`tab-btn ${activeTab === 'comments' ? 'active' : ''}`} onClick={() => setActiveTab('comments')}>Comentarios</button>
+      <KineticCard sx={{ p: { xs: 2, md: 4 } }}>
+        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
+          <KineticButton
+            variant={activeTab === 'info' ? 'contained' : 'outlined'}
+            color={activeTab === 'info' ? 'primary' : 'inherit'}
+            onClick={() => setActiveTab('info')}
+            sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
+          >
+            Información General
+          </KineticButton>
+          <KineticButton
+            variant={activeTab === 'map' ? 'contained' : 'outlined'}
+            color={activeTab === 'map' ? 'primary' : 'inherit'}
+            onClick={() => setActiveTab('map')}
+            sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
+          >
+            Mapa del Circuito
+          </KineticButton>
+          <KineticButton
+            variant={activeTab === 'comments' ? 'contained' : 'outlined'}
+            color={activeTab === 'comments' ? 'primary' : 'inherit'}
+            onClick={() => setActiveTab('comments')}
+            sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
+          >
+            Comentarios
+          </KineticButton>
         </div>
         
-        <div className="layout-content">
+        <div>
           {activeTab === 'info' && (
             <div className="fade-in">
               <h3 style={{marginBottom: '1rem'}}>Acerca del Circuito</h3>
@@ -172,16 +193,115 @@ export default function TrackDetail() {
               )}
             </div>
           )}
+
           {activeTab === 'map' && (
-             <div className="fade-in" style={{textAlign: 'center', padding: '2rem'}}>
-               <p style={{color: 'var(--text-secondary)'}}>Plano del circuito en construcción...</p>
-             </div>
+            <div className="fade-in text-center py-4">
+              {track.trazado ? (
+                <div className="max-w-3xl mx-auto p-4 bg-black/40 rounded-xl border border-white/10">
+                  <img 
+                    src={track.trazado} 
+                    alt={`Trazado de ${track.name}`} 
+                    className="w-full h-auto max-h-[500px] object-contain rounded-lg" 
+                  />
+                  <Typography variant="body2" color="text.secondary" mt={2} fontStyle="italic">
+                    Mapa técnico y trazado oficial del circuito.
+                  </Typography>
+                </div>
+              ) : (
+                <div className="py-16 px-4 bg-white/5 rounded-xl border border-dashed border-white/20 max-w-lg mx-auto">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-50">
+                    <path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8Z" strokeDasharray="3 3" />
+                    <path d="M12 8v4l3 3" />
+                  </svg>
+                  <Typography variant="h6" mb={1}>Plano del circuito en construcción</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    El creador o el administrador aún no han cargado la imagen del trazado para esta pista.
+                  </Typography>
+                </div>
+              )}
+            </div>
           )}
+
           {activeTab === 'comments' && (
              <div className="fade-in">
-               <div className="comment-box">
-                 <textarea placeholder="Escribe un comentario o reseña..." rows="3"></textarea>
-                 <button className="primary-btn" style={{marginTop: '1rem'}}>Publicar</button>
+               <div className="mb-10 max-w-2xl">
+                 <Typography variant="h5" mb={3}>Reseñas y Comentarios</Typography>
+                 
+                 {/* Lista de reseñas */}
+                 <Stack spacing={3} mb={5}>
+                   {reviews.length === 0 ? (
+                     <Typography color="text.secondary">No hay reseñas todavía. ¡Sé el primero en comentar!</Typography>
+                   ) : (
+                     reviews.map(review => (
+                       <div key={review.id} className="p-4 bg-white/5 rounded-lg border border-white/5">
+                         <div className="flex justify-between items-start mb-2">
+                           <div className="flex items-center gap-2">
+                             {review.profiles?.avatar_url ? (
+                               <img src={review.profiles.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
+                             ) : (
+                               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">
+                                 {(review.profiles?.username || 'U')[0].toUpperCase()}
+                               </div>
+                             )}
+                             <div>
+                               <Typography variant="subtitle2" fontWeight="bold">@{review.profiles?.username || 'Usuario'}</Typography>
+                               <Typography variant="caption" color="text.secondary">
+                                 {new Date(review.created_at).toLocaleDateString()}
+                               </Typography>
+                             </div>
+                           </div>
+                           <div className="flex gap-0.5">
+                             {[...Array(5)].map((_, i) => (
+                               <Star key={i} size={14} color={i < review.rating ? "var(--accent)" : "rgba(255,255,255,0.2)"} fill={i < review.rating ? "var(--accent)" : "transparent"} />
+                             ))}
+                           </div>
+                         </div>
+                         <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'rgba(255,255,255,0.8)' }}>
+                           {review.comment}
+                         </Typography>
+                       </div>
+                     ))
+                   )}
+                 </Stack>
+
+                 {/* Formulario de nueva reseña */}
+                 <div className="p-5 bg-black/40 rounded-xl border border-white/10">
+                   <Typography variant="h6" mb={2}>Deja tu reseña</Typography>
+                   <Stack spacing={2}>
+                     <div className="flex items-center gap-2 mb-1">
+                       <Typography variant="body2" color="text.secondary">Calificación:</Typography>
+                       <div className="flex gap-1 cursor-pointer">
+                         {[1, 2, 3, 4, 5].map(star => (
+                           <Star 
+                             key={star} 
+                             size={24} 
+                             color={star <= newReviewRating ? "var(--accent)" : "rgba(255,255,255,0.3)"} 
+                             fill={star <= newReviewRating ? "var(--accent)" : "transparent"}
+                             onClick={() => setNewReviewRating(star)}
+                             className="transition-colors hover:scale-110"
+                           />
+                         ))}
+                       </div>
+                     </div>
+                     <KineticInput
+                       placeholder="Escribe tu experiencia en esta pista..."
+                       multiline
+                       rows={3}
+                       fullWidth
+                       value={newReviewText}
+                       onChange={(e) => setNewReviewText(e.target.value)}
+                     />
+                     <div className="text-right mt-2">
+                       <KineticButton 
+                         variant="contained" 
+                         onClick={handleAddReview}
+                         disabled={isSubmittingReview || !sessionUser}
+                       >
+                         {isSubmittingReview ? <Loader2 className="animate-spin" size={20} /> : (sessionUser ? 'Publicar Reseña' : 'Inicia Sesión para Publicar')}
+                       </KineticButton>
+                     </div>
+                   </Stack>
+                 </div>
                </div>
              </div>
           )}

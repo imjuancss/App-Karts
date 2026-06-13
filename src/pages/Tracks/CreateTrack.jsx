@@ -52,12 +52,19 @@ export default function CreateTrack() {
 
   return (
     <div className="create-track-container fade-in">
-      <button className="back-btn" onClick={() => navigate('/tracks')}>
-        <ArrowLeft size={20}/> Volver
-      </button>
+      <Stack direction="row" mb={3}>
+        <KineticButton 
+          variant="text" 
+          color="secondary" 
+          onClick={() => navigate('/tracks')}
+          startIcon={<ArrowLeft size={20}/>}
+        >
+          Volver
+        </KineticButton>
+      </Stack>
 
-      <div className="form-wrapper glass-panel">
-        <h1 style={{marginBottom: '2rem'}}>Crear Nuevo Circuito</h1>
+      <KineticCard sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Circuito</Typography>
         
         {errorMsg && (
           <div className="auth-error" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgb(239, 68, 68)', color: '#f87171', borderRadius: '8px' }}>
@@ -76,6 +83,7 @@ export default function CreateTrack() {
               required 
             />
           </div>
+        )}
 
           <div className="form-row">
             <div className="form-group">
@@ -133,7 +141,7 @@ export default function CreateTrack() {
             {isSubmitting ? <Loader2 className="spinner" size={20} /> : 'Registrar Circuito'}
           </button>
         </form>
-      </div>
+      </KineticCard>
     </div>
   );
 }

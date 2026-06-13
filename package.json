@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@fontsource-variable/geist-mono": "^5.2.7",
     "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@mui/material": "^9.0.1",
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/supabase-js": "^2.103.0",
     "@tailwindcss/vite": "^4.2.2",

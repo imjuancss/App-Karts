@@ -20,11 +20,11 @@ export default function ChampionshipsList() {
   }, []);
 
   return (
-    <div className="champs-container fade-in">
-      <div className="page-header">
+    <div className="fade-in max-w-6xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1>Campeonatos Activos</h1>
-          <p className="subtitle">Únete a torneos y compite por la victoria</p>
+          <Typography variant="h3" fontWeight="bold" color="white" mb={1}>Campeonatos Activos</Typography>
+          <Typography variant="subtitle1" color="text.secondary">Únete a torneos y compite por la victoria</Typography>
         </div>
         <button className="primary-btn" onClick={() => navigate('/championships/new')}>
           <Trophy size={20}/> Nuevo Campeonato

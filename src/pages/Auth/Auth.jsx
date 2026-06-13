@@ -26,8 +26,6 @@ export default function Auth() {
     } else {
       const res = await supabase.auth.signUp({ email, password });
       error = res.error;
-      // If sign‑up succeeded but no session (email verification required),
-      // inform the user and stop navigation.
       if (!error && !res.session) {
         setSuccessMsg('Registro exitoso. Revisa tu correo para confirmar la cuenta antes de iniciar sesión.');
         setErrorDesc('');
@@ -40,7 +38,6 @@ export default function Auth() {
       setErrorDesc(error.message);
       setIsLoading(false);
     } else {
-      // Éxito, redirigir al perfil general
       navigate('/profile');
     }
   };

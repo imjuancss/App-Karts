@@ -255,14 +255,41 @@ export default function Profile() {
             </span>
             <span className="stat-label">Puntos Totales</span>
           </div>
+          
+          {/* Stats */}
+          <Grid container spacing={3} className="pt-6 border-t border-white/10">
+            <Grid item xs={12} sm={4}>
+              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                <Typography variant="h3" fontWeight="bold" color="white">{userTimes.length}</Typography>
+                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Récords Pista</Typography>
+              </div>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                <Typography variant="h3" fontWeight="bold" color="white">{userChampionships.length}</Typography>
+                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Campeonatos</Typography>
+              </div>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                <Typography variant="h3" fontWeight="bold" color="#FF3100">
+                  {userChampionships.reduce((acc, c) => acc + (c.points || 0), 0)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Puntos Totales</Typography>
+              </div>
+            </Grid>
+          </Grid>
         </div>
-      </section>
+      </KineticCard>
 
       {/* Tabs */}
-      <div className="profile-tabs">
-        <button 
-          className={`tab-btn ${activeTab === 'campeonatos' ? 'active' : ''}`}
+      <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
+        <KineticButton
+          variant={activeTab === 'campeonatos' ? 'contained' : 'outlined'}
+          color={activeTab === 'campeonatos' ? 'primary' : 'inherit'}
           onClick={() => setActiveTab('campeonatos')}
+          startIcon={<Trophy size={18}/>}
+          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
         >
           <Trophy size={18}/> Mis Campeonatos ({userChampionships.length})
         </button>
@@ -277,13 +304,15 @@ export default function Profile() {
         <button 
           className={`tab-btn ${activeTab === 'actividad' ? 'active' : ''}`}
           onClick={() => setActiveTab('actividad')}
+          startIcon={<MessageSquare size={18}/>}
+          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
         >
-          <MessageSquare size={18}/> Actividad
-        </button>
+          Actividad
+        </KineticButton>
       </div>
 
       {/* Tab Content */}
-      <section className="tab-content glass-panel">
+      <KineticCard sx={{ p: 4, minHeight: '300px' }}>
         {activeTab === 'campeonatos' && (
           <div className="content-grid list-view fade-in">
              {userChampionships.length === 0 ? (
@@ -335,8 +364,8 @@ export default function Profile() {
         )}
 
         {activeTab === 'actividad' && (
-          <div className="activity-feed fade-in">
-            <p style={{color: 'var(--text-secondary)'}}>No hay actividad reciente.</p>
+          <div className="fade-in">
+            <Typography color="text.secondary">No hay actividad reciente.</Typography>
           </div>
         )}
       </section>

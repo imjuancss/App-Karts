@@ -439,7 +439,7 @@ export default function ChampionshipDetail() {
             </div>
           )}
         </div>
-      </div>
+      </KineticCard>
 
       {/* Modal Subir Tiempo para Ronda */}
       {isTimeModalOpen && activeRound && (
