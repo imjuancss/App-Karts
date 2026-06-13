@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Plus, Filter, ChevronRight, Zap } from 'lucide-react';
+import { MapPin, Star, Search } from 'lucide-react';
 import { getTracks } from '../../services/api';
+import './Tracks.css';
 
 export default function TracksList() {
   const navigate = useNavigate();
@@ -24,22 +25,17 @@ export default function TracksList() {
     t.location?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+
+
   return (
-    <div className="fade-in max-w-[1400px] mx-auto">
-      {/* HEADER ACTION */}
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-y-6">
-        <div className="max-w-2xl">
-          <h2 className="font-heading font-bold text-5xl italic tracking-tighter mb-4 leading-none uppercase text-white">Pistas de Karts</h2>
-          <p className="text-muted-foreground font-body text-lg max-w-md">
-            Los circuitos más exigentes del país. Filtrados por rendimiento, diseñados para la velocidad.
-          </p>
+    <div className="tracks-container fade-in">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1>Pistas de Karts</h1>
+          <p className="subtitle">Encuentra los mejores circuitos para correr</p>
         </div>
-        <button 
-          onClick={() => navigate('/tracks/new')} 
-          className="kinetic-gradient px-8 py-4 flex items-center gap-x-3 rounded-sm group active:scale-95 transition-transform"
-        >
-          <Plus className="text-white" size={24} />
-          <span className="font-heading font-bold text-white tracking-widest text-sm uppercase">Registrar Nueva Pista</span>
+        <button className="primary-btn" onClick={() => navigate('/tracks/new')}>
+          Registrar Nueva Pista
         </button>
       </div>
 
@@ -63,60 +59,26 @@ export default function TracksList() {
         </div>
       </section>
 
-      {/* BENTO GRID CIRCUIT CARDS */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="tracks-grid">
         {isLoading ? (
-          <div className="text-muted-foreground">Cargando pistas...</div>
+          <p style={{color: 'var(--text-secondary)'}}>Cargando pistas...</p>
         ) : (
           filteredTracks.map(track => (
-            <div 
-              key={track.id}
-              onClick={() => navigate(`/tracks/${track.id}`)}
-              className="group cursor-pointer relative bg-card rounded-sm overflow-hidden flex flex-col transform transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-border/50 hover:border-primary/50"
-            >
-              <div className="relative h-64 overflow-hidden">
-                <img 
-                  src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} 
-                  alt={track.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
-                <div className="absolute top-4 right-4 bg-[#cafd00] text-[#3a4a00] px-3 py-1 rounded-sm flex items-center gap-1">
-                  <Star size={14} fill="currentColor" />
-                  <span className="font-heading font-bold text-xs">{track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
+            <div key={track.id} className="track-card glass-panel" onClick={() => navigate(`/tracks/${track.id}`)}>
+              <img src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} alt={track.name} className="track-image" />
+              <div className="track-info">
+                <h3>{track.name}</h3>
+                <div className="track-meta">
+                  <span><MapPin size={16}/> {track.location}</span>
+                  <span className="rating"><Star size={16} fill="var(--accent)" color="var(--accent)"/> {track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
                 </div>
-              </div>
-              <div className="p-8 flex flex-col flex-1">
-                <h3 className="font-heading font-bold text-2xl mb-1 uppercase tracking-tighter italic text-white">{track.name}</h3>
-                <div className="flex items-center gap-x-2 text-muted-foreground mb-6">
-                  <MapPin size={16} />
-                  <span className="text-[11px] font-body uppercase tracking-wider line-clamp-1">{track.location}</span>
-                </div>
-                <div className="mt-auto grid grid-cols-2 gap-4 border-t border-border/50 pt-6">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mb-1">Pricing</span>
-                    <span className="font-heading font-bold text-lg text-primary">
-                      {track.cost_info ? track.cost_info.split(' ')[0] : '$46.000'} <span className="text-[10px] opacity-60 uppercase">{track.cost_info ? track.cost_info.split(' ').slice(1).join(' ') : 'COP'}</span>
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mb-1">Session</span>
-                    <span className="font-heading font-bold text-lg text-white">10 MINS</span>
-                  </div>
-                </div>
-                <div className="mt-6 flex justify-between items-center">
-                  <div className="w-16 h-10 opacity-40 group-hover:opacity-100 transition-opacity">
-                    <svg fill="none" stroke="#FF3100" strokeWidth="3" viewBox="0 0 100 60">
-                      <path d="M10,30 Q30,10 50,30 T90,30 Q70,50 50,40 T10,30" strokeLinecap="round" strokeLinejoin="round"></path>
-                    </svg>
-                  </div>
-                  <button className="bg-white/5 w-10 h-10 flex items-center justify-center rounded-sm group-hover:bg-primary transition-colors">
-                    <ChevronRight className="text-white" size={24} />
-                  </button>
-                </div>
+                <p className="track-cost">{track.cost_info || 'Consultar costo'}</p>
               </div>
             </div>
           ))
+        )}
+        {!isLoading && filteredTracks.length === 0 && (
+          <p style={{color: 'var(--text-secondary)'}}>No se encontraron pistas.</p>
         )}
         {!isLoading && filteredTracks.length === 0 && (
           <div className="text-muted-foreground col-span-full">No se encontraron pistas.</div>

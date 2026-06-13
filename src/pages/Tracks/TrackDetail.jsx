@@ -1,18 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Loader2, Edit3 } from 'lucide-react';
-import { getTrackById, getRecentTrackLapTimes, registerLapTime, getProfile, getTrackReviews, addTrackReview } from '../../services/api';
-import { supabase } from '../../lib/supabase';
-import KineticButton from '../../components/ui/KineticButton';
-import KineticCard from '../../components/ui/KineticCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Loader2 } from 'lucide-react';
+import { getTrackById, getRecentTrackLapTimes, registerLapTime } from '../../services/api';
+import './Tracks.css';
 
 const formatMsToTime = (ms) => {
   if (!ms) return "00:00.000";
@@ -62,36 +52,14 @@ export default function TrackDetail() {
   const [timeInput, setTimeInput] = useState('');
   const [isSubmittingTime, setIsSubmittingTime] = useState(false);
   const [timeError, setTimeError] = useState('');
-  const [sessionUser, setSessionUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-  
-  const [reviews, setReviews] = useState([]);
-  const [newReviewText, setNewReviewText] = useState('');
-  const [newReviewRating, setNewReviewRating] = useState(0);
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   const loadTrackData = async () => {
     setIsLoading(true);
     const data = await getTrackById(id);
     setTrack(data);
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user || null;
-    setSessionUser(user);
-    
-    if (user) {
-      const profile = await getProfile(user.id);
-      setUserProfile(profile);
-    } else {
-      setUserProfile(null);
-    }
-
     if (data) {
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
-      
-      const loadedReviews = await getTrackReviews(id);
-      setReviews(loadedReviews || []);
     }
     setIsLoading(false);
   };
@@ -113,9 +81,11 @@ export default function TrackDetail() {
       
       await registerLapTime(id, ms);
       
+      // Limpiar y cerrar modal
       setTimeInput('');
       setIsTimeModalOpen(false);
       
+      // Recargar tiempos
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
       alert('¡Tiempo registrado con éxito!');
@@ -127,105 +97,45 @@ export default function TrackDetail() {
     }
   };
 
-  const handleAddReview = async () => {
-    if (!newReviewText.trim() || newReviewRating < 1 || newReviewRating > 5) {
-      alert('Por favor escribe un comentario y selecciona una calificación (1-5 estrellas).');
-      return;
-    }
-    if (!sessionUser) {
-      alert('Debes iniciar sesión para publicar una reseña.');
-      return;
-    }
-    setIsSubmittingReview(true);
-    try {
-      await addTrackReview(id, newReviewRating, newReviewText);
-      setNewReviewText('');
-      setNewReviewRating(0);
-      const updatedReviews = await getTrackReviews(id);
-      setReviews(updatedReviews || []);
-      // Refresh track data to update rating_avg
-      const updatedTrack = await getTrackById(id);
-      if (updatedTrack) setTrack(updatedTrack);
-    } catch (err) {
-      console.error(err);
-      alert('Hubo un error al publicar la reseña.');
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
   if (isLoading) {
-    return (
-      <div className="track-detail-container fade-in" style={{ textAlign: 'center' }}>
-        <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando detalles de la pista...</Typography>
-      </div>
-    );
+    return <div className="track-detail-container fade-in"><p>Cargando información de la pista...</p></div>;
   }
 
   if (!track) {
-    return (
-      <div className="track-detail-container fade-in text-center">
-        <Typography color="error">Pista no encontrada o eliminada.</Typography>
-        <KineticButton variant="outlined" sx={{ mt: 3 }} onClick={() => navigate('/tracks')}>
-          Volver a pistas
-        </KineticButton>
-      </div>
-    );
+    return <div className="track-detail-container fade-in"><p>Pista no encontrada o eliminada.</p></div>;
   }
 
   return (
-    <div className="track-detail-container fade-in max-w-6xl mx-auto">
-      <Stack direction="row" mb={3}>
-        <KineticButton 
-          variant="text" 
-          color="secondary" 
-          onClick={() => navigate('/tracks')}
-          startIcon={<ArrowLeft size={20}/>}
-        >
-          Volver a pistas
-        </KineticButton>
-      </Stack>
+    <div className="track-detail-container fade-in">
+      <button className="back-btn" onClick={() => navigate('/tracks')}>
+        <ArrowLeft size={20}/> Volver a pistas
+      </button>
 
-      <KineticCard sx={{ mb: 4, p: 0, overflow: 'hidden' }} noPadding>
-        <div style={{ position: 'relative' }}>
-          <img 
-            src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} 
-            alt={track.name} 
-            className="w-full h-64 md:h-96 object-cover block"
-            fetchpriority="high"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] to-transparent pointer-events-none" />
-        </div>
-        
-        <div className="p-6 md:p-8 relative z-10 -mt-20 md:-mt-32">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <Typography variant="h2" sx={{ color: 'white', mb: 1 }}>{track.name}</Typography>
-              <div className="flex flex-wrap items-center gap-4 text-sm md:text-base text-gray-300">
-                <span className="flex items-center gap-1">
-                  <Star size={18} color="var(--accent)" fill="var(--accent)" />
-                  <span className="font-bold text-white">{track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
-                </span>
-                <span className="flex items-center gap-1"><MapPin size={18} className="opacity-70" /> {track.location}</span>
-                <span className="flex items-center gap-1"><DollarSign size={18} className="opacity-70" /> {track.cost_info || 'Consultar costo'}</span>
-                <span className="flex items-center gap-1"><Clock size={18} className="opacity-70" /> {formatSchedule(track.schedule)}</span>
-              </div>
+      <div className="track-header glass-panel">
+        <img 
+          src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} 
+          alt={track.name} 
+          className="track-cover-large" 
+          fetchpriority="high"
+          decoding="async"
+        />
+        <div className="track-header-content">
+          <div className="track-title-row">
+            <h1>{track.name}</h1>
+            <div className="rating-badge">
+              <Star size={18} fill="var(--accent)" color="var(--accent)"/>
+              <span>{track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
             </div>
-
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <KineticButton variant="contained" onClick={() => navigate(`/championships/new?trackId=${track.id}`)}>
-                Crear Campeonato
-              </KineticButton>
-              <KineticButton variant="outlined" color="secondary" onClick={() => setIsTimeModalOpen(true)}>
-                Registrar Tiempo
-              </KineticButton>
-              {sessionUser && (sessionUser.id === track.creator_id || userProfile?.role === 'admin') && (
-                <KineticButton variant="outlined" color="inherit" onClick={() => navigate(`/tracks/${track.id}/edit`)} startIcon={<Edit3 size={16} />}>
-                  Editar Circuito
-                </KineticButton>
-              )}
-            </Stack>
+          </div>
+          <div className="track-meta-row">
+            <span><MapPin size={18}/> {track.location}</span>
+            <span><DollarSign size={18}/> {track.cost_info || 'Consultar costo'}</span>
+            <span><Clock size={18}/> {formatSchedule(track.schedule)}</span>
+          </div>
+          
+          <div className="track-actions">
+            <button className="primary-btn" onClick={() => navigate(`/championships/new?trackId=${track.id}`)}>Crear Campeonato Aquí</button>
+            <button className="secondary-btn" onClick={() => setIsTimeModalOpen(true)}>Registrar Tiempo</button>
           </div>
         </div>
       </KineticCard>
@@ -260,32 +170,27 @@ export default function TrackDetail() {
         
         <div>
           {activeTab === 'info' && (
-            <div className="fade-in space-y-8">
-              <section>
-                <Typography variant="h4" mb={2}>Acerca del Circuito</Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  {track.description || 'Un circuito diseñado para la alta velocidad y exigencia técnica. Cuenta con zonas de frenado fuerte y curvas encadenadas. Ideal tanto para principiantes como para expertos buscando mejorar sus tiempos.'}
-                </Typography>
-              </section>
+            <div className="fade-in">
+              <h3 style={{marginBottom: '1rem'}}>Acerca del Circuito</h3>
+              <p style={{color: 'var(--text-secondary)', lineHeight: 1.6}}>
+                {track.description || 'Un circuito diseñado para la alta velocidad y exigencia técnica. Cuenta con zonas de frenado fuerte y curvas encadenadas. Ideal tanto para principiantes como para expertos buscando mejorar sus tiempos.'}
+              </p>
               
-              <section>
-                <Typography variant="h4" mb={3}>Mejores Tiempos Recientes</Typography>
-                {recentTimes.length === 0 ? (
-                  <Typography color="text.secondary">Aún no hay tiempos registrados en esta pista.</Typography>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {recentTimes.map((time, idx) => (
-                      <div key={time.id} className="flex justify-between items-center p-3 bg-white/5 rounded border border-white/5 hover:bg-white/10 transition-colors">
-                        <span className="font-medium">
-                          <span className="text-[#cafd00] mr-2">{idx + 1}.</span> 
-                          @{time.profiles?.username || 'piloto'} {time.profiles?.full_name ? <span className="opacity-50 font-normal">({time.profiles.full_name})</span> : ''}
-                        </span>
-                        <span className="font-mono text-lg font-bold tracking-tight text-[#FF3100]">{formatMsToTime(time.lap_time_ms)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
+              <h3 style={{margin: '2rem 0 1rem'}}>Mejores Tiempos Recientes</h3>
+              {recentTimes.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)' }}>Aún no hay tiempos registrados en esta pista.</p>
+              ) : (
+                <div className="times-list">
+                  {recentTimes.map((time, idx) => (
+                    <div className="time-row" key={time.id}>
+                      <span className="time-user">
+                        {idx + 1}. @{time.profiles?.username || 'piloto'} {time.profiles?.full_name ? `(${time.profiles.full_name})` : ''}
+                      </span>
+                      <span className="time-value" style={{ fontFamily: 'monospace' }}>{formatMsToTime(time.lap_time_ms)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -401,55 +306,37 @@ export default function TrackDetail() {
              </div>
           )}
         </div>
-      </KineticCard>
+      </div>
 
-      <Dialog 
-        open={isTimeModalOpen} 
-        onClose={() => !isSubmittingTime && setIsTimeModalOpen(false)}
-        PaperProps={{
-          style: {
-            backgroundColor: 'var(--bg-card)',
-            backgroundImage: 'none',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '12px'
-          }
-        }}
-      >
-        <form onSubmit={handleRegisterTime}>
-          <DialogTitle sx={{ color: 'white' }}>Registrar Mi Tiempo</DialogTitle>
-          <DialogContent>
+      {isTimeModalOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-content glass-panel" style={{ padding: '2rem', width: '90%', maxWidth: '400px', borderRadius: '12px', background: '#1e1e2f' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.25rem' }}>Registrar Mi Tiempo</h3>
             {timeError && (
-              <Typography color="error" variant="body2" mb={2}>{timeError}</Typography>
+              <p style={{ color: '#f87171', fontSize: '0.875rem', marginBottom: '1rem' }}>{timeError}</p>
             )}
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Ingresa tu mejor tiempo en la pista. Formato aceptado: mm:ss.SSS o ss.SSS
-            </Typography>
-            <KineticInput
-              label="Tu mejor tiempo"
-              placeholder="Ej: 00:44.520"
-              value={timeInput}
-              onChange={e => setTimeInput(e.target.value)}
-              fullWidth
-              autoFocus
-              required
-              slotProps={{
-                input: {
-                  style: { fontFamily: 'monospace' }
-                }
-              }}
-            />
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 0 }}>
-            <KineticButton variant="text" color="inherit" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime}>
-              Cancelar
-            </KineticButton>
-            <KineticButton type="submit" variant="contained" disabled={isSubmittingTime}>
-              {isSubmittingTime ? <Loader2 className="animate-spin" size={20} /> : 'Registrar'}
-            </KineticButton>
-          </DialogActions>
-        </form>
-      </Dialog>
+            <form onSubmit={handleRegisterTime}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', opacity: 0.8 }}>Tu mejor tiempo (mm:ss.SSS o ss.SSS)</label>
+                <input 
+                  type="text" 
+                  placeholder="Ej: 00:44.520 o 44.520" 
+                  value={timeInput} 
+                  onChange={e => setTimeInput(e.target.value)} 
+                  required 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: 'white', fontFamily: 'monospace' }} 
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" className="secondary-btn" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime}>Cancelar</button>
+                <button type="submit" className="primary-btn" disabled={isSubmittingTime}>
+                  {isSubmittingTime ? <Loader2 className="spinner" size={20} /> : 'Registrar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

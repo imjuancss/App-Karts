@@ -26,49 +26,24 @@ if (!url || !key) {
 const supabase = createClient(url, key);
 
 async function test() {
-  console.log('--- SUPABASE DATABASE DIAGNOSTICS ---');
+  console.log('Testing Supabase connection...');
+  const { data: tracks, error: tracksError } = await supabase.from('tracks').select('*').limit(5);
+  if (tracksError) console.error('Tracks error:', tracksError);
+  else console.log('Fetched tracks:', tracks.length);
 
-  const tables = [
-    'profiles',
-    'tracks',
-    'track_reviews',
-    'championships',
-    'championship_participants',
-    'comments',
-    'lap_times',
-    'championship_rounds',
-    'championship_round_times',
-    'championship_invitations',
-    'motorsport_news'
-  ];
+  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('*').limit(5);
+  if (profilesError) console.error('Profiles error:', profilesError);
+  else console.log('Fetched profiles:', profiles.length);
 
-  for (const table of tables) {
-    const { count, error } = await supabase
-      .from(table)
-      .select('*', { count: 'exact', head: true });
-    
-    if (error) {
-      console.error(`Error counting table "${table}":`, error.message);
-    } else {
-      console.log(`Table "${table}": ${count} records`);
-    }
-  }
-
-  // Print tracks detail and lap times count
-  const { data: tracks, error: tracksError } = await supabase.from('tracks').select('id, name, rating_avg');
-  if (tracksError) {
-    console.error('Error fetching tracks:', tracksError.message);
-  } else {
-    console.log('\nTracks list and lap times:');
-    const { data: lapTimes } = await supabase.from('lap_times').select('track_id');
-    const counts = {};
-    if (lapTimes) {
-      lapTimes.forEach(l => { counts[l.track_id] = (counts[l.track_id] || 0) + 1; });
-    }
-    tracks.forEach(t => {
-      console.log(` - [${t.id}] ${t.name} (Rating Avg: ${t.rating_avg}) -> ${counts[t.id] || 0} lap times`);
-    });
-  }
+  // Insert temporary profile
+  const tempId = '00000000-0000-0000-0000-000000000001';
+  await supabase.from('profiles').delete().eq('id', tempId);
+  const { data: inserted, error: insertError } = await supabase.from('profiles').insert([{ id: tempId, username: 'temp_user', full_name: 'Temp User' }]).select();
+  if (insertError) console.error('Insert error:', insertError);
+  else console.log('Inserted profile:', inserted);
+  // Cleanup
+  await supabase.from('profiles').delete().eq('id', tempId);
+  console.log('Cleanup done');
 }
 
 test().catch(e => console.error(e));

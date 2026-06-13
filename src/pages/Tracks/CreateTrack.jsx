@@ -2,13 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { createTrack } from '../../services/api';
-import KineticButton from '../../components/ui/KineticButton';
-import KineticCard from '../../components/ui/KineticCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-
+import './Tracks.css';
 
 export default function CreateTrack() {
   const navigate = useNavigate();
@@ -18,7 +12,6 @@ export default function CreateTrack() {
   const [schedule, setSchedule] = useState('');
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
-  const [trazado, setTrazado] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -28,12 +21,16 @@ export default function CreateTrack() {
     setErrorMsg('');
 
     try {
+      // Intentamos estructurar el horario como JSON si tiene un formato clave/valor
+      // De lo contrario, lo guardamos como un objeto con una clave "horario"
       let scheduleObj = { horario: schedule };
       try {
         if (schedule.startsWith('{')) {
           scheduleObj = JSON.parse(schedule);
         }
-      } catch (err) {}
+      } catch (err) {
+        // Fallback a texto plano
+      }
 
       await createTrack({
         name,
@@ -41,8 +38,7 @@ export default function CreateTrack() {
         cost_info: costInfo,
         schedule: scheduleObj,
         description,
-        cover_image: coverImage || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop',
-        trazado: trazado || null
+        cover_image: coverImage || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'
       });
 
       navigate('/tracks');
@@ -71,91 +67,79 @@ export default function CreateTrack() {
         <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Circuito</Typography>
         
         {errorMsg && (
-          <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded text-red-400">
+          <div className="auth-error" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgb(239, 68, 68)', color: '#f87171', borderRadius: '8px' }}>
             <p>{errorMsg}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            <KineticInput
-              label="Nombre del Circuito"
-              placeholder="Ej: Circuito Xtreme Karts"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              fullWidth
+        <form onSubmit={handleSubmit} className="track-form">
+          <div className="form-group">
+            <label>Nombre del Circuito</label>
+            <input 
+              type="text" 
+              placeholder="Ej: Circuito Xtreme Karts" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              required 
             />
+          </div>
+        )}
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Ubicación / Ciudad"
-                  placeholder="Ej: Bogotá"
-                  value={location}
-                  onChange={e => setLocation(e.target.value)}
-                  required
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Costo por Heat (Aprox)"
-                  placeholder="Ej: $50.000"
-                  value={costInfo}
-                  onChange={e => setCostInfo(e.target.value)}
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Ubicación / Ciudad</label>
+              <input 
+                type="text" 
+                placeholder="Ej: Bogotá" 
+                value={location} 
+                onChange={e => setLocation(e.target.value)} 
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>Costo por Heat (Aprox)</label>
+              <input 
+                type="text" 
+                placeholder="Ej: $50.000" 
+                value={costInfo} 
+                onChange={e => setCostInfo(e.target.value)} 
+              />
+            </div>
+          </div>
 
-            <KineticInput
-              label="Horarios de Atención"
-              placeholder="Ej: Mar-Dom: 10am - 10pm"
-              value={schedule}
-              onChange={e => setSchedule(e.target.value)}
-              fullWidth
+          <div className="form-group">
+            <label>Horarios de Atención</label>
+            <input 
+              type="text" 
+              placeholder="Ej: Mar-Dom: 10am - 10pm" 
+              value={schedule} 
+              onChange={e => setSchedule(e.target.value)} 
             />
+          </div>
 
-            <KineticInput
-              label="URL de Imagen de Portada (Opcional)"
-              placeholder="Ej: https://images.unsplash.com/..."
-              type="url"
-              value={coverImage}
-              onChange={e => setCoverImage(e.target.value)}
-              fullWidth
+          <div className="form-group">
+            <label>URL de Imagen de Portada (Opcional)</label>
+            <input 
+              type="url" 
+              placeholder="Ej: https://images.unsplash.com/..." 
+              value={coverImage} 
+              onChange={e => setCoverImage(e.target.value)} 
             />
+          </div>
 
-            <KineticInput
-              label="URL de Imagen del Trazado (Opcional)"
-              placeholder="Ej: https://images.unsplash.com/... (Mapa del circuito)"
-              type="url"
-              value={trazado}
-              onChange={e => setTrazado(e.target.value)}
-              fullWidth
+          <div className="form-group">
+            <label>Descripción y Detalles</label>
+            <textarea 
+              rows="4" 
+              placeholder="Detalles sobre el trazado, asfalto, exigencia..." 
+              value={description} 
+              onChange={e => setDescription(e.target.value)} 
             />
+          </div>
 
-            <KineticInput
-              label="Descripción y Detalles"
-              placeholder="Detalles sobre el trazado, asfalto, exigencia..."
-              multiline
-              rows={4}
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              fullWidth
-            />
-
-            <KineticButton 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              size="large"
-              disabled={isSubmitting}
-              sx={{ mt: 2, py: 1.5 }}
-            >
-              {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Registrar Circuito'}
-            </KineticButton>
-          </Stack>
+          <button type="submit" className="primary-btn" style={{marginTop: '1rem'}} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="spinner" size={20} /> : 'Registrar Circuito'}
+          </button>
         </form>
       </KineticCard>
     </div>

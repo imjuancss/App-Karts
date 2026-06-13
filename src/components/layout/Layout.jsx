@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Trophy, Map, User, Menu, X, Flag, Home, Radio } from 'lucide-react';
-import IconButton from '@mui/material/IconButton';
+import { Trophy, Map, User, Menu, X, Flag, Home } from 'lucide-react';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -29,48 +28,22 @@ export default function Layout({ children }) {
             Kart<span className="text-primary">Social</span>
           </h1>
         </div>
-
-        {/* Navigation Items */}
-        <div className="flex flex-col gap-2">
-          {navLinks.map((item) => (
-            <NavLink 
-              key={item.to} 
-              to={item.to} 
-              className={({ isActive }) => 
-                isActive 
-                  ? "bg-card text-foreground font-bold rounded-lg px-4 py-4 flex items-center gap-4 active-glow border-l-4 border-primary transition-all duration-300"
-                  : "group text-muted-foreground hover:text-foreground px-4 py-4 flex items-center gap-4 transition-all duration-300 rounded-lg hover:bg-white/5"
-              }
-            >
-              {({ isActive }) => {
-                const Icon = item.icon;
-                return (
-                  <>
-                    <Icon size={24} className={isActive ? "text-primary" : "group-hover:text-primary transition-colors"} />
-                    <span className={`font-heading tracking-wide ${isActive ? 'uppercase text-sm' : 'font-medium'}`}>
-                      {item.label}
-                    </span>
-                    {item.label === 'En Vivo' && (
-                      <span className="ml-auto flex h-2 w-2 rounded-full bg-destructive animate-pulse"></span>
-                    )}
-                  </>
-                );
-              }}
-            </NavLink>
-          ))}
-        </div>
-
-        {/* Performance Stats (Sidebar Footer) */}
-        <div className="mt-auto pt-8 border-t border-border/50">
-          <div className="glass-panel p-4 rounded-lg">
-            <p className="text-[10px] font-bold text-[#beee00] uppercase tracking-[0.2em] mb-2">Fastest Lap</p>
-            <div className="flex items-end gap-2">
-              <span className="font-heading text-2xl font-bold leading-none">00:48.254</span>
-              <span className="text-[#beee00] text-[10px] font-bold pb-1">+0.002s</span>
-            </div>
-          </div>
-        </div>
-      </nav>
+        <nav className="sidebar-nav">
+          {navLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink 
+                key={item.to} 
+                to={item.to} 
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      </aside>
 
       {/* Mobile Topbar */}
       <header className="mobile-header glass-panel">
@@ -127,6 +100,20 @@ export default function Layout({ children }) {
                 </NavLink>
               ))}
             </div>
+            {navLinks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink 
+                  key={item.to} 
+                  to={item.to} 
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
           </nav>
         </div>
       )}

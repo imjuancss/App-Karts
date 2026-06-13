@@ -40,10 +40,8 @@ function App() {
             
             <Route path="/tracks" element={<TracksList />} />
             <Route path="/tracks/new" element={<CreateTrack />} />
-            <Route path="/tracks/:id/edit" element={<EditTrack />} />
             <Route path="/tracks/:id" element={<TrackDetail />} />
 
-            <Route path="/live" element={<Live />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Auth />} />
           </Routes>

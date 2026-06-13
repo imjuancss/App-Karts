@@ -2,20 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Trash2, Plus, Loader2, Calendar, Award } from 'lucide-react';
 import { getTracks, createChampionship } from '../../services/api';
-import KineticButton from '../../components/ui/KineticButton';
-import KineticCard from '../../components/ui/KineticCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-import MenuItem from '@mui/material/MenuItem';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
+import './Championships.css';
+
 export default function CreateChampionship() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedTrackId = searchParams.get('trackId') || '';
 
+  // Estados del Formulario
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [prizeLabel, setPrizeLabel] = useState('');
@@ -23,6 +17,7 @@ export default function CreateChampionship() {
   const [endDate, setEndDate] = useState('');
   const [entryFee, setEntryFee] = useState('');
   
+  // Listado de Pistas y Rondas
   const [allTracks, setAllTracks] = useState([]);
   const [rounds, setRounds] = useState([
     { track_id: '', date: '' },
@@ -40,6 +35,7 @@ export default function CreateChampionship() {
       const tracks = await getTracks();
       setAllTracks(tracks || []);
       
+      // Si hay un track preseleccionado, usarlo en la primera ronda
       const initialTrackId = preselectedTrackId || (tracks && tracks[0]?.id) || '';
       
       setRounds([
@@ -84,10 +80,12 @@ export default function CreateChampionship() {
     setIsSubmitting(true);
 
     try {
+      // Validaciones
       if (rounds.length < 3) {
         throw new Error('Debes seleccionar al menos 3 pistas (fechas) para crear el torneo.');
       }
 
+      // Validar que todas las rondas tengan pista y fecha seleccionadas
       for (let i = 0; i < rounds.length; i++) {
         if (!rounds[i].track_id) {
           throw new Error(`Por favor selecciona una pista para la Fecha ${i + 1}`);
@@ -117,197 +115,170 @@ export default function CreateChampionship() {
   };
 
   if (isLoadingTracks) {
-    return (
-      <div className="create-track-container fade-in" style={{ textAlign: 'center' }}>
-        <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando formulario...</Typography>
-      </div>
-    );
+    return <div className="create-track-container fade-in"><p>Cargando pistas disponibles...</p></div>;
   }
 
   return (
-    <div className="create-track-container fade-in max-w-5xl mx-auto">
-      <Stack direction="row" mb={3}>
-        <KineticButton 
-          variant="text" 
-          color="secondary" 
-          onClick={() => navigate('/championships')}
-          startIcon={<ArrowLeft size={20}/>}
-        >
-          Volver
-        </KineticButton>
-      </Stack>
+    <div className="create-track-container fade-in" style={{ paddingBottom: '5rem' }}>
+      <button className="back-btn" onClick={() => navigate('/championships')}>
+        <ArrowLeft size={20}/> Volver
+      </button>
 
-      <KineticCard sx={{ maxWidth: 750, mx: 'auto', p: { xs: 2, md: 4 } }}>
-        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Torneo</Typography>
+      <div className="form-wrapper glass-panel" style={{ maxWidth: '750px', width: '100%', margin: '0 auto' }}>
+        <h1 style={{ marginBottom: '2rem' }}>Crear Nuevo Torneo</h1>
         
         {errorMsg && (
-          <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded text-red-400">
+          <div className="auth-error" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgb(239, 68, 68)', color: '#f87171', borderRadius: '8px' }}>
             <p>{errorMsg}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            <KineticInput
-              label="Nombre del Torneo"
-              placeholder="Ej: Gran Copa Bogotá Karting"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              fullWidth
+        <form onSubmit={handleSubmit} className="track-form">
+          {/* Nombre */}
+          <div className="form-group">
+            <label>Nombre del Torneo</label>
+            <input 
+              type="text" 
+              placeholder="Ej: Gran Copa Bogotá Karting" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              required 
             />
+          </div>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Fecha General de Inicio"
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Fecha General de Fin"
-                  type="date"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                />
-              </Grid>
-            </Grid>
+          {/* Fechas del Torneo */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Fecha General de Inicio</label>
+              <input 
+                type="date" 
+                value={startDate} 
+                onChange={e => setStartDate(e.target.value)} 
+              />
+            </div>
+            <div className="form-group">
+              <label>Fecha General de Fin</label>
+              <input 
+                type="date" 
+                value={endDate} 
+                onChange={e => setEndDate(e.target.value)} 
+              />
+            </div>
+          </div>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Premio Especial (Opcional)"
-                  placeholder="Ej: Trofeo + Casco Sparco"
-                  value={prizeLabel}
-                  onChange={e => setPrizeLabel(e.target.value)}
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Award size={18} color="rgba(255,255,255,0.5)" />
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
+          {/* Premio y Costo */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Premio Especial (Opcional)</label>
+              <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                <Award size={18} style={{ position: 'absolute', left: '0.75rem', opacity: 0.5 }} />
+                <input 
+                  type="text" 
+                  placeholder="Ej: Trofeo + Casco Sparco" 
+                  value={prizeLabel} 
+                  onChange={e => setPrizeLabel(e.target.value)} 
+                  style={{ paddingLeft: '2.5rem' }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Costo de Inscripción (COP) (Opcional)"
-                  type="number"
-                  placeholder="Ej: 25000"
-                  value={entryFee}
-                  onChange={e => setEntryFee(e.target.value)}
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Costo de Inscripción (COP) (Opcional)</label>
+              <input 
+                type="number" 
+                placeholder="Ej: 25000" 
+                value={entryFee} 
+                onChange={e => setEntryFee(e.target.value)} 
+              />
+            </div>
+          </div>
 
-            <KineticInput
-              label="Descripción y Reglas"
-              placeholder="Escribe detalles del campeonato, premios extra, categorías..."
-              multiline
-              rows={3}
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              fullWidth
+          {/* Descripción */}
+          <div className="form-group">
+            <label>Descripción y Reglas</label>
+            <textarea 
+              rows="3" 
+              placeholder="Escribe detalles del campeonato, premios extra, categorías..." 
+              value={description} 
+              onChange={e => setDescription(e.target.value)} 
             />
+          </div>
 
-            <div className="mt-8 border-t border-white/10 pt-6">
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h5">Calendario de Rondas (Mínimo 3 pistas)</Typography>
-                <KineticButton variant="outlined" color="secondary" size="small" onClick={handleAddRound} startIcon={<Plus size={16}/>}>
-                  Añadir Ronda
-                </KineticButton>
-              </Stack>
-              <Stack spacing={3}>
-                {rounds.map((round, idx) => (
-                  <div key={idx} className="bg-white/5 p-5 rounded-lg border border-white/10">
-                    <Grid container spacing={3} alignItems="center">
-                      <Grid item xs={12} md={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'center' } }}>
-                        <Typography sx={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '1.25rem' }}>
-                          #{idx + 1}
-                        </Typography>
-                      </Grid>
-
-                      <Grid item xs={12} md={6}>
-                        <KineticInput
-                          select
-                          label="Pista / Circuito"
-                          value={round.track_id}
-                          onChange={e => handleRoundChange(idx, 'track_id', e.target.value)}
-                          required
-                          fullWidth
-                        >
-                          <MenuItem value="" disabled>Selecciona una pista...</MenuItem>
-                          {allTracks.map(t => (
-                            <MenuItem key={t.id} value={t.id}>{t.name} ({t.location})</MenuItem>
-                          ))}
-                        </KineticInput>
-                      </Grid>
-
-                      <Grid item xs={12} md={4}>
-                        <KineticInput
-                          label="Fecha de la Ronda"
-                          type="date"
-                          value={round.date}
-                          onChange={e => handleRoundChange(idx, 'date', e.target.value)}
-                          required
-                          fullWidth
-                          InputLabelProps={{ shrink: true }}
-                          slotProps={{ inputLabel: { shrink: true } }}
-                        />
-                      </Grid>
-
-                      <Grid item xs={12} md={1} sx={{ display: 'flex', justifyContent: { xs: 'flex-end', md: 'center' } }}>
-                        {rounds.length > 3 ? (
-                          <IconButton 
-                            color="error" 
-                            onClick={() => handleRemoveRound(idx)}
-                            sx={{ 
-                              bgcolor: 'rgba(239, 68, 68, 0.1)', 
-                              borderRadius: 1, 
-                              '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } 
-                            }}
-                          >
-                            <Trash2 size={20} />
-                          </IconButton>
-                        ) : (
-                          // Empty placeholder to maintain grid spacing on desktop
-                          <div style={{ width: 40 }} />
-                        )}
-                      </Grid>
-                    </Grid>
-                  </div>
-                ))}
-              </Stack>
+          {/* Secc Rondas / Fechas (Mínimo 3) */}
+          <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.15rem' }}>Calendario de Rondas (Mínimo 3 pistas)</h3>
+              <button 
+                type="button" 
+                className="secondary-btn" 
+                onClick={handleAddRound}
+                style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+              >
+                <Plus size={16}/> Añadir Ronda
+              </button>
             </div>
 
-            <KineticButton 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              size="large"
-              fullWidth
-              disabled={isSubmitting}
-              sx={{ mt: 4, py: 1.5, fontSize: '1.05rem' }}
-            >
-              {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Crear Campeonato'}
-            </KineticButton>
-          </Stack>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {rounds.map((round, idx) => (
+                <div 
+                  key={idx} 
+                  className="round-row-edit" 
+                  style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                  <div style={{ minWidth: '40px', fontWeight: 'bold', paddingBottom: '0.75rem', color: 'var(--accent)' }}>
+                    #{idx + 1}
+                  </div>
+
+                  <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+                    <label>Pista / Circuito</label>
+                    <select 
+                      value={round.track_id} 
+                      onChange={e => handleRoundChange(idx, 'track_id', e.target.value)} 
+                      required
+                      style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#121212', color: 'white' }}
+                    >
+                      <option value="" disabled>Selecciona una pista...</option>
+                      {allTracks.map(t => (
+                        <option key={t.id} value={t.id}>{t.name} ({t.location})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ flex: 1.5, marginBottom: 0 }}>
+                    <label>Fecha de la Ronda</label>
+                    <input 
+                      type="date" 
+                      value={round.date} 
+                      onChange={e => handleRoundChange(idx, 'date', e.target.value)} 
+                      required 
+                    />
+                  </div>
+
+                  {rounds.length > 3 && (
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveRound(idx)}
+                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', padding: '0.75rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                    >
+                      <Trash2 size={18}/>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            className="primary-btn" 
+            style={{ marginTop: '2rem', width: '100%', height: '3.2rem', fontSize: '1.05rem' }} 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? <Loader2 className="spinner" size={20} /> : 'Crear Campeonato'}
+          </button>
         </form>
-      </KineticCard>
+      </div>
     </div>
   );
 }
