@@ -33,7 +33,9 @@ export default function CreateTrack() {
         if (schedule.startsWith('{')) {
           scheduleObj = JSON.parse(schedule);
         }
-      } catch (err) {}
+      } catch {
+        // ignore
+      }
 
       await createTrack({
         name,

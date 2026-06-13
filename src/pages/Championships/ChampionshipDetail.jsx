@@ -81,6 +81,7 @@ export default function ChampionshipDetail() {
 
   useEffect(() => {
     loadChampionshipData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleSelectRound = async (idx) => {

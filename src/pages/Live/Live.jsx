@@ -19,12 +19,6 @@ export default function Live() {
   const [lastUpdatedText, setLastUpdatedText] = useState('Actualizando...');
 
   // Mock de Carreras del Día (dinámico según fecha actual)
-  const today = new Date();
-  const formattedDateString = today.toLocaleDateString('es-ES', { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long' 
-  });
 
   const todayRaces = [
     {
