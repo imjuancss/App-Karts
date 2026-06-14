@@ -75,7 +75,7 @@ export default function Auth() {
         </div>
 
         {errorDesc && (
-          <div className="bg-error-container/10 border border-error-container/20 text-error p-4 rounded-lg text-sm text-center">
+          <div className="bg-error-container/10 border border-error-container/20 text-error p-4 rounded-sm text-sm text-center">
             <p>{errorDesc}</p>
           </div>
         )}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Zap, Loader2 } from 'lucide-react';
 import { getTracks } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
+import KineticCard from '../../components/ui/KineticCard';
 import { Input } from '../../components/ui/input';
 import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
 
@@ -37,14 +38,15 @@ export default function TracksList() {
   });
 
   return (
-    <div className="bg-background text-on-surface antialiased overflow-x-hidden min-h-screen pt-24 pb-20 px-6 md:px-12 max-w-[1280px] mx-auto font-body">
+    <div className="flex flex-col gap-10 md:gap-16 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body">
       
       {/* Hero Title Section */}
-      <section className="mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+      <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="font-headline text-5xl md:text-6xl font-bold uppercase tracking-tight leading-none">
+          <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
+            <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
             Pistas de Karts
-          </h2>
+          </h3>
           <p className="font-body text-on-surface-variant text-base tracking-wide">
             Encuentra los mejores circuitos para correr en la región
           </p>
@@ -69,10 +71,10 @@ export default function TracksList() {
             <FilterItem value="outdoor" className="flex-1">OUTDOOR</FilterItem>
           </FilterGroup>
         </div>
-      </section>
+      </header>
 
       {/* Featured Circuit Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
         {isLoading ? (
           <div className="col-span-full flex flex-col justify-center items-center py-16 gap-2">
             <Loader2 className="animate-spin text-primary-dim" size={36} />
@@ -82,57 +84,54 @@ export default function TracksList() {
           filteredTracks.map(track => {
             const hasHighRating = track.rating_avg !== null && Number(track.rating_avg) >= 4.8;
             return (
-              <div key={track.id} className="group relative">
-                <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary-dim/5 blur-3xl rounded-full"></div>
-                <div className="relative rounded-sm overflow-hidden bg-surface-container-low border border-outline-variant/10">
-                  <div className="aspect-[4/5] relative overflow-hidden">
-                    <img 
-                      alt={track.name} 
-                      className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" 
-                      src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} 
-                    />
-                    {hasHighRating && (
-                      <div className="absolute top-4 right-4 bg-tertiary-fixed text-black px-2 py-1 flex items-center gap-1.5 shadow-[0_0_40px_rgba(202,253,0,0.15)] rounded-sm select-none">
-                        <span className="font-headline text-[11px] font-bold tracking-widest uppercase">HOT TRACK</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90"></div>
-                  </div>
-                  
-                  <div className="p-10 relative">
-                    <div className="flex justify-between items-start mb-8 gap-4">
-                      <div>
-                        <h3 className="font-headline text-2xl font-bold tracking-tight text-on-surface leading-snug mb-3 group-hover:text-primary-dim transition-colors">{track.name}</h3>
-                        <div className="flex items-center gap-1.5 text-on-surface-variant">
-                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
-                          <span className="font-body text-[11px] tracking-wide uppercase">{track.location}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 bg-surface-container-highest px-4 py-1.5 shrink-0 rounded-sm">
-                        <span className="material-symbols-outlined text-tertiary-fixed" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>star</span>
-                        <span className="font-headline font-bold text-tertiary-fixed text-sm neon-glow">
-                          {track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}
-                        </span>
-                      </div>
+              <KineticCard
+                key={track.id}
+                image={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'}
+                imageAlt={track.name}
+                badge={
+                  hasHighRating ? (
+                    <div className="bg-tertiary-fixed text-black px-2 py-1 flex items-center gap-1.5 shadow-[0_0_40px_rgba(202,253,0,0.15)] rounded-sm select-none">
+                      <span className="font-headline text-[11px] font-bold tracking-widest uppercase">HOT TRACK</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
                     </div>
-                    
-                    <div className="space-y-6">
-                      <div className="bg-surface-container-high/50 p-8 border-l-2 border-primary-dim rounded-r-sm">
-                        <p className="font-body text-xs text-on-surface leading-relaxed tracking-wide">{track.cost_info || 'Consultar costo'}</p>
-                      </div>
-                      <button 
-                        onClick={() => navigate(`/tracks/${track.id}`)}
-                        className="w-full relative overflow-hidden group/btn py-4 flex justify-between items-center px-8 active:scale-[0.98] transition-transform rounded-sm border-none cursor-pointer"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary-dim via-primary-fixed to-primary-dim opacity-100 group-hover/btn:animate-pulse"></div>
-                        <span className="font-headline font-bold text-xs tracking-[0.15em] uppercase text-black relative z-10">VER DETALLES</span>
-                        <span className="material-symbols-outlined text-black group-hover/btn:translate-x-1 transition-transform relative z-10" style={{ fontSize: '16px' }}>arrow_forward</span>
-                      </button>
+                  ) : null
+                }
+                title={
+                  <div className="flex justify-between items-start w-full gap-4">
+                    <span className="font-headline text-xl font-bold tracking-tight text-on-surface leading-snug group-hover:text-primary-dim transition-colors line-clamp-2">
+                      {track.name}
+                    </span>
+                    <div className="flex items-center gap-1 bg-surface-container-highest px-3 py-1 shrink-0 rounded-sm">
+                      <span className="material-symbols-outlined text-tertiary-fixed" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="font-headline font-bold text-tertiary-fixed text-sm neon-glow">
+                        {track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}
+                      </span>
                     </div>
                   </div>
+                }
+                subtitle={
+                  <div className="flex items-center gap-1.5 text-on-surface-variant">
+                    <span className="material-symbols-outlined text-sm">location_on</span>
+                    <span className="font-body text-[11px] tracking-wide uppercase">{track.location}</span>
+                  </div>
+                }
+                footer={
+                  <button 
+                    onClick={() => navigate(`/tracks/${track.id}`)}
+                    className="w-full relative overflow-hidden group/btn py-3 flex justify-between items-center px-6 active:scale-[0.98] transition-transform rounded-sm border-none cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-dim via-primary-fixed to-primary-dim opacity-100 group-hover/btn:animate-pulse"></div>
+                    <span className="font-headline font-bold text-xs tracking-[0.15em] uppercase text-black relative z-10">VER DETALLES</span>
+                    <span className="material-symbols-outlined text-black group-hover/btn:translate-x-1 transition-transform relative z-10" style={{ fontSize: '16px' }}>arrow_forward</span>
+                  </button>
+                }
+              >
+                <div className="bg-surface-container-high/50 p-4 border-l-2 border-primary-dim rounded-r-sm mt-1">
+                  <p className="font-body text-xs text-on-surface leading-relaxed tracking-wide line-clamp-2">
+                    {track.cost_info || 'Consultar costo'}
+                  </p>
                 </div>
-              </div>
+              </KineticCard>
             );
           })
         )}

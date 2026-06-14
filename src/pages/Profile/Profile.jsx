@@ -218,7 +218,8 @@ export default function Profile() {
       
       {/* Banner Invitaciones */}
       {pendingInvites.length > 0 && (
-        <div className="mx-6 mt-6 p-4 border border-tertiary-fixed/30 bg-tertiary-fixed/5 rounded-sm fade-in">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mt-6">
+          <div className="p-4 border border-tertiary-fixed/30 bg-tertiary-fixed/5 rounded-sm fade-in">
           <div className="flex items-center gap-2 mb-4">
             <span className="material-symbols-outlined text-tertiary-fixed">mail</span>
             <h3 className="font-headline font-bold text-tertiary-fixed uppercase tracking-widest text-sm">¡Invitaciones Pendientes!</h3>
@@ -237,6 +238,7 @@ export default function Profile() {
             ))}
           </div>
         </div>
+        </div>
       )}
 
       <main className="pt-0">
@@ -254,7 +256,8 @@ export default function Profile() {
             <div className="inline-block px-2 py-1 mb-3 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold tracking-[0.2em] rounded-sm">
               NIVEL {userLevel}
             </div>
-            <h1 className="text-4xl md:text-6xl font-headline font-bold italic tracking-tighter text-on-surface uppercase leading-none truncate">
+            <h1 className="text-4xl md:text-6xl font-headline font-bold italic tracking-tighter text-on-surface uppercase leading-none truncate flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary-dim text-4xl md:text-5xl shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
               {userProfile.full_name || 'PILOTO'}
             </h1>
             <p className="mt-2 text-primary font-headline font-medium tracking-widest text-sm opacity-80 uppercase truncate">
@@ -264,7 +267,7 @@ export default function Profile() {
         </section>
 
         {/* Stats Grid */}
-        <section className="px-6 -mt-4 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 -mt-4 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           <div className="bg-surface-container-low p-5 rounded-sm border-l-2 border-primary transition-all hover:bg-surface-container">
             <div className="flex justify-between items-start mb-4">
               <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">CAMPEONATOS</span>
@@ -292,7 +295,7 @@ export default function Profile() {
         </section>
 
         {/* Action Tabs & Content */}
-        <section className="mt-12 px-6">
+        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mt-12">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex items-center mb-6 overflow-x-auto scrollbar-hide">
               <TabsList className="w-full md:w-auto flex">
@@ -307,7 +310,7 @@ export default function Profile() {
                 <p className="text-on-surface-variant text-sm font-label uppercase">NO ESTÁS INSCRITO A NINGÚN CAMPEONATO.</p>
               ) : (
                 userChampionships.map(uc => (
-                  <div key={uc.championship_id} onClick={() => navigate(`/championships/${uc.championship_id}`)} className="flex items-center justify-between py-3 border-b border-outline-variant/10 group cursor-pointer">
+                  <div key={uc.championship_id} onClick={() => navigate(`/championships/${uc.championship_id}`)} className="flex items-center justify-between py-3 mb-2 group cursor-pointer">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
                         <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">emoji_events</span>
@@ -328,7 +331,7 @@ export default function Profile() {
                 <p className="text-on-surface-variant text-sm font-label uppercase">NO HAS REGISTRADO NINGÚN TIEMPO.</p>
               ) : (
                 userTimes.map(time => (
-                  <div key={time.id} className="flex items-center justify-between py-3 border-b border-outline-variant/10 group cursor-pointer">
+                  <div key={time.id} className="flex items-center justify-between py-3 mb-2 group cursor-pointer">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
                         <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">timer</span>
@@ -348,7 +351,7 @@ export default function Profile() {
 
         {/* Technical Action Cards */}
         <section className="mt-12 px-6 grid grid-cols-1 gap-4">
-          <button onClick={() => setIsTimeModalOpen(true)} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative">
+          <button onClick={() => setIsTimeModalOpen(true)} className="bg-surface-container-highest p-5 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative">
             <div className="relative z-10">
               <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
               <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">AÑADIR NUEVO RÉCORD DE VUELTA</p>
@@ -356,7 +359,7 @@ export default function Profile() {
             <span className="material-symbols-outlined text-primary group-hover:translate-x-2 transition-transform">add_circle</span>
           </button>
           
-          <button onClick={async () => await supabase.auth.signOut()} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group">
+          <button onClick={async () => await supabase.auth.signOut()} className="bg-surface-container-highest p-5 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group">
             <div>
               <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>
               <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">SALIR DE LA CUENTA ACTUAL</p>

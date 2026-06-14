@@ -198,10 +198,13 @@ export default function Layout({ children }) {
       )}
 
       {/* Main Content */}
-      <main className="main-content">
-        <div className="content-wrapper">
-          {children}
+      <main className="main-content flex-1 min-h-screen pt-[72px] md:pt-0 relative z-10">
+        {/* Visual Background Element: Kinetic Mesh Overlay */}
+        <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] opacity-20 overflow-hidden">
+          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary-dim blur-[120px] mix-blend-screen animate-pulse"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-tertiary-fixed/20 blur-[100px] mix-blend-screen"></div>
         </div>
+        {children}
       </main>
     </div>
   );

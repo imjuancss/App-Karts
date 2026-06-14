@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
-import KineticCard from '../../components/ui/KineticCard';
+import GlassCard from '../../components/ui/GlassCard';
 import KineticButton from '../../components/ui/KineticButton';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
@@ -68,7 +68,7 @@ export default function CreateTrack() {
         </KineticButton>
       </Stack>
 
-      <KineticCard sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <GlassCard variant="low" className="max-w-[800px] mx-auto p-4 md:p-8">
         <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Circuito</Typography>
         
         {errorMsg && (
@@ -145,7 +145,7 @@ export default function CreateTrack() {
             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Registrar Circuito'}
           </KineticButton>
         </form>
-      </KineticCard>
+      </GlassCard>
     </div>
   );
 }
