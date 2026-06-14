@@ -99,9 +99,7 @@ export default function EditTrack() {
         if (schedule.startsWith('{')) {
           scheduleObj = JSON.parse(schedule);
         }
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
 
       await updateTrack(id, {
         name,

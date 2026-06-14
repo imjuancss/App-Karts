@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Loader2, Edit3 } from 'lucide-react';
-import { getTrackById, getRecentTrackLapTimes, registerLapTime, getProfile, getTrackReviews, addTrackReview } from '../../services/api';
+import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview } from '../../services/api';
 import { supabase } from '../../lib/supabase';
-import KineticButton from '../../components/ui/KineticButton';
-import KineticCard from '../../components/ui/KineticCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 
 const formatMsToTime = (ms) => {
   if (!ms) return "00:00.000";
@@ -62,36 +54,42 @@ export default function TrackDetail() {
   const [timeInput, setTimeInput] = useState('');
   const [isSubmittingTime, setIsSubmittingTime] = useState(false);
   const [timeError, setTimeError] = useState('');
-  const [sessionUser, setSessionUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-  
+
   const [reviews, setReviews] = useState([]);
   const [newReviewText, setNewReviewText] = useState('');
-  const [newReviewRating, setNewReviewRating] = useState(0);
+  const [newReviewRating, setNewReviewRating] = useState(5);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [sessionUser, setSessionUser] = useState(null);
+
+  const handleAddReview = async (e) => {
+    e.preventDefault();
+    if (!newReviewText) return;
+    setIsSubmittingReview(true);
+    try {
+      await addTrackReview(id, newReviewRating, newReviewText);
+      const loadedReviews = await getTrackReviews(id);
+      setReviews(loadedReviews || []);
+      setNewReviewText('');
+      setNewReviewRating(5);
+      alert('Reseña publicada!');
+    } catch {
+      alert('Error al publicar reseña');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   const loadTrackData = async () => {
     setIsLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    setSessionUser(session?.user || null);
     const data = await getTrackById(id);
     setTrack(data);
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user || null;
-    setSessionUser(user);
-    
-    if (user) {
-      const profile = await getProfile(user.id);
-      setUserProfile(profile);
-    } else {
-      setUserProfile(null);
-    }
-
     if (data) {
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
-      
-      const loadedReviews = await getTrackReviews(id);
-      setReviews(loadedReviews || []);
+      const r = await getTrackReviews(id);
+      setReviews(r || []);
     }
     setIsLoading(false);
   };
@@ -114,9 +112,11 @@ export default function TrackDetail() {
       
       await registerLapTime(id, ms);
       
+      // Limpiar y cerrar modal
       setTimeInput('');
       setIsTimeModalOpen(false);
       
+      // Recargar tiempos
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
       alert('¡Tiempo registrado con éxito!');
@@ -128,329 +128,311 @@ export default function TrackDetail() {
     }
   };
 
-  const handleAddReview = async () => {
-    if (!newReviewText.trim() || newReviewRating < 1 || newReviewRating > 5) {
-      alert('Por favor escribe un comentario y selecciona una calificación (1-5 estrellas).');
-      return;
-    }
-    if (!sessionUser) {
-      alert('Debes iniciar sesión para publicar una reseña.');
-      return;
-    }
-    setIsSubmittingReview(true);
-    try {
-      await addTrackReview(id, newReviewRating, newReviewText);
-      setNewReviewText('');
-      setNewReviewRating(0);
-      const updatedReviews = await getTrackReviews(id);
-      setReviews(updatedReviews || []);
-      // Refresh track data to update rating_avg
-      const updatedTrack = await getTrackById(id);
-      if (updatedTrack) setTrack(updatedTrack);
-    } catch (err) {
-      console.error(err);
-      alert('Hubo un error al publicar la reseña.');
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
   if (isLoading) {
-    return (
-      <div className="track-detail-container fade-in" style={{ textAlign: 'center' }}>
-        <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando detalles de la pista...</Typography>
-      </div>
-    );
+    return <div className="flex justify-center p-20"><span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span></div>;
   }
 
   if (!track) {
-    return (
-      <div className="track-detail-container fade-in text-center">
-        <Typography color="error">Pista no encontrada o eliminada.</Typography>
-        <KineticButton variant="outlined" sx={{ mt: 3 }} onClick={() => navigate('/tracks')}>
-          Volver a pistas
-        </KineticButton>
-      </div>
-    );
+    return <div className="p-20 text-center"><p className="text-on-surface-variant">Pista no encontrada o eliminada.</p></div>;
   }
 
   return (
-    <div className="track-detail-container fade-in max-w-6xl mx-auto">
-      <Stack direction="row" mb={3}>
-        <KineticButton 
-          variant="text" 
-          color="secondary" 
-          onClick={() => navigate('/tracks')}
-          startIcon={<ArrowLeft size={20}/>}
-        >
-          Volver a pistas
-        </KineticButton>
-      </Stack>
+    <div className="bg-background text-on-background selection:bg-primary/30 min-h-screen pb-20 fade-in">
+      {/* Top Navigation Header */}
+      <header className="sticky top-0 z-50 bg-surface-container-highest/40 backdrop-blur-[12px] border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+        <div className="flex items-center justify-between px-4 py-4 w-full max-w-5xl mx-auto">
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/tracks')} className="active:scale-90 transition-transform flex items-center">
+              <span className="material-symbols-outlined text-on-surface">arrow_back</span>
+            </button>
+            <h1 className="font-headline uppercase tracking-widest text-sm font-bold text-on-surface truncate max-w-[200px] md:max-w-xs">
+              {track.name}
+            </h1>
+          </div>
+          <button className="active:scale-95 duration-150">
+            <span className="material-symbols-outlined text-primary-fixed">share</span>
+          </button>
+        </div>
+      </header>
 
-      <KineticCard sx={{ mb: 4, p: 0, overflow: 'hidden' }} noPadding>
-        <div style={{ position: 'relative' }}>
+      <main className="max-w-5xl mx-auto pb-24">
+        {/* Hero Section */}
+        <section className="relative w-full aspect-video md:aspect-[21/9] overflow-hidden">
           <img 
+            className="w-full h-full object-cover grayscale-[0.2] hover:scale-105 transition-transform duration-1000" 
             src={track.cover_image || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop'} 
             alt={track.name} 
-            className="w-full h-64 md:h-96 object-cover block"
-            fetchpriority="high"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] to-transparent pointer-events-none" />
-        </div>
-        
-        <div className="p-6 md:p-8 relative z-10 -mt-20 md:-mt-32">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <Typography variant="h2" sx={{ color: 'white', mb: 1 }}>{track.name}</Typography>
-              <div className="flex flex-wrap items-center gap-4 text-sm md:text-base text-gray-300">
-                <span className="flex items-center gap-1">
-                  <Star size={18} color="var(--accent)" fill="var(--accent)" />
-                  <span className="font-bold text-white">{track.rating_avg !== null ? Number(track.rating_avg).toFixed(1) : 'N/A'}</span>
-                </span>
-                <span className="flex items-center gap-1"><MapPin size={18} className="opacity-70" /> {track.location}</span>
-                <span className="flex items-center gap-1"><DollarSign size={18} className="opacity-70" /> {track.cost_info || 'Consultar costo'}</span>
-                <span className="flex items-center gap-1"><Clock size={18} className="opacity-70" /> {formatSchedule(track.schedule)}</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+          <div className="absolute bottom-6 left-6 right-6">
+            <div className="inline-flex items-center gap-2 bg-primary/10 backdrop-blur-md px-3 py-1 rounded-sm border border-primary/20 mb-3">
+              <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
+              <span className="font-headline font-bold text-sm tracking-widest text-primary">TRACK DETAILS</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold font-headline uppercase leading-none mb-2">{track.name}</h2>
+          </div>
+        </section>
+
+        {/* Technical Telemetry / Quick Info */}
+        <section className="px-6 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-surface-container-highest rounded-sm">
+                <span className="material-symbols-outlined text-tertiary-fixed">location_on</span>
+              </div>
+              <div>
+                <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">Ubicación</p>
+                <p className="font-headline font-medium">{track.location || 'Ubicación no especificada'}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-surface-container-highest rounded-sm">
+                <span className="material-symbols-outlined text-tertiary-fixed">payments</span>
+              </div>
+              <div>
+                <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">Precio por Carrera</p>
+                <p className="font-headline font-medium text-tertiary-fixed-dim">{track.cost_info || 'Consultar costo'}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-surface-container-highest rounded-sm">
+                <span className="material-symbols-outlined text-tertiary-fixed">schedule</span>
+              </div>
+              <div>
+                <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">Horarios de Operación</p>
+                <div className="space-y-1 mt-1 text-sm text-on-surface/80">
+                  {formatSchedule(track.schedule)}
+                </div>
               </div>
             </div>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <KineticButton variant="contained" onClick={() => navigate(`/championships/new?trackId=${track.id}`)}>
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap gap-4 pt-4">
+              <button 
+                onClick={() => navigate(`/championships/new?trackId=${track.id}`)} 
+                className="flex-1 bg-gradient-to-tr from-primary-dim to-primary px-6 py-4 rounded-sm font-headline font-bold text-sm tracking-widest uppercase hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 text-on-primary-fixed"
+              >
                 Crear Campeonato
-              </KineticButton>
-              <KineticButton variant="outlined" color="secondary" onClick={() => setIsTimeModalOpen(true)}>
+                <span className="material-symbols-outlined text-lg">flag</span>
+              </button>
+              <button 
+                onClick={() => setIsTimeModalOpen(true)} 
+                className="flex-1 border border-outline-variant px-6 py-4 rounded-sm font-headline font-bold text-sm tracking-widest uppercase hover:bg-surface-variant active:scale-95 transition-all text-on-surface"
+              >
                 Registrar Tiempo
-              </KineticButton>
-              {sessionUser && (sessionUser.id === track.creator_id || userProfile?.role === 'admin') && (
-                <KineticButton variant="outlined" color="inherit" onClick={() => navigate(`/tracks/${track.id}/edit`)} startIcon={<Edit3 size={16} />}>
-                  Editar Circuito
-                </KineticButton>
-              )}
-            </Stack>
+              </button>
+            </div>
           </div>
-        </div>
-      </KineticCard>
 
-      <KineticCard sx={{ p: { xs: 2, md: 4 } }}>
-        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
-          <KineticButton
-            variant={activeTab === 'info' ? 'contained' : 'outlined'}
-            color={activeTab === 'info' ? 'primary' : 'inherit'}
-            onClick={() => setActiveTab('info')}
-            sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-          >
-            Información General
-          </KineticButton>
-          <KineticButton
-            variant={activeTab === 'map' ? 'contained' : 'outlined'}
-            color={activeTab === 'map' ? 'primary' : 'inherit'}
-            onClick={() => setActiveTab('map')}
-            sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-          >
-            Mapa del Circuito
-          </KineticButton>
-          <KineticButton
-            variant={activeTab === 'comments' ? 'contained' : 'outlined'}
-            color={activeTab === 'comments' ? 'primary' : 'inherit'}
-            onClick={() => setActiveTab('comments')}
-            sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-          >
-            Comentarios
-          </KineticButton>
-        </div>
-        
-        <div>
-          {activeTab === 'info' && (
-            <div className="fade-in space-y-8">
-              <section>
-                <Typography variant="h4" mb={2}>Acerca del Circuito</Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  {track.description || 'Un circuito diseñado para la alta velocidad y exigencia técnica. Cuenta con zonas de frenado fuerte y curvas encadenadas. Ideal tanto para principiantes como para expertos buscando mejorar sus tiempos.'}
-                </Typography>
-              </section>
-              
-              <section>
-                <Typography variant="h4" mb={3}>Mejores Tiempos Recientes</Typography>
+          {/* Kinetic Leaderboard Preview / Bento */}
+          <div className="bg-surface-container-low p-1 rounded-sm">
+            <div className="bg-surface-container rounded-sm h-full p-6 border-l-4 border-tertiary-fixed">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-headline font-bold uppercase tracking-widest text-lg">Mejores Tiempos</h3>
+                <span className="material-symbols-outlined text-tertiary-fixed animate-pulse">timer</span>
+              </div>
+              <div className="space-y-3 overflow-hidden">
                 {recentTimes.length === 0 ? (
-                  <Typography color="text.secondary">Aún no hay tiempos registrados en esta pista.</Typography>
+                  <p className="text-on-surface-variant text-sm">Aún no hay tiempos registrados.</p>
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    {recentTimes.map((time, idx) => (
-                      <div key={time.id} className="flex justify-between items-center p-3 bg-white/5 rounded border border-white/5 hover:bg-white/10 transition-colors">
-                        <span className="font-medium">
-                          <span className="text-[#cafd00] mr-2">{idx + 1}.</span> 
-                          @{time.profiles?.username || 'piloto'} {time.profiles?.full_name ? <span className="opacity-50 font-normal">({time.profiles.full_name})</span> : ''}
+                  recentTimes.slice(0, 4).map((time, idx) => (
+                    <div key={time.id} className={`flex items-center justify-between p-3 rounded-sm group transition-colors ${idx === 0 ? 'bg-surface-container-highest hover:bg-tertiary/10' : 'bg-surface-container-highest/50'}`}>
+                      <div className="flex items-center gap-4">
+                        <span className={`font-headline font-bold ${idx === 0 ? 'text-tertiary-fixed' : 'text-on-surface-variant'}`}>
+                          {String(idx + 1).padStart(2, '0')}
                         </span>
-                        <span className="font-mono text-lg font-bold tracking-tight text-[#FF3100]">{formatMsToTime(time.lap_time_ms)}</span>
+                        <div>
+                          <p className={`text-sm ${idx === 0 ? 'font-medium text-on-surface' : 'text-on-surface'}`}>@{time.profiles?.username || 'piloto'}</p>
+                          <p className="text-[11px] text-on-surface-variant uppercase tracking-tighter">{time.profiles?.full_name || 'Piloto Nuevo'}</p>
+                        </div>
                       </div>
-                    ))}
+                      <span className={`font-mono font-bold ${idx === 0 ? 'text-tertiary-fixed' : 'text-on-surface'}`}>{formatMsToTime(time.lap_time_ms)}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+              <button 
+                onClick={() => setActiveTab('info')} 
+                className="w-full mt-6 py-2 text-xs font-headline font-bold tracking-widest uppercase text-tertiary-fixed border-b border-tertiary/20 hover:text-white transition-colors"
+              >
+                Ver Tabla Completa
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Detail Tabs Section */}
+        <section className="mt-12 px-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+              <TabsList className="w-full md:w-auto flex">
+                <TabsTrigger value="info" className="flex-1 md:flex-none">Información General</TabsTrigger>
+                <TabsTrigger value="map" className="flex-1 md:flex-none">Mapa del Circuito</TabsTrigger>
+                <TabsTrigger value="comments" className="flex-1 md:flex-none">Comentarios</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <div className="mt-8 space-y-12">
+              <TabsContent value="info" className="max-w-3xl fade-in mt-0">
+                <h3 className="font-headline font-bold uppercase tracking-widest text-xl mb-4">Acerca del Circuito</h3>
+                <p className="text-on-surface-variant leading-relaxed font-light">
+                  {track.description || 'Un circuito diseñado para la alta velocidad y exigencia técnica. Cuenta con zonas de frenado fuerte y curvas encadenadas. Ideal tanto para principiantes como para expertos buscando mejorar sus tiempos.'}
+                </p>
+
+                <div className="mt-12">
+                  <h3 className="font-headline font-bold uppercase tracking-widest text-xl mb-6">Ranking Completo</h3>
+                  <div className="space-y-1">
+                    <div className="grid grid-cols-12 gap-2 py-2 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest border-b border-surface-variant">
+                      <div className="col-span-2 md:col-span-1">Pos</div>
+                      <div className="col-span-6 md:col-span-8">Piloto</div>
+                      <div className="col-span-4 md:col-span-3 text-right">Tiempo</div>
+                    </div>
+                    
+                    {recentTimes.length === 0 ? (
+                      <p className="py-4 text-on-surface-variant text-sm">Aún no hay tiempos registrados.</p>
+                    ) : (
+                      recentTimes.map((time, idx) => (
+                        <div key={time.id} className="grid grid-cols-12 gap-2 py-4 border-b border-surface-container items-center group hover:bg-surface-container-low transition-colors px-2">
+                          <div className={`col-span-2 md:col-span-1 font-headline font-bold ${idx === 0 ? 'text-tertiary-fixed' : ''}`}>{idx + 1}</div>
+                          <div className="col-span-6 md:col-span-8">
+                            <span className="block text-sm font-medium">@{time.profiles?.username || 'piloto'}</span>
+                            <span className="block text-[11px] text-on-surface-variant">{time.profiles?.full_name || 'Piloto Nuevo'}</span>
+                          </div>
+                          <div className={`col-span-4 md:col-span-3 text-right font-mono ${idx === 0 ? 'text-tertiary-fixed font-bold' : ''}`}>{formatMsToTime(time.lap_time_ms)}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="map" className="max-w-3xl text-center py-4 fade-in mt-0">
+                {track.trazado ? (
+                  <div className="p-4 bg-black/40 rounded-sm border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+                    <img 
+                      src={track.trazado} 
+                      alt={`Trazado de ${track.name}`} 
+                      className="w-full h-auto max-h-[500px] object-contain rounded-sm" 
+                    />
+                    <p className="text-on-surface-variant text-sm mt-4 italic">Mapa técnico y trazado oficial del circuito.</p>
+                  </div>
+                ) : (
+                  <div className="py-20 px-6 bg-surface-container-highest/20 rounded-sm border border-dashed border-outline-variant/30 max-w-lg mx-auto">
+                    <span className="material-symbols-outlined text-4xl mb-4 opacity-50 text-on-surface-variant">map</span>
+                    <h4 className="font-headline font-bold mb-2">Plano del circuito en construcción</h4>
+                    <p className="text-on-surface-variant text-sm">El creador o el administrador aún no han cargado la imagen del trazado para esta pista.</p>
                   </div>
                 )}
-              </section>
-            </div>
-          )}
+              </TabsContent>
 
-          {activeTab === 'map' && (
-            <div className="fade-in text-center py-4">
-              {track.trazado ? (
-                <div className="max-w-3xl mx-auto p-4 bg-black/40 rounded-xl border border-white/10">
-                  <img 
-                    src={track.trazado} 
-                    alt={`Trazado de ${track.name}`} 
-                    className="w-full h-auto max-h-[500px] object-contain rounded-lg" 
-                  />
-                  <Typography variant="body2" color="text.secondary" mt={2} fontStyle="italic">
-                    Mapa técnico y trazado oficial del circuito.
-                  </Typography>
+              <TabsContent value="comments" className="max-w-3xl fade-in mt-0">
+                <h3 className="font-headline font-bold uppercase tracking-widest text-xl mb-6">Reseñas y Comentarios</h3>
+                <div className="space-y-6 mb-10">
+                  {reviews.length === 0 ? (
+                    <p className="text-on-surface-variant">No hay reseñas todavía. ¡Sé el primero en comentar!</p>
+                  ) : (
+                    reviews.map(review => (
+                      <div key={review.id} className="p-6 bg-surface-container-highest rounded-sm border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center gap-3">
+                            {review.profiles?.avatar_url ? (
+                              <img src={review.profiles.avatar_url} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-sm font-bold">
+                                {(review.profiles?.username || 'U')[0].toUpperCase()}
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-sm font-bold">@{review.profiles?.username || 'Usuario'}</p>
+                              <p className="text-xs text-on-surface-variant">
+                                {new Date(review.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={`material-symbols-outlined text-sm ${i < review.rating ? 'text-primary' : 'text-on-surface-variant/30'}`} style={{ fontVariationSettings: i < review.rating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-on-surface/90 text-sm mt-3 leading-relaxed whitespace-pre-line">
+                          {review.comment}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
-              ) : (
-                <div className="py-16 px-4 bg-white/5 rounded-xl border border-dashed border-white/20 max-w-lg mx-auto">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-50">
-                    <path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8Z" strokeDasharray="3 3" />
-                    <path d="M12 8v4l3 3" />
-                  </svg>
-                  <Typography variant="h6" mb={1}>Plano del circuito en construcción</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    El creador o el administrador aún no han cargado la imagen del trazado para esta pista.
-                  </Typography>
+
+                {/* Add Review Form */}
+                <div className="p-6 bg-surface-container-low rounded-sm border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+                  <h4 className="font-headline font-bold mb-4 uppercase tracking-widest text-sm">Deja tu reseña</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-on-surface-variant uppercase tracking-widest">Calificación:</span>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button key={star} onClick={() => setNewReviewRating(star)} className="hover:scale-110 transition-transform">
+                            <span className={`material-symbols-outlined ${star <= newReviewRating ? 'text-primary' : 'text-on-surface-variant/30'}`} style={{ fontVariationSettings: star <= newReviewRating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <Textarea
+                      className="w-full"
+                      placeholder="Escribe tu experiencia en esta pista..."
+                      rows={3}
+                      value={newReviewText}
+                      onChange={(e) => setNewReviewText(e.target.value)}
+                    />
+                    <div className="flex justify-end mt-4">
+                      <button
+                        onClick={handleAddReview}
+                        disabled={isSubmittingReview || !sessionUser}
+                        className="bg-primary/10 text-primary border border-primary/20 px-6 py-2 rounded-sm text-xs font-headline font-bold uppercase tracking-widest hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isSubmittingReview ? <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span> : (sessionUser ? 'Publicar Reseña' : 'Inicia Sesión para Publicar')}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              )}
+              </TabsContent>
             </div>
-          )}
+          </Tabs>
+        </section>
+      </main>
 
-          {activeTab === 'comments' && (
-             <div className="fade-in">
-               <div className="mb-10 max-w-2xl">
-                 <Typography variant="h5" mb={3}>Reseñas y Comentarios</Typography>
-                 
-                 {/* Lista de reseñas */}
-                 <Stack spacing={3} mb={5}>
-                   {reviews.length === 0 ? (
-                     <Typography color="text.secondary">No hay reseñas todavía. ¡Sé el primero en comentar!</Typography>
-                   ) : (
-                     reviews.map(review => (
-                       <div key={review.id} className="p-4 bg-white/5 rounded-lg border border-white/5">
-                         <div className="flex justify-between items-start mb-2">
-                           <div className="flex items-center gap-2">
-                             {review.profiles?.avatar_url ? (
-                               <img src={review.profiles.avatar_url} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
-                             ) : (
-                               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold">
-                                 {(review.profiles?.username || 'U')[0].toUpperCase()}
-                               </div>
-                             )}
-                             <div>
-                               <Typography variant="subtitle2" fontWeight="bold">@{review.profiles?.username || 'Usuario'}</Typography>
-                               <Typography variant="caption" color="text.secondary">
-                                 {new Date(review.created_at).toLocaleDateString()}
-                               </Typography>
-                             </div>
-                           </div>
-                           <div className="flex gap-0.5">
-                             {[...Array(5)].map((_, i) => (
-                               <Star key={i} size={14} color={i < review.rating ? "var(--accent)" : "rgba(255,255,255,0.2)"} fill={i < review.rating ? "var(--accent)" : "transparent"} />
-                             ))}
-                           </div>
-                         </div>
-                         <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'rgba(255,255,255,0.8)' }}>
-                           {review.comment}
-                         </Typography>
-                       </div>
-                     ))
-                   )}
-                 </Stack>
-
-                 {/* Formulario de nueva reseña */}
-                 <div className="p-5 bg-black/40 rounded-xl border border-white/10">
-                   <Typography variant="h6" mb={2}>Deja tu reseña</Typography>
-                   <Stack spacing={2}>
-                     <div className="flex items-center gap-2 mb-1">
-                       <Typography variant="body2" color="text.secondary">Calificación:</Typography>
-                       <div className="flex gap-1 cursor-pointer">
-                         {[1, 2, 3, 4, 5].map(star => (
-                           <Star 
-                             key={star} 
-                             size={24} 
-                             color={star <= newReviewRating ? "var(--accent)" : "rgba(255,255,255,0.3)"} 
-                             fill={star <= newReviewRating ? "var(--accent)" : "transparent"}
-                             onClick={() => setNewReviewRating(star)}
-                             className="transition-colors hover:scale-110"
-                           />
-                         ))}
-                       </div>
-                     </div>
-                     <KineticInput
-                       placeholder="Escribe tu experiencia en esta pista..."
-                       multiline
-                       rows={3}
-                       fullWidth
-                       value={newReviewText}
-                       onChange={(e) => setNewReviewText(e.target.value)}
-                     />
-                     <div className="text-right mt-2">
-                       <KineticButton 
-                         variant="contained" 
-                         onClick={handleAddReview}
-                         disabled={isSubmittingReview || !sessionUser}
-                       >
-                         {isSubmittingReview ? <Loader2 className="animate-spin" size={20} /> : (sessionUser ? 'Publicar Reseña' : 'Inicia Sesión para Publicar')}
-                       </KineticButton>
-                     </div>
-                   </Stack>
-                 </div>
-               </div>
-             </div>
-          )}
-        </div>
-      </KineticCard>
-
-      <Dialog 
-        open={isTimeModalOpen} 
-        onClose={() => !isSubmittingTime && setIsTimeModalOpen(false)}
-        PaperProps={{
-          style: {
-            backgroundColor: 'var(--bg-card)',
-            backgroundImage: 'none',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '12px'
-          }
-        }}
-      >
-        <form onSubmit={handleRegisterTime}>
-          <DialogTitle sx={{ color: 'white' }}>Registrar Mi Tiempo</DialogTitle>
-          <DialogContent>
+      {/* Time Modal */}
+      {isTimeModalOpen && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface-container rounded-sm border-none shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md p-6">
+            <h3 className="font-headline font-bold text-xl uppercase tracking-widest mb-4">Registrar Mi Tiempo</h3>
             {timeError && (
-              <Typography color="error" variant="body2" mb={2}>{timeError}</Typography>
+              <p className="text-error text-sm mb-4 bg-error/10 p-2 rounded-sm border border-error/20">{timeError}</p>
             )}
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Ingresa tu mejor tiempo en la pista. Formato aceptado: mm:ss.SSS o ss.SSS
-            </Typography>
-            <KineticInput
-              label="Tu mejor tiempo"
-              placeholder="Ej: 00:44.520"
-              value={timeInput}
-              onChange={e => setTimeInput(e.target.value)}
-              fullWidth
-              autoFocus
-              required
-              slotProps={{
-                input: {
-                  style: { fontFamily: 'monospace' }
-                }
-              }}
-            />
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 0 }}>
-            <KineticButton variant="text" color="inherit" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime}>
-              Cancelar
-            </KineticButton>
-            <KineticButton type="submit" variant="contained" disabled={isSubmittingTime}>
-              {isSubmittingTime ? <Loader2 className="animate-spin" size={20} /> : 'Registrar'}
-            </KineticButton>
-          </DialogActions>
-        </form>
-      </Dialog>
+            <form onSubmit={handleRegisterTime}>
+              <div className="mb-6">
+                <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-2">Tu mejor tiempo (mm:ss.SSS o ss.SSS)</label>
+                <Input 
+                  type="text" 
+                  placeholder="Ej: 00:44.520 o 44.520" 
+                  value={timeInput} 
+                  onChange={e => setTimeInput(e.target.value)} 
+                  required 
+                  className="w-full font-mono"
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime} className="px-4 py-2 border border-outline-variant/50 rounded-sm text-xs font-headline font-bold uppercase tracking-widest hover:bg-surface-variant transition-colors disabled:opacity-50">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={isSubmittingTime} className="bg-primary text-on-primary px-6 py-2 rounded-sm text-xs font-headline font-bold uppercase tracking-widest hover:brightness-110 transition-colors disabled:opacity-50 flex items-center gap-2">
+                  {isSubmittingTime ? <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span> : 'Registrar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

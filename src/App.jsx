@@ -15,6 +15,7 @@ const TrackDetail = lazy(() => import('./pages/Tracks/TrackDetail'));
 const Profile = lazy(() => import('./pages/Profile/Profile'));
 const Auth = lazy(() => import('./pages/Auth/Auth'));
 const Live = lazy(() => import('./pages/Live/Live'));
+const DesignSystem = lazy(() => import('./pages/DesignSystem/DesignSystem'));
 
 // Loader no intrusivo y moderno para transiciones de ruta
 function RouteLoader() {
@@ -40,12 +41,13 @@ function App() {
             
             <Route path="/tracks" element={<TracksList />} />
             <Route path="/tracks/new" element={<CreateTrack />} />
-            <Route path="/tracks/:id/edit" element={<EditTrack />} />
             <Route path="/tracks/:id" element={<TrackDetail />} />
 
             <Route path="/live" element={<Live />} />
+
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Auth />} />
+            <Route path="/design-system" element={<DesignSystem />} />
           </Routes>
         </Suspense>
       </Layout>

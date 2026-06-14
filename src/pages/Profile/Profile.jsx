@@ -1,23 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Trophy, Calendar, MessageSquare, Clock, Plus, MailOpen, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
-import KineticButton from '../../components/ui/KineticButton';
-import KineticCard from '../../components/ui/KineticCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import MenuItem from '@mui/material/MenuItem';
-
+import { Input } from '../../components/ui/input';
+import { SelectNative } from '../../components/ui/select-native';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 
 const formatMsToTime = (ms) => {
-  if (!ms) return "00:00.000";
+  if (!ms || ms === Infinity) return "00:00.000";
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   const milliseconds = ms % 1000;
@@ -39,7 +30,7 @@ const parseTimeToMs = (timeStr) => {
     return (secs * 1000) + ms;
   }
   return 0;
-}
+};
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -62,68 +53,80 @@ export default function Profile() {
   const [timeError, setTimeError] = useState('');
 
   const loadData = async (user) => {
-    setIsLoading(true);
-    let p = await getProfile(user.id);
-    
-    // Si por alguna razón el trigger falló, intentamos crearlo manualmente
-    if (!p) {
-      const { data } = await supabase.from('profiles').insert([{
-        id: user.id,
-        username: user.email.split('@')[0] + Math.floor(Math.random() * 1000),
-        full_name: user.user_metadata?.full_name || 'Piloto Nuevo'
-      }]).select().single();
+    try {
+      setIsLoading(true);
+      let p = await getProfile(user.id);
       
-      p = data || { id: user.id, full_name: user.user_metadata?.full_name || 'Piloto Nuevo', username: user.email.split('@')[0] };
+      // Si por alguna razón el trigger falló, intentamos crearlo manualmente
+      if (!p) {
+        const usernameBase = user.email ? user.email.split('@')[0] : 'piloto';
+        const { data } = await supabase.from('profiles').insert([{
+          id: user.id,
+          username: usernameBase + Math.floor(Math.random() * 1000),
+          full_name: user.user_metadata?.full_name || 'Piloto Nuevo'
+        }]).select().single();
+        
+        p = data || { id: user.id, full_name: user.user_metadata?.full_name || 'Piloto Nuevo', username: usernameBase };
+      }
+      setUserProfile(p);
+
+      // Cargar tiempos de vuelta
+      const times = await getUserLapTimes(user.id);
+      setUserTimes(times || []);
+
+      // Cargar invitaciones pendientes
+      if (user.email) {
+        const invites = await getPendingInvitations(user.email);
+        setPendingInvites(invites || []);
+      }
+
+      // Cargar campeonatos a los que se ha unido
+      const { data: participations, error: partError } = await supabase
+        .from('championship_participants')
+        .select(`
+          championship_id,
+          points,
+          championships (*)
+        `)
+        .eq('user_id', user.id);
+      
+      if (!partError) {
+        setUserChampionships(participations || []);
+      }
+
+      // Cargar todas las pistas para el modal
+      const tracks = await getTracks();
+      setAllTracks(tracks || []);
+      if (tracks && tracks.length > 0) {
+        setSelectedTrackId(tracks[0].id);
+      }
+    } catch (error) {
+      console.error("Error loading profile data:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setUserProfile(p);
-
-    // Cargar tiempos de vuelta
-    const times = await getUserLapTimes(user.id);
-    setUserTimes(times || []);
-
-    // Cargar invitaciones pendientes
-    const invites = await getPendingInvitations(user.email);
-    setPendingInvites(invites || []);
-
-    // Cargar campeonatos a los que se ha unido
-    const { data: participations, error: partError } = await supabase
-      .from('championship_participants')
-      .select(`
-        championship_id,
-        points,
-        championships (*)
-      `)
-      .eq('user_id', user.id);
-    
-    if (!partError) {
-      setUserChampionships(participations || []);
-    }
-
-    // Cargar todas las pistas para el modal
-    const tracks = await getTracks();
-    setAllTracks(tracks || []);
-    if (tracks && tracks.length > 0) {
-      setSelectedTrackId(tracks[0].id);
-    }
-    setIsLoading(false);
   };
 
   useEffect(() => {
     async function loadUser() {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      
-      if (user) {
-        setSessionUser(user);
-        await loadData(user);
-      } else {
-        setSessionUser(null);
-        setUserProfile(null);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        
+        if (user) {
+          setSessionUser(user);
+          await loadData(user);
+        } else {
+          setSessionUser(null);
+          setUserProfile(null);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error loading session:", error);
         setIsLoading(false);
       }
     }
     
-    // Escuchar cambios de sesión
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setSessionUser(session.user);
@@ -137,7 +140,7 @@ export default function Profile() {
     loadUser();
 
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -157,11 +160,9 @@ export default function Profile() {
 
       await registerLapTime(selectedTrackId, ms);
       
-      // Resetear formulario
       setTimeInput('');
       setIsTimeModalOpen(false);
 
-      // Recargar tiempos
       if (sessionUser) {
         const times = await getUserLapTimes(sessionUser.id);
         setUserTimes(times || []);
@@ -180,7 +181,6 @@ export default function Profile() {
       await acceptChampionshipInvitation(inviteId, champId);
       alert(`Te has unido exitosamente al campeonato: ${name}`);
       
-      // Recargar datos
       if (sessionUser) {
         await loadData(sessionUser);
       }
@@ -190,261 +190,246 @@ export default function Profile() {
     }
   };
 
-  if (isLoading) return <div className="fade-in"><Typography color="text.secondary">Cargando perfil...</Typography></div>;
+  if (isLoading) return (
+    <div className="w-full h-[50vh] flex flex-col items-center justify-center gap-3">
+      <Loader2 className="animate-spin text-primary" size={36} />
+      <span className="text-on-surface-variant font-label tracking-widest uppercase text-sm">Cargando perfil...</span>
+    </div>
+  );
 
   if (!sessionUser || !userProfile) {
     return (
-      <div className="fade-in text-center max-w-md mx-auto mt-10">
-        <Typography variant="h4" fontWeight="bold" color="white" mb={2}>Aún no has iniciado sesión</Typography>
-        <Typography color="text.secondary" mb={4}>Conéctate o vuelve a iniciar sesión con tu cuenta recién creada.</Typography>
-        <KineticButton variant="contained" fullWidth onClick={() => navigate('/login')}>Iniciar Sesión / Registro</KineticButton>
+      <div className="w-full h-[50vh] flex flex-col items-center justify-center text-center px-6">
+        <h2 className="font-headline font-bold text-2xl text-on-surface mb-2 uppercase">Aún no has iniciado sesión</h2>
+        <p className="text-on-surface-variant font-body mb-8">Conéctate o vuelve a iniciar sesión con tu cuenta.</p>
+        <button onClick={() => navigate('/login')} className="bg-primary text-on-primary px-8 py-3 rounded-sm font-headline font-bold uppercase tracking-widest active:scale-95 transition-transform">
+          Iniciar Sesión / Registro
+        </button>
       </div>
     );
   }
 
+  const fastestLapMs = userTimes.length > 0 ? Math.min(...userTimes.map(t => t.lap_time_ms)) : null;
+  const totalPoints = userChampionships.reduce((a,c) => a + (c.points || 0), 0);
+  const userLevel = Math.floor(totalPoints / 100) + 1;
+
   return (
-    <div className="fade-in max-w-7xl mx-auto">
-      {/* Invitaciones Pendientes Banner */}
+    <div className="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen pb-16">
+      
+      {/* Banner Invitaciones */}
       {pendingInvites.length > 0 && (
-        <KineticCard sx={{ p: 3, mb: 4, borderColor: '#FF3100', background: 'rgba(255, 49, 0, 0.05)' }}>
-          <Stack direction="row" alignItems="center" gap={1.5} mb={2}>
-            <MailOpen size={24} color="#FF3100" />
-            <Typography variant="h6" fontWeight="bold" color="white">¡Tienes invitaciones a torneos!</Typography>
-          </Stack>
-          <Stack spacing={2}>
+        <div className="mx-6 mt-6 p-4 border border-tertiary-fixed/30 bg-tertiary-fixed/5 rounded-sm fade-in">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="material-symbols-outlined text-tertiary-fixed">mail</span>
+            <h3 className="font-headline font-bold text-tertiary-fixed uppercase tracking-widest text-sm">¡Invitaciones Pendientes!</h3>
+          </div>
+          <div className="space-y-3">
             {pendingInvites.map(invite => (
-              <div key={invite.id} className="flex flex-col md:flex-row justify-between items-start md:items-center bg-black/20 p-3 md:p-4 rounded-lg gap-3">
-                <Typography variant="body2" color="white">
-                  Te invitaron a participar en: <span className="font-bold">{invite.championships?.name}</span>
-                </Typography>
-                <KineticButton 
-                  variant="contained" 
-                  size="small"
+              <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-3 rounded-sm">
+                <span className="font-label text-sm uppercase">Campeonato: <strong className="text-white">{invite.championships?.name}</strong></span>
+                <button 
+                  className="bg-tertiary-fixed text-on-tertiary-fixed px-4 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
                   onClick={() => handleAcceptInvite(invite.id, invite.championship_id, invite.championships?.name)}
                 >
                   Aceptar y Unirme
-                </KineticButton>
+                </button>
               </div>
             ))}
-          </Stack>
-        </KineticCard>
+          </div>
+        </div>
       )}
 
-      {/* Header */}
-      <KineticCard sx={{ p: 0, overflow: 'hidden', mb: 6 }}>
-        <div className="h-32 md:h-48 bg-gradient-to-r from-[#FF3100]/20 to-transparent relative">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-        </div>
-        
-        <div className="px-4 md:px-8 pb-6 md:pb-8">
-          <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-8 -mt-16 md:-mt-20 mb-6">
+      <main className="pt-0">
+        {/* Hero Section */}
+        <section className="relative w-full h-[300px] md:h-[530px] overflow-hidden">
+          <div className="absolute inset-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)' }}>
             <img 
-              src={userProfile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${userProfile.username}`} 
-              alt="Avatar" 
-              className="w-32 h-32 md:w-40 md:h-40 rounded-xl border-4 border-[#0e0e0e] bg-[#1a1e24] object-cover" 
+              alt="Hero Profile" 
+              className="w-full h-full object-cover object-top brightness-75 grayscale-[0.2]" 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtypMzZ2sYCtTttlHvo6uSC83NO7eQ95fPqciLokYXmMOZbPJqmxXWw0Vu5-Pj7TvGEYnZ09vGOx55r-ROicmd7l7ZRIo8eAwvEQPFe-VdkBiY-Y7r6kepIVHK7uLrAzLGLJJL7Y9xwItjLi0bOJ8fgKG36sdmx-edj9x48N0Vxb62f66jci7s-B-p0upE4gQhRY6_YJYHkutoPIpq2xkyETbTbUFKvo8Qfaya1EMt73H-qKepJDn9Y-G9ehbheX4NARfgQH2WhVlE"
             />
-            
-            <div className="flex-grow pt-4 md:pt-0">
-              <Typography variant="h3" fontWeight="bold" color="white" className="leading-tight">{userProfile.full_name || 'Piloto'}</Typography>
-              <Typography variant="subtitle1" color="#FF3100" fontWeight="bold" mb={2}>@{userProfile.username || 'usuario'}</Typography>
-              
-              <Typography variant="body2" color="text.secondary" mb={3} maxWidth="600px">
-                {userProfile.bio || 'Sin biografía.'}
-              </Typography>
-              
-              <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-                <span className="flex items-center gap-1"><MapPin size={16}/> {userProfile.location || 'Bogotá, Colombia'}</span>
-                <span className="flex items-center gap-1"><Calendar size={16}/> Miembro desde {new Date(userProfile.created_at).getFullYear()}</span>
-              </div>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+          <div className="absolute bottom-8 left-6 right-6">
+            <div className="inline-block px-2 py-1 mb-3 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold tracking-[0.2em] rounded-sm">
+              NIVEL {userLevel}
             </div>
-            
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} className="w-full md:w-auto mt-4 md:mt-0">
-              <KineticButton variant="contained" onClick={() => setIsTimeModalOpen(true)} startIcon={<Plus size={16}/>}>
-                Registrar Tiempo
-              </KineticButton>
-              <KineticButton variant="outlined" onClick={async () => await supabase.auth.signOut()}>
-                Cerrar Sesión
-              </KineticButton>
-            </Stack>
+            <h1 className="text-4xl md:text-6xl font-headline font-bold italic tracking-tighter text-on-surface uppercase leading-none truncate">
+              {userProfile.full_name || 'PILOTO'}
+            </h1>
+            <p className="mt-2 text-primary font-headline font-medium tracking-widest text-sm opacity-80 uppercase truncate">
+              @{userProfile.username || 'USUARIO'} // {userProfile.location || 'BOGOTÁ, COLOMBIA'}
+            </p>
           </div>
-          
-          {/* Stats */}
-          <Grid container spacing={3} className="pt-6 border-t border-white/10">
-            <Grid item xs={12} sm={4}>
-              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
-                <Typography variant="h3" fontWeight="bold" color="white">{userTimes.length}</Typography>
-                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Récords Pista</Typography>
-              </div>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
-                <Typography variant="h3" fontWeight="bold" color="white">{userChampionships.length}</Typography>
-                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Campeonatos</Typography>
-              </div>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
-                <Typography variant="h3" fontWeight="bold" color="#FF3100">
-                  {userChampionships.reduce((acc, c) => acc + (c.points || 0), 0)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Puntos Totales</Typography>
-              </div>
-            </Grid>
-          </Grid>
-        </div>
-      </KineticCard>
+        </section>
 
-      {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
-        <KineticButton
-          variant={activeTab === 'campeonatos' ? 'contained' : 'outlined'}
-          color={activeTab === 'campeonatos' ? 'primary' : 'inherit'}
-          onClick={() => setActiveTab('campeonatos')}
-          startIcon={<Trophy size={18}/>}
-          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-        >
-          Mis Campeonatos ({userChampionships.length})
-        </KineticButton>
-
-        <KineticButton
-          variant={activeTab === 'tiempos' ? 'contained' : 'outlined'}
-          color={activeTab === 'tiempos' ? 'primary' : 'inherit'}
-          onClick={() => setActiveTab('tiempos')}
-          startIcon={<Clock size={18}/>}
-          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-        >
-          Mis Tiempos ({userTimes.length})
-        </KineticButton>
-
-        <KineticButton
-          variant={activeTab === 'actividad' ? 'contained' : 'outlined'}
-          color={activeTab === 'actividad' ? 'primary' : 'inherit'}
-          onClick={() => setActiveTab('actividad')}
-          startIcon={<MessageSquare size={18}/>}
-          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-        >
-          Actividad
-        </KineticButton>
-      </div>
-
-      {/* Tab Content */}
-      <KineticCard sx={{ p: 4, minHeight: '300px' }}>
-        {activeTab === 'campeonatos' && (
-          <div className="fade-in">
-             {userChampionships.length === 0 ? (
-               <Typography color="text.secondary">Aún no te has inscrito a ningún campeonato.</Typography>
-             ) : (
-               <div className="flex flex-col gap-4">
-                 {userChampionships.map(uc => (
-                   <div 
-                     key={uc.championship_id} 
-                     onClick={() => navigate(`/championships/${uc.championship_id}`)}
-                     className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white/5 p-4 rounded-xl border border-white/10 cursor-pointer hover:border-[#FF3100]/50 hover:bg-white/10 transition-all gap-4"
-                   >
-                     <div>
-                       <Typography variant="h6" fontWeight="bold" color="white" mb={0.5}>{uc.championships?.name}</Typography>
-                       <Typography variant="body2" color="text.secondary">Estado: {uc.championships?.status}</Typography>
-                     </div>
-                     <div className="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-lg">
-                       <Typography variant="body1" fontWeight="bold" color="#FF3100">{uc.points} pts</Typography>
-                       <Trophy size={18} color="#FF3100" />
-                     </div>
-                   </div>
-                 ))}
-               </div>
-             )}
+        {/* Stats Grid */}
+        <section className="px-6 -mt-4 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-surface-container-low p-5 rounded-sm border-l-2 border-primary transition-all hover:bg-surface-container">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">CAMPEONATOS</span>
+              <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
+            </div>
+            <div className="text-4xl font-display font-bold">{userChampionships.length}</div>
           </div>
-        )}
+          <div className="bg-surface-container-low p-5 rounded-sm transition-all hover:bg-surface-container">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">MEJOR VUELTA</span>
+              <span className="material-symbols-outlined text-tertiary-fixed text-xl">timer</span>
+            </div>
+            <div className="text-4xl font-display font-bold text-tertiary-fixed">{formatMsToTime(fastestLapMs)}</div>
+          </div>
+          <div className="bg-surface-container-low p-5 rounded-sm transition-all hover:bg-surface-container">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">PUNTOS TOTALES</span>
+              <span className="material-symbols-outlined text-on-surface-variant text-xl">analytics</span>
+            </div>
+            <div className="text-4xl font-display font-bold">{totalPoints}</div>
+            <div className="mt-4 w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+              <div className="h-full bg-primary" style={{ width: `${Math.min(100, (totalPoints % 100))}%`, boxShadow: '0 0 10px rgba(255,143,119,0.5)' }}></div>
+            </div>
+          </div>
+        </section>
 
-        {activeTab === 'tiempos' && (
-          <div className="fade-in">
-            {userTimes.length === 0 ? (
-              <Typography color="text.secondary">No has registrado ningún tiempo todavía.</Typography>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {userTimes.map(time => (
-                  <div key={time.id} className="flex justify-between items-center p-4 bg-black/30 border-l-4 border-[#FF3100] rounded-r-xl">
-                    <div>
-                      <Typography variant="subtitle1" fontWeight="bold" color="white" mb={0.5}>{time.tracks?.name}</Typography>
-                      <Typography variant="body2" color="text.secondary" className="flex items-center gap-1">
-                        <MapPin size={12}/>{time.tracks?.location}
-                      </Typography>
+        {/* Action Tabs & Content */}
+        <section className="mt-12 px-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex items-center mb-6 overflow-x-auto scrollbar-hide">
+              <TabsList className="w-full md:w-auto flex">
+                <TabsTrigger value="campeonatos" className="flex-1 md:flex-none">MIS CAMPEONATOS</TabsTrigger>
+                <TabsTrigger value="tiempos" className="flex-1 md:flex-none">MIS TIEMPOS</TabsTrigger>
+              </TabsList>
+              <div className="h-[1px] flex-grow bg-outline-variant/30 hidden md:block ml-4"></div>
+            </div>
+
+            <TabsContent value="campeonatos" className="space-y-4 mt-0">
+              {userChampionships.length === 0 ? (
+                <p className="text-on-surface-variant text-sm font-label uppercase">NO ESTÁS INSCRITO A NINGÚN CAMPEONATO.</p>
+              ) : (
+                userChampionships.map(uc => (
+                  <div key={uc.championship_id} onClick={() => navigate(`/championships/${uc.championship_id}`)} className="flex items-center justify-between py-3 border-b border-outline-variant/10 group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
+                        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">emoji_events</span>
+                      </div>
+                      <div>
+                        <p className="font-headline font-bold text-sm tracking-tight group-hover:text-primary transition-colors uppercase">{uc.championships?.name}</p>
+                        <p className="text-[9px] font-label text-on-surface-variant tracking-wider uppercase">ESTADO: {uc.championships?.status} • {uc.points} PUNTOS</p>
+                      </div>
                     </div>
-                    <Typography variant="h6" className="font-mono" fontWeight="bold" color="white">
-                      {formatMsToTime(time.lap_time_ms)}
-                    </Typography>
+                    <span className="material-symbols-outlined text-tertiary-fixed text-sm">arrow_forward_ios</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                ))
+              )}
+            </TabsContent>
 
-        {activeTab === 'actividad' && (
-          <div className="fade-in">
-            <Typography color="text.secondary">No hay actividad reciente.</Typography>
-          </div>
-        )}
-      </KineticCard>
+            <TabsContent value="tiempos" className="space-y-4 mt-0">
+              {userTimes.length === 0 ? (
+                <p className="text-on-surface-variant text-sm font-label uppercase">NO HAS REGISTRADO NINGÚN TIEMPO.</p>
+              ) : (
+                userTimes.map(time => (
+                  <div key={time.id} className="flex items-center justify-between py-3 border-b border-outline-variant/10 group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
+                        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">timer</span>
+                      </div>
+                      <div>
+                        <p className="font-headline font-bold text-sm tracking-tight group-hover:text-primary transition-colors uppercase">{time.tracks?.name}</p>
+                        <p className="text-[9px] font-label text-on-surface-variant tracking-wider uppercase">{time.tracks?.location}</p>
+                      </div>
+                    </div>
+                    <span className="font-display font-bold text-tertiary-fixed tracking-wider">{formatMsToTime(time.lap_time_ms)}</span>
+                  </div>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
+        </section>
+
+        {/* Technical Action Cards */}
+        <section className="mt-12 px-6 grid grid-cols-1 gap-4">
+          <button onClick={() => setIsTimeModalOpen(true)} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative">
+            <div className="relative z-10">
+              <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
+              <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">AÑADIR NUEVO RÉCORD DE VUELTA</p>
+            </div>
+            <span className="material-symbols-outlined text-primary group-hover:translate-x-2 transition-transform">add_circle</span>
+          </button>
+          
+          <button onClick={async () => await supabase.auth.signOut()} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group">
+            <div>
+              <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>
+              <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">SALIR DE LA CUENTA ACTUAL</p>
+            </div>
+            <span className="material-symbols-outlined text-error group-hover:translate-x-2 transition-transform">logout</span>
+          </button>
+        </section>
+      </main>
 
       {/* Modal Registrar Tiempo */}
-      <Dialog 
-        open={isTimeModalOpen} 
-        onClose={() => setIsTimeModalOpen(false)}
-        PaperProps={{
-          style: {
-            backgroundColor: '#121212',
-            backgroundImage: 'none',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '12px',
-            width: '100%',
-            maxWidth: '400px'
-          }
-        }}
-      >
-        <DialogTitle>
-          <Typography variant="h5" fontWeight="bold" color="white">Registrar Tiempo</Typography>
-        </DialogTitle>
-        <DialogContent>
-          {timeError && (
-            <Typography color="error" variant="body2" mb={2}>{timeError}</Typography>
-          )}
-          <form id="time-form" onSubmit={handleRegisterLapTime}>
-            <Stack spacing={3} mt={1}>
-              <KineticInput
-                select
-                label="Seleccionar Circuito"
-                value={selectedTrackId} 
-                onChange={e => setSelectedTrackId(e.target.value)} 
-                required
-                fullWidth
-              >
-                <MenuItem value="" disabled>Selecciona una pista...</MenuItem>
-                {allTracks.map(t => (
-                  <MenuItem key={t.id} value={t.id}>{t.name} ({t.location})</MenuItem>
-                ))}
-              </KineticInput>
-              <KineticInput
-                label="Tu mejor tiempo"
-                fullWidth
-                placeholder="Ej: 00:44.520 o 44.520"
-                value={timeInput}
-                onChange={e => setTimeInput(e.target.value)}
-                required
-                sx={{ input: { fontFamily: 'monospace' } }}
-              />
-            </Stack>
-          </form>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 0 }}>
-          <KineticButton variant="outlined" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime}>
-            Cancelar
-          </KineticButton>
-          <KineticButton variant="contained" type="submit" form="time-form" disabled={isSubmittingTime}>
-            {isSubmittingTime ? <Loader2 className="animate-spin" size={20} /> : 'Registrar'}
-          </KineticButton>
-        </DialogActions>
-      </Dialog>
+      {isTimeModalOpen && (
+        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface-container-high p-6 w-full max-w-md rounded-sm border border-outline-variant/30 fade-in shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline font-bold text-xl uppercase tracking-widest text-white">REGISTRAR TIEMPO</h3>
+              <button onClick={() => setIsTimeModalOpen(false)} className="text-on-surface-variant hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            {timeError && (
+              <div className="bg-error/10 border border-error/50 p-3 mb-6 rounded-sm">
+                <p className="text-error font-label text-xs uppercase tracking-wider">{timeError}</p>
+              </div>
+            )}
+            
+            <form onSubmit={handleRegisterLapTime}>
+              <div className="mb-6">
+                <label className="block text-on-surface-variant font-label text-xs uppercase tracking-widest mb-2">CIRCUITO</label>
+                <SelectNative 
+                  value={selectedTrackId} 
+                  onChange={e => setSelectedTrackId(e.target.value)} 
+                  required
+                  className="w-full"
+                >
+                  <option value="" disabled>SELECCIONA UNA PISTA...</option>
+                  {allTracks.map(t => (
+                    <option key={t.id} value={t.id}>{t.name} ({t.location})</option>
+                  ))}
+                </SelectNative>
+              </div>
+              <div className="mb-8">
+                <label className="block text-on-surface-variant font-label text-xs uppercase tracking-widest mb-2">TIEMPO (MM:SS.SSS O SS.SSS)</label>
+                <Input 
+                  type="text" 
+                  placeholder="00:44.520" 
+                  value={timeInput} 
+                  onChange={e => setTimeInput(e.target.value)} 
+                  required 
+                  className="w-full text-tertiary-fixed font-display font-bold tracking-widest text-xl placeholder:text-outline-variant" 
+                />
+              </div>
+               <div className="flex justify-end gap-3">
+                 <button 
+                   type="button" 
+                   onClick={() => setIsTimeModalOpen(false)} 
+                   disabled={isSubmittingTime}
+                   className="px-6 py-3 font-headline font-bold uppercase tracking-widest text-sm text-on-surface hover:bg-surface-variant transition-colors rounded-sm"
+                 >
+                   CANCELAR
+                 </button>
+                 <button 
+                   type="submit" 
+                   disabled={isSubmittingTime}
+                   className="px-6 py-3 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest text-sm rounded-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 min-w-[140px]"
+                 >
+                   {isSubmittingTime ? <Loader2 className="animate-spin" size={16} /> : 'REGISTRAR'}
+                 </button>
+               </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

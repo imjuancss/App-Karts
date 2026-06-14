@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Trash2, Plus, Loader2, Calendar, Award } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Loader2, Award } from 'lucide-react';
 import { getTracks, createChampionship } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
-import KineticCard from '../../components/ui/KineticCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-import MenuItem from '@mui/material/MenuItem';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+
 export default function CreateChampionship() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -117,197 +119,175 @@ export default function CreateChampionship() {
   };
 
   if (isLoadingTracks) {
-    return (
-      <div className="create-track-container fade-in" style={{ textAlign: 'center' }}>
-        <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando formulario...</Typography>
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center fade-in text-on-surface-variant"><p>Cargando pistas disponibles...</p></div>;
   }
 
   return (
-    <div className="create-track-container fade-in max-w-5xl mx-auto">
-      <Stack direction="row" mb={3}>
-        <KineticButton 
-          variant="text" 
-          color="secondary" 
+    <div className="min-h-screen bg-background pb-20 fade-in px-4 py-8">
+      <div className="max-w-3xl mx-auto w-full">
+        <button 
+          className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors mb-6 font-medium" 
           onClick={() => navigate('/championships')}
-          startIcon={<ArrowLeft size={20}/>}
         >
-          Volver
-        </KineticButton>
-      </Stack>
+          <ArrowLeft size={20}/> Volver
+        </button>
 
-      <KineticCard sx={{ maxWidth: 750, mx: 'auto', p: { xs: 2, md: 4 } }}>
-        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Torneo</Typography>
-        
-        {errorMsg && (
-          <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded text-red-400">
-            <p>{errorMsg}</p>
-          </div>
-        )}
+        <div className="bg-surface-container-low rounded-sm p-8 md:p-10 border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+          <h1 className="text-3xl font-headline font-bold text-on-surface mb-8">Crear Nuevo Torneo</h1>
+          
+          {errorMsg && (
+            <div className="mb-6 p-4 bg-error-container/20 text-error rounded-lg text-sm border-none">
+              <p>{errorMsg}</p>
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            <KineticInput
-              label="Nombre del Torneo"
-              placeholder="Ej: Gran Copa Bogotá Karting"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              fullWidth
-            />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Nombre del Torneo</label>
+              <Input 
+                type="text" 
+                placeholder="Ej: Gran Copa Bogotá Karting" 
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+                required 
+                className="bg-surface-container border-none text-on-surface py-6 px-4"
+              />
+            </div>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Fecha General de Inicio"
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  slotProps={{ inputLabel: { shrink: true } }}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Inicio</label>
+                <Input 
+                  type="date" 
+                  value={startDate} 
+                  onChange={e => setStartDate(e.target.value)} 
+                  className="bg-surface-container border-none text-on-surface py-6 px-4"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Fecha General de Fin"
-                  type="date"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  slotProps={{ inputLabel: { shrink: true } }}
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Fin</label>
+                <Input 
+                  type="date" 
+                  value={endDate} 
+                  onChange={e => setEndDate(e.target.value)} 
+                  className="bg-surface-container border-none text-on-surface py-6 px-4"
                 />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Premio Especial (Opcional)"
-                  placeholder="Ej: Trofeo + Casco Sparco"
-                  value={prizeLabel}
-                  onChange={e => setPrizeLabel(e.target.value)}
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Award size={18} color="rgba(255,255,255,0.5)" />
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Premio Especial</label>
+                <div className="relative flex items-center">
+                  <Award size={18} className="absolute left-4 text-on-surface-variant opacity-50" />
+                  <Input 
+                    type="text" 
+                    placeholder="Ej: Trofeo + Casco Sparco" 
+                    value={prizeLabel} 
+                    onChange={e => setPrizeLabel(e.target.value)} 
+                    className="pl-12 bg-surface-container border-none text-on-surface py-6 pr-4 w-full"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Inscripción (COP)</label>
+                <Input 
+                  type="number" 
+                  placeholder="Ej: 25000" 
+                  value={entryFee} 
+                  onChange={e => setEntryFee(e.target.value)} 
+                  className="bg-surface-container border-none text-on-surface py-6 px-4"
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Costo de Inscripción (COP) (Opcional)"
-                  type="number"
-                  placeholder="Ej: 25000"
-                  value={entryFee}
-                  onChange={e => setEntryFee(e.target.value)}
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
-            <KineticInput
-              label="Descripción y Reglas"
-              placeholder="Escribe detalles del campeonato, premios extra, categorías..."
-              multiline
-              rows={3}
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              fullWidth
-            />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Descripción y Reglas</label>
+              <Textarea 
+                rows="3" 
+                placeholder="Escribe detalles del campeonato, premios extra, categorías..." 
+                value={description} 
+                onChange={e => setDescription(e.target.value)} 
+                className="w-full resize-y"
+              />
+            </div>
 
-            <div className="mt-8 border-t border-white/10 pt-6">
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h5">Calendario de Rondas (Mínimo 3 pistas)</Typography>
-                <KineticButton variant="outlined" color="secondary" size="small" onClick={handleAddRound} startIcon={<Plus size={16}/>}>
-                  Añadir Ronda
-                </KineticButton>
-              </Stack>
-              <Stack spacing={3}>
+            <div className="mt-8 pt-8 bg-surface-container-high/30 -mx-8 px-8 pb-8 rounded-b-sm">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <h3 className="text-xl font-bold text-on-surface">Calendario de Rondas</h3>
+                <button 
+                  type="button" 
+                  onClick={handleAddRound}
+                  className="bg-surface-variant hover:bg-surface-variant/80 text-on-surface-variant px-4 py-2 rounded-sm text-sm flex items-center gap-2 font-bold uppercase tracking-wider transition-colors"
+                >
+                  <Plus size={16}/> Añadir Ronda
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
                 {rounds.map((round, idx) => (
-                  <div key={idx} className="bg-white/5 p-5 rounded-lg border border-white/10">
-                    <Grid container spacing={3} alignItems="center">
-                      <Grid item xs={12} md={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'center' } }}>
-                        <Typography sx={{ color: 'var(--accent)', fontWeight: 'bold', fontSize: '1.25rem' }}>
-                          #{idx + 1}
-                        </Typography>
-                      </Grid>
+                  <div 
+                    key={idx} 
+                    className="flex flex-col md:flex-row gap-4 items-start md:items-end bg-surface-container p-4 rounded-sm border-none"
+                  >
+                    <div className="font-bold text-primary-dim self-start md:self-center pt-2 md:pt-0">
+                      #{idx + 1}
+                    </div>
 
-                      <Grid item xs={12} md={6}>
-                        <KineticInput
-                          select
-                          label="Pista / Circuito"
-                          value={round.track_id}
-                          onChange={e => handleRoundChange(idx, 'track_id', e.target.value)}
-                          required
-                          fullWidth
-                        >
-                          <MenuItem value="" disabled>Selecciona una pista...</MenuItem>
+                    <div className="flex-1 w-full flex flex-col gap-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Pista / Circuito</label>
+                      <Select value={round.track_id} onValueChange={(val) => handleRoundChange(idx, 'track_id', val)}>
+                        <SelectTrigger className="w-full bg-surface-container-high border-none text-on-surface h-12">
+                          <SelectValue placeholder="Selecciona una pista..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-surface-container-highest border-none text-on-surface">
                           {allTracks.map(t => (
-                            <MenuItem key={t.id} value={t.id}>{t.name} ({t.location})</MenuItem>
+                            <SelectItem key={t.id} value={t.id} className="hover:bg-surface-variant focus:bg-surface-variant cursor-pointer">
+                              {t.name} ({t.location})
+                            </SelectItem>
                           ))}
-                        </KineticInput>
-                      </Grid>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      <Grid item xs={12} md={4}>
-                        <KineticInput
-                          label="Fecha de la Ronda"
-                          type="date"
-                          value={round.date}
-                          onChange={e => handleRoundChange(idx, 'date', e.target.value)}
-                          required
-                          fullWidth
-                          InputLabelProps={{ shrink: true }}
-                          slotProps={{ inputLabel: { shrink: true } }}
-                        />
-                      </Grid>
+                    <div className="flex-1 w-full flex flex-col gap-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Fecha</label>
+                      <Input 
+                        type="date" 
+                        value={round.date} 
+                        onChange={e => handleRoundChange(idx, 'date', e.target.value)} 
+                        required 
+                        className="bg-surface-container-high border-none text-on-surface h-12 px-4"
+                      />
+                    </div>
 
-                      <Grid item xs={12} md={1} sx={{ display: 'flex', justifyContent: { xs: 'flex-end', md: 'center' } }}>
-                        {rounds.length > 3 ? (
-                          <IconButton 
-                            color="error" 
-                            onClick={() => handleRemoveRound(idx)}
-                            sx={{ 
-                              bgcolor: 'rgba(239, 68, 68, 0.1)', 
-                              borderRadius: 1, 
-                              '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)' } 
-                            }}
-                          >
-                            <Trash2 size={20} />
-                          </IconButton>
-                        ) : (
-                          // Empty placeholder to maintain grid spacing on desktop
-                          <div style={{ width: 40 }} />
-                        )}
-                      </Grid>
-                    </Grid>
+                    {rounds.length > 3 && (
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveRound(idx)}
+                        className="bg-error-container/10 text-error hover:bg-error-container/20 p-3 rounded-sm flex items-center justify-center transition-colors border-none self-end md:self-auto h-12 w-full md:w-auto"
+                      >
+                        <Trash2 size={18}/>
+                      </button>
+                    )}
                   </div>
                 ))}
-              </Stack>
+              </div>
             </div>
 
             <KineticButton 
               type="submit" 
-              variant="contained" 
-              color="primary" 
-              size="large"
-              fullWidth
+              variant="contained"
+              color="primary"
+              className="w-full mt-4 h-14 text-lg font-bold uppercase tracking-widest"
               disabled={isSubmitting}
-              sx={{ mt: 4, py: 1.5, fontSize: '1.05rem' }}
             >
-              {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Crear Campeonato'}
+              {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={24} /> : 'Crear Campeonato'}
             </KineticButton>
-          </Stack>
-        </form>
-      </KineticCard>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
