@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { getTrackById, updateTrack, getProfile } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import KineticButton from '../../components/ui/KineticButton';
-import KineticCard from '../../components/ui/KineticCard';
+import GlassCard from '../../components/ui/GlassCard';
 import KineticInput from '../../components/ui/KineticInput';
 import Stack from '@mui/material/Stack';
 import Grid from '@mui/material/Grid';
@@ -133,10 +133,10 @@ export default function EditTrack() {
   if (errorMsg) {
     return (
       <div className="create-track-container fade-in text-center">
-        <KineticCard sx={{ maxWidth: 500, mx: 'auto', p: 4 }}>
+        <GlassCard variant="low" className="max-w-[500px] mx-auto p-8">
           <Typography color="error" mb={2}>Pista no encontrada o no tienes permisos para editarla.</Typography>
           <KineticButton variant="contained" onClick={() => navigate('/tracks')}>Volver a pistas</KineticButton>
-        </KineticCard>
+        </GlassCard>
       </div>
     );
   }
@@ -154,7 +154,7 @@ export default function EditTrack() {
         </KineticButton>
       </Stack>
 
-      <KineticCard sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <GlassCard variant="low" className="max-w-[800px] mx-auto p-4 md:p-8">
         <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Editar Circuito</Typography>
 
         <form onSubmit={handleSubmit}>
@@ -238,7 +238,7 @@ export default function EditTrack() {
             </KineticButton>
           </Stack>
         </form>
-      </KineticCard>
+      </GlassCard>
     </div>
   );
 }

@@ -167,11 +167,24 @@ export default function HomeLeaderboard() {
 
 
   return (
-    <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col bg-background items-center font-sans">
+    <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col items-center font-sans">
       <div className="w-full h-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 relative flex flex-col">
 
         {/* Zona Superior Fija */}
-        <div className="flex-shrink-0 z-40 bg-background pb-2 pt-4 px-4 w-full flex flex-col gap-4">
+        <div className="flex-shrink-0 z-40 bg-background/80 backdrop-blur-md pb-2 pt-4 px-4 w-full flex flex-col gap-4">
+          
+          {/* Header Panel */}
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/10 pb-4">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
+                <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
+                Home
+              </h3>
+              <p className="text-on-surface-variant text-sm font-body">
+                Tiempos de clasificación y telemetría de los circuitos en tiempo real.
+              </p>
+            </div>
+          </header>
 
           {/* Header text and location */}
           <div className="self-stretch flex flex-col justify-start items-start md:gap-4">

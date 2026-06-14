@@ -256,7 +256,8 @@ export default function Profile() {
             <div className="inline-block px-2 py-1 mb-3 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold tracking-[0.2em] rounded-sm">
               NIVEL {userLevel}
             </div>
-            <h1 className="text-4xl md:text-6xl font-headline font-bold italic tracking-tighter text-on-surface uppercase leading-none truncate">
+            <h1 className="text-4xl md:text-6xl font-headline font-bold italic tracking-tighter text-on-surface uppercase leading-none truncate flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary-dim text-4xl md:text-5xl shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
               {userProfile.full_name || 'PILOTO'}
             </h1>
             <p className="mt-2 text-primary font-headline font-medium tracking-widest text-sm opacity-80 uppercase truncate">

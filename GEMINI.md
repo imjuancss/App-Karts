@@ -14,7 +14,7 @@
 - Mobile-first responsive: All UI must be designed for 1 column/375px first, then scale up using sm/md/lg breakpoints.
 - Layout & Spacing Architecture (Shadcn-inspired):
   - Container boundaries: Use `w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8` to prevent full-bleed stretching on wide screens while maintaining breathing room.
-  - Vertical rhythm: Use `flex flex-col gap-6 md:gap-8` or `space-y-6 md:space-y-8` to separate logical blocks. Avoid random top/bottom margins.
+  - Vertical rhythm: Use `flex flex-col gap-10 md:gap-16` (or `space-y-10 md:space-y-16`) for page-level structural blocks (header to main, section to section) and `gap-6 md:gap-8` for smaller logical blocks. Avoid random top/bottom margins.
   - Component Padding: Base padding should be dense for mobile (`p-4`), scaling to `md:p-6 lg:p-8` for larger cards to give elements space to breathe.
 - Spacing scale: Use Tailwind's spacing scale (4, 6, 8, 12, 16). Never use arbitrary values like p-[13px].
 - Dark mode is the default. All components must work on
