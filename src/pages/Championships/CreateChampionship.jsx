@@ -136,7 +136,7 @@ export default function CreateChampionship() {
           <h1 className="text-3xl font-headline font-bold text-on-surface mb-8">Crear Nuevo Torneo</h1>
           
           {errorMsg && (
-            <div className="mb-6 p-4 bg-error-container/20 text-error rounded-lg text-sm border-none">
+            <div className="mb-6 p-4 bg-error-container/20 text-error rounded-sm text-sm border-none">
               <p>{errorMsg}</p>
             </div>
           )}

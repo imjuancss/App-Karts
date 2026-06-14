@@ -155,7 +155,7 @@ export default function TrackDetail() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto pb-24">
+      <main className="w-full pb-24">
         {/* Hero Section */}
         <section className="relative w-full aspect-video md:aspect-[21/9] overflow-hidden">
           <img 
@@ -174,7 +174,7 @@ export default function TrackDetail() {
         </section>
 
         {/* Technical Telemetry / Quick Info */}
-        <section className="px-6 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+        <section className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <div className="space-y-6">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-surface-container-highest rounded-sm">
@@ -226,7 +226,7 @@ export default function TrackDetail() {
 
           {/* Kinetic Leaderboard Preview / Bento */}
           <div className="bg-surface-container-low p-1 rounded-sm">
-            <div className="bg-surface-container rounded-sm h-full p-6 border-l-4 border-tertiary-fixed">
+            <div className="bg-surface-container rounded-sm h-full p-5 border-l-4 border-tertiary-fixed">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-headline font-bold uppercase tracking-widest text-lg">Mejores Tiempos</h3>
                 <span className="material-symbols-outlined text-tertiary-fixed animate-pulse">timer</span>
@@ -253,7 +253,7 @@ export default function TrackDetail() {
               </div>
               <button 
                 onClick={() => setActiveTab('info')} 
-                className="w-full mt-6 py-2 text-xs font-headline font-bold tracking-widest uppercase text-tertiary-fixed border-b border-tertiary/20 hover:text-white transition-colors"
+                className="w-full mt-6 py-2 text-xs font-headline font-bold tracking-widest uppercase text-tertiary-fixed hover:text-white transition-colors"
               >
                 Ver Tabla Completa
               </button>
@@ -262,7 +262,7 @@ export default function TrackDetail() {
         </section>
 
         {/* Detail Tabs Section */}
-        <section className="mt-12 px-6">
+        <section className="mt-12 max-w-5xl mx-auto px-4 md:px-6 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
               <TabsList className="w-full md:w-auto flex">
@@ -282,7 +282,7 @@ export default function TrackDetail() {
                 <div className="mt-12">
                   <h3 className="font-headline font-bold uppercase tracking-widest text-xl mb-6">Ranking Completo</h3>
                   <div className="space-y-1">
-                    <div className="grid grid-cols-12 gap-2 py-2 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest border-b border-surface-variant">
+                    <div className="grid grid-cols-12 gap-2 py-2 text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">
                       <div className="col-span-2 md:col-span-1">Pos</div>
                       <div className="col-span-6 md:col-span-8">Piloto</div>
                       <div className="col-span-4 md:col-span-3 text-right">Tiempo</div>
@@ -292,7 +292,7 @@ export default function TrackDetail() {
                       <p className="py-4 text-on-surface-variant text-sm">Aún no hay tiempos registrados.</p>
                     ) : (
                       recentTimes.map((time, idx) => (
-                        <div key={time.id} className="grid grid-cols-12 gap-2 py-4 border-b border-surface-container items-center group hover:bg-surface-container-low transition-colors px-2">
+                        <div key={time.id} className="grid grid-cols-12 gap-2 py-4 items-center group hover:bg-surface-container-low transition-colors px-2 mb-3">
                           <div className={`col-span-2 md:col-span-1 font-headline font-bold ${idx === 0 ? 'text-tertiary-fixed' : ''}`}>{idx + 1}</div>
                           <div className="col-span-6 md:col-span-8">
                             <span className="block text-sm font-medium">@{time.profiles?.username || 'piloto'}</span>
@@ -332,7 +332,7 @@ export default function TrackDetail() {
                     <p className="text-on-surface-variant">No hay reseñas todavía. ¡Sé el primero en comentar!</p>
                   ) : (
                     reviews.map(review => (
-                      <div key={review.id} className="p-6 bg-surface-container-highest rounded-sm border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+                      <div key={review.id} className="p-5 bg-surface-container-highest rounded-sm border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex items-center gap-3">
                             {review.profiles?.avatar_url ? (
@@ -364,7 +364,7 @@ export default function TrackDetail() {
                 </div>
 
                 {/* Add Review Form */}
-                <div className="p-6 bg-surface-container-low rounded-sm border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+                <div className="p-5 bg-surface-container-low rounded-sm border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
                   <h4 className="font-headline font-bold mb-4 uppercase tracking-widest text-sm">Deja tu reseña</h4>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
@@ -404,7 +404,7 @@ export default function TrackDetail() {
       {/* Time Modal */}
       {isTimeModalOpen && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface-container rounded-sm border-none shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md p-6">
+          <div className="bg-surface-container rounded-sm border-none shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md p-5">
             <h3 className="font-headline font-bold text-xl uppercase tracking-widest mb-4">Registrar Mi Tiempo</h3>
             {timeError && (
               <p className="text-error text-sm mb-4 bg-error/10 p-2 rounded-sm border border-error/20">{timeError}</p>

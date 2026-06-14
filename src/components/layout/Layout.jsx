@@ -198,10 +198,8 @@ export default function Layout({ children }) {
       )}
 
       {/* Main Content */}
-      <main className="main-content">
-        <div className="content-wrapper">
-          {children}
-        </div>
+      <main className="main-content flex-1 min-h-screen pt-[72px] md:pt-0">
+        {children}
       </main>
     </div>
   );

@@ -37,10 +37,10 @@ export default function TracksList() {
   });
 
   return (
-    <div className="bg-background text-on-surface antialiased overflow-x-hidden min-h-screen pt-24 pb-20 px-6 md:px-12 max-w-[1280px] mx-auto font-body">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body">
       
       {/* Hero Title Section */}
-      <section className="mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+      <header className="mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
         <div className="space-y-2">
           <h2 className="font-headline text-5xl md:text-6xl font-bold uppercase tracking-tight leading-none">
             Pistas de Karts
@@ -69,7 +69,7 @@ export default function TracksList() {
             <FilterItem value="outdoor" className="flex-1">OUTDOOR</FilterItem>
           </FilterGroup>
         </div>
-      </section>
+      </header>
 
       {/* Featured Circuit Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -100,7 +100,7 @@ export default function TracksList() {
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90"></div>
                   </div>
                   
-                  <div className="p-10 relative">
+                  <div className="p-5 relative">
                     <div className="flex justify-between items-start mb-8 gap-4">
                       <div>
                         <h3 className="font-headline text-2xl font-bold tracking-tight text-on-surface leading-snug mb-3 group-hover:text-primary-dim transition-colors">{track.name}</h3>

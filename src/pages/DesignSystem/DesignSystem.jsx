@@ -12,15 +12,15 @@ import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
 export default function DesignSystem() {
   const [filterValue, setFilterValue] = useState('all');
   return (
-    <div className="bg-background text-on-surface min-h-screen pt-24 pb-12 px-4 md:px-8 max-w-7xl mx-auto font-body">
-      <div className="mb-12">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body">
+      <header className="mb-12">
         <h1 className="font-headline text-4xl font-bold uppercase tracking-tighter text-primary-dim mb-2">Velocity Noir</h1>
         <p className="text-on-surface-variant font-label uppercase tracking-widest text-sm">Design System & UI Components</p>
-      </div>
+      </header>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">1. Buttons (KineticButton)</h2>
-        <div className="flex flex-wrap gap-6 items-center bg-surface-container-low p-10 rounded-lg">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">1. Buttons (KineticButton)</h2>
+        <div className="flex flex-wrap gap-6 items-center bg-surface-container-low p-10 rounded-sm">
           <div className="flex flex-col gap-2">
             <span className="text-xs text-on-surface-variant uppercase font-label">Primary (Contained)</span>
             <KineticButton variant="contained" color="primary">Primary Action</KineticButton>
@@ -49,8 +49,8 @@ export default function DesignSystem() {
       </section>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">2. Badges (Status Indicators)</h2>
-        <div className="flex flex-wrap gap-6 items-center bg-surface-container-low p-10 rounded-lg">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">2. Badges (Status Indicators)</h2>
+        <div className="flex flex-wrap gap-6 items-center bg-surface-container-low p-10 rounded-sm">
           <Badge variant="open" pulse>Inscripciones Abiertas</Badge>
           <Badge variant="closed" icon="lock">Cerrado</Badge>
           <Badge variant="ongoing" icon="sync" pulse>En Curso</Badge>
@@ -61,7 +61,7 @@ export default function DesignSystem() {
       </section>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">3. Surface Cards (GlassCard)</h2>
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">3. Surface Cards (GlassCard)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <GlassCard variant="glass">
             <h3 className="font-headline font-bold uppercase mb-2">Variant: Glass</h3>
@@ -91,7 +91,7 @@ export default function DesignSystem() {
       </section>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">4. Complex Composites (HeroHeader)</h2>
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">4. Complex Composites (HeroHeader)</h2>
         <HeroHeader 
           title="Componente Hero"
           subtitle="Circuito de Prueba / Showcase"
@@ -120,8 +120,8 @@ export default function DesignSystem() {
       </section>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">5. Forms & Inputs</h2>
-        <div className="bg-surface-container-low p-10 rounded-lg flex flex-col gap-8 max-w-2xl">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">5. Forms & Inputs</h2>
+        <div className="bg-surface-container-low p-10 rounded-sm flex flex-col gap-8 max-w-2xl">
           <div className="flex flex-col gap-2">
             <label className="text-xs text-on-surface-variant font-label uppercase tracking-widest">Standard Input</label>
             <Input type="text" placeholder="Enter your text here..." />
@@ -147,8 +147,8 @@ export default function DesignSystem() {
       </section>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">6. Navigation (Tabs)</h2>
-        <div className="bg-surface-container-low p-10 rounded-lg max-w-3xl">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">6. Navigation (Tabs)</h2>
+        <div className="bg-surface-container-low p-10 rounded-sm max-w-3xl">
           <Tabs defaultValue="tab1">
             <TabsList>
               <TabsTrigger value="tab1">Pestaña 1</TabsTrigger>
@@ -169,8 +169,8 @@ export default function DesignSystem() {
       </section>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">7. Filters / Toggles (FilterGroup)</h2>
-        <div className="bg-surface-container-low p-10 rounded-lg max-w-3xl">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">7. Filters / Toggles (FilterGroup)</h2>
+        <div className="bg-surface-container-low p-10 rounded-sm max-w-3xl">
           <FilterGroup value={filterValue} onValueChange={setFilterValue}>
             <FilterItem value="all">Todas</FilterItem>
             <FilterItem value="f1">Formula 1</FilterItem>
@@ -182,8 +182,8 @@ export default function DesignSystem() {
       </section>
 
       <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6 border-b border-surface-container-highest pb-2">8. Typography Specs</h2>
-        <div className="bg-surface-container-low p-10 rounded-lg flex flex-col gap-6">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">8. Typography Specs</h2>
+        <div className="bg-surface-container-low p-10 rounded-sm flex flex-col gap-6">
           <div>
             <span className="text-xs text-on-surface-variant font-label uppercase">Headline Large (Space Grotesk)</span>
             <h1 className="font-headline text-4xl md:text-6xl font-bold uppercase tracking-tighter">The Quick Brown Fox</h1>

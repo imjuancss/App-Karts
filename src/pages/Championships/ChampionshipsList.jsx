@@ -35,7 +35,7 @@ export default function ChampionshipsList() {
   }, []);
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] pb-12">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 relative">
       {/* Visual Background Element: Kinetic Mesh Overlay */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] opacity-20 overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary-dim blur-[120px] mix-blend-screen animate-pulse"></div>
@@ -43,7 +43,7 @@ export default function ChampionshipsList() {
       </div>
 
       {/* Hero Header Section */}
-      <header className="relative pt-12 pb-8 px-6 md:px-12 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <header className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-8 mb-12">
         <div className="space-y-2 max-w-2xl">
           <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl tracking-tighter uppercase leading-none">
             CAMPEONATOS ACTIVOS
@@ -64,8 +64,8 @@ export default function ChampionshipsList() {
       </header>
 
       {/* Main Content - Bento Inspired Grid */}
-      <main className="px-6 md:px-12 max-w-7xl mx-auto mt-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <main className="mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {isLoading ? (
             <div className="col-span-full flex justify-center py-12">
               <p className="text-on-surface-variant animate-pulse font-headline text-lg">Cargando campeonatos...</p>
@@ -77,7 +77,7 @@ export default function ChampionshipsList() {
                 <div 
                   key={champ.id}
                   onClick={() => navigate(`/championships/${champ.id}`)}
-                  className="group relative bg-surface-container-low rounded-sm p-8 flex flex-col justify-between min-h-[240px] card-hover border-none overflow-hidden cursor-pointer"
+                  className="group relative bg-surface-container-low rounded-sm p-5 flex flex-col justify-between min-h-[240px] card-hover border-none overflow-hidden cursor-pointer"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary-dim/5 blur-3xl -mr-16 -mt-16 group-hover:bg-primary-dim/10 transition-colors"></div>
                   

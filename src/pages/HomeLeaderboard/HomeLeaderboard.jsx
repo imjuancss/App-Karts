@@ -168,7 +168,7 @@ export default function HomeLeaderboard() {
 
   return (
     <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col bg-background items-center font-sans">
-      <div className="w-full h-full max-w-md mx-auto md:max-w-2xl relative flex flex-col">
+      <div className="w-full h-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 relative flex flex-col">
 
         {/* Zona Superior Fija */}
         <div className="flex-shrink-0 z-40 bg-background pb-2 pt-4 px-4 w-full flex flex-col gap-4">

@@ -72,3 +72,13 @@ Traditional drop shadows are too "soft" for a racing environment. We use archite
 *   **DON'T** use 1px solid gray borders. It makes the app look like a generic template.
 *   **DON'T** use "pills" (999px radius) for everything. Reserved only for the most tactile, floating action buttons.
 *   **DON'T** clutter the screen. If a piece of data isn't helping the driver win, hide it in a sub-layer.
+
+## 7. Layout & Spatial Rhythm (The Runoff Area)
+
+Just as a racetrack needs runoff areas to prevent crashes, an interface needs spatial rhythm (padding and gaps) to prevent elements from feeling cramped or "pegged" together. We follow Shadcn's approach to spatial distribution:
+
+*   **Mobile-First Strictness**: The UI starts at a dense 1-column layout for 375px screens. No assumptions are made about desktop width until explicit breakpoints (`md:`, `lg:`) are used.
+*   **Grid Fluidity**: Always start with `grid-cols-1`. Expand to `md:grid-cols-2` or `lg:grid-cols-3` as the viewport scales.
+*   **The Container Boundary**: Use `w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8` as the standard wrapper for content. This prevents the UI from bleeding infinitely on ultrawide monitors, ensuring a focused, readable track.
+*   **Vertical Rhythm (The Racing Line)**: Do not use random `mt-` or `mb-` margins inside lists or sections. Let the parent container dictate the rhythm using `flex flex-col gap-6 md:gap-8` or `space-y-6 md:space-y-8`.
+*   **Breathing Room (Component Padding)**: Internal padding for cards or surface blocks must scale. Start with `p-4` for mobile, and scale to `md:p-6 lg:p-8`. A cramped component feels cheap; a spacious component feels engineered.

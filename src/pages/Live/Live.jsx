@@ -165,9 +165,9 @@ export default function Live() {
   const categories = ['Todos', 'Formula 1', 'MotoGP', 'IndyCar', 'WRC', 'WEC'];
 
   return (
-    <div className="fade-in max-w-7xl mx-auto p-4 md:p-8">
+    <div className="fade-in w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20">
       {/* Header Panel */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-4 items-center">
             <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3">
@@ -194,10 +194,10 @@ export default function Live() {
             <RotateCw size={18} className={isUpdating ? "animate-spin text-primary" : "text-on-surface"} />
           </KineticButton>
         </div>
-      </div>
+      </header>
 
       {/* Barra de Filtros */}
-      <div className="mb-8 border-b border-surface-container-high pb-4">
+      <div className="mb-8">
         <FilterGroup value={selectedCategory} onValueChange={setSelectedCategory} className="w-full my-5">
           {categories.map(cat => (
             <FilterItem key={cat} value={cat}>
@@ -222,7 +222,7 @@ export default function Live() {
               {filteredNews.map((item, index) => (
                 <div
                   key={item.id || item.link || index}
-                  className="bg-surface-container rounded-2xl flex flex-col h-full overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg"
+                  className="bg-surface-container rounded-sm flex flex-col h-full overflow-hidden transition-transform hover:-translate-y-1 hover:bg-surface-container-highest"
                 >
                   <div className="relative">
                     <img
@@ -240,7 +240,7 @@ export default function Live() {
                     </div>
                   </div>
 
-                  <div className="p-6 flex flex-col gap-3 flex-grow">
+                  <div className="p-5 flex flex-col gap-3 flex-grow">
                     <div className="flex justify-between items-center text-xs text-on-surface-variant/70">
                       <span className="font-bold">{item.source}</span>
                       <span className="flex items-center gap-1 font-mono">
@@ -272,7 +272,7 @@ export default function Live() {
               ))}
 
               {filteredNews.length === 0 && (
-                <div className="col-span-full py-20 text-center bg-surface-container/50 rounded-2xl p-8">
+                <div className="col-span-full py-20 text-center bg-surface-container/50 rounded-sm p-8">
                   <Info size={32} className="mx-auto mb-2 text-on-surface-variant/50" />
                   <p className="text-on-surface-variant">No hay noticias en vivo disponibles en este momento para {selectedCategory}.</p>
                 </div>
@@ -286,8 +286,8 @@ export default function Live() {
           <div className="flex flex-col gap-6">
             
             {/* Widget 1: Próximas Sesiones */}
-            <div className="bg-surface-container rounded-2xl p-6">
-              <div className="flex flex-row gap-3 items-center mb-4 border-b border-surface-container-high pb-3">
+            <div className="bg-surface-container rounded-sm p-5">
+              <div className="flex flex-row gap-3 items-center mb-4 pb-3">
                 <Calendar className="text-primary" size={20} />
                 <div>
                   <h6 className="text-lg font-bold text-on-surface leading-tight">Próximas Sesiones</h6>
@@ -299,7 +299,7 @@ export default function Live() {
                 {filteredRaces.map((race) => (
                   <div 
                     key={race.id} 
-                    className="p-4 rounded-lg bg-surface-container-high flex flex-col gap-1 transition-colors hover:bg-surface-variant/30"
+                    className="p-4 rounded-sm bg-surface-container-high flex flex-col gap-1 transition-colors hover:bg-surface-variant/30"
                   >
                     <div className="flex justify-between items-center mb-1">
                       <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${race.badgeClass}`}>{race.series}</span>
@@ -327,7 +327,7 @@ export default function Live() {
             </div>
 
             {/* Widget 2: Información de Sincronización */}
-            <div className="bg-surface-variant/30 rounded-lg p-4 flex flex-row gap-3 items-start border-l-2 border-primary">
+            <div className="bg-surface-variant/30 rounded-sm p-4 flex flex-row gap-3 items-start border-l-2 border-primary">
               <Volume2 size={18} className="text-primary shrink-0 mt-0.5" />
               <p className="text-sm text-on-surface-variant">
                 Las noticias y horarios se sincronizan automáticamente cada hora en base a la actividad del usuario en la plataforma.
