@@ -1,14 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Radio, Calendar, ExternalLink, Clock, RotateCw, Volume2, Info } from 'lucide-react';
+import { Radio, Calendar, ExternalLink, Clock, RotateCw, Volume2, Info, Loader2 } from 'lucide-react';
 import { getMotorsportNews, checkAndUpdateNews, fetchExternalMotorsportNews } from '../../services/api';
-import KineticCard from '../../components/ui/KineticCard';
 import KineticButton from '../../components/ui/KineticButton';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Alert from '@mui/material/Alert';
-import './Live.css';
+import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
 
 export default function Live() {
   const [news, setNews] = useState([]);
@@ -18,9 +12,6 @@ export default function Live() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdatedText, setLastUpdatedText] = useState('Actualizando...');
 
-  // Mock de Carreras del Día (dinámico según fecha actual)
-  
-
   const todayRaces = [
     {
       id: 1,
@@ -29,7 +20,7 @@ export default function Live() {
       session: 'Prácticas Libres 1 (FP1)',
       time: '13:30 (Esp) / 07:30 (Col)',
       status: 'Finalizado',
-      badgeClass: 'badge-f1'
+      badgeClass: 'bg-primary/10 text-primary-dim'
     },
     {
       id: 2,
@@ -38,7 +29,7 @@ export default function Live() {
       session: 'Prácticas Libres 2 (FP2)',
       time: '17:00 (Esp) / 11:00 (Col)',
       status: 'Próximamente',
-      badgeClass: 'badge-f1'
+      badgeClass: 'bg-primary/10 text-primary-dim'
     },
     {
       id: 3,
@@ -47,7 +38,7 @@ export default function Live() {
       session: 'Prácticas Libres 1',
       time: 'Viernes 19/Junio',
       status: 'Próximamente',
-      badgeClass: 'badge-motogp'
+      badgeClass: 'bg-error-container/30 text-error'
     },
     {
       id: 4,
@@ -56,7 +47,7 @@ export default function Live() {
       session: 'Prácticas Libres 1',
       time: 'Viernes 19/Junio',
       status: 'Próximamente',
-      badgeClass: 'badge-indycar'
+      badgeClass: 'bg-tertiary-container/20 text-tertiary-fixed'
     },
     {
       id: 5,
@@ -65,7 +56,7 @@ export default function Live() {
       session: 'Shakedown',
       time: 'Jueves 25/Junio',
       status: 'Próximamente',
-      badgeClass: 'badge-wrc'
+      badgeClass: 'bg-surface-variant text-on-surface-variant'
     },
     {
       id: 6,
@@ -74,7 +65,7 @@ export default function Live() {
       session: 'Carrera de Resistencia (24h)',
       time: 'Sábado 13/Junio - 16:00 (Esp) / 09:00 (Col)',
       status: 'Próximamente',
-      badgeClass: 'badge-wec'
+      badgeClass: 'bg-surface-variant text-on-surface-variant'
     }
   ];
 
@@ -82,7 +73,6 @@ export default function Live() {
     ? todayRaces
     : todayRaces.filter(race => race.series === selectedCategory);
 
-  // Carga inicial y lógica de verificación de actualización
   async function loadData(forceUpdate = false) {
     if (forceUpdate) {
       setIsUpdating(true);
@@ -92,7 +82,6 @@ export default function Live() {
     }
 
     try {
-      // 1. Cargar noticias existentes de la DB (para visualización instantánea)
       let dbNews = [];
       try {
         dbNews = await getMotorsportNews();
@@ -108,9 +97,7 @@ export default function Live() {
         setLastUpdatedText(`Sincronizado: ${newest.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`);
       }
 
-      // 2. Si es carga inicial, actualización forzada, o la DB está vacía/incompleta:
       if (forceUpdate || !dbNews || dbNews.length === 0) {
-        // Intentar traer noticias externas directamente para mostrarlas de inmediato en la UI
         let externalNews = [];
         try {
           externalNews = await fetchExternalMotorsportNews();
@@ -124,12 +111,10 @@ export default function Live() {
           setLastUpdatedText(`Sincronizado (Local): ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`);
         }
 
-        // De fondo, intentar sincronizar con la base de datos (por si ya existe la tabla)
         checkAndUpdateNews().catch(err => {
           console.warn("Sincronización de base de datos fallida en segundo plano:", err);
         });
       } else {
-        // Ejecutar verificación en segundo plano de forma silenciosa si ya tenemos datos
         checkAndUpdateNews().then(async () => {
           try {
             const updatedDbNews = await getMotorsportNews();
@@ -158,7 +143,6 @@ export default function Live() {
     loadData();
   }, []);
 
-  // Filtrado de noticias por categoría
   useEffect(() => {
     if (selectedCategory === 'Todos') {
       setFilteredNews(news);
@@ -167,69 +151,60 @@ export default function Live() {
     }
   }, [selectedCategory, news]);
 
-  // Manejador para categoría badge CSS
   const getBadgeClass = (category) => {
     switch(category?.toLowerCase()) {
-      case 'formula 1':
-        return 'badge-f1';
-      case 'motogp':
-        return 'badge-motogp';
-      case 'indycar':
-        return 'badge-indycar';
-      case 'wrc':
-        return 'badge-wrc';
-      case 'wec':
-        return 'badge-wec';
-      default:
-        return 'badge-general';
+      case 'formula 1': return 'bg-primary/10 text-primary-dim';
+      case 'motogp': return 'bg-error-container/30 text-error';
+      case 'indycar': return 'bg-tertiary-container/20 text-tertiary-fixed';
+      case 'wrc': return 'bg-surface-variant text-on-surface-variant';
+      case 'wec': return 'bg-surface-variant text-on-surface-variant';
+      default: return 'bg-surface-variant text-on-surface-variant';
     }
   };
 
   const categories = ['Todos', 'Formula 1', 'MotoGP', 'IndyCar', 'WRC', 'WEC'];
 
   return (
-    <div className="fade-in max-w-7xl mx-auto">
+    <div className="fade-in max-w-7xl mx-auto p-4 md:p-8">
       {/* Header Panel */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <Stack direction="row" spacing={2} alignItems="center" mb={1}>
-            <Typography variant="h3" fontWeight="bold" color="white" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Radio className="text-[#FF3100]" size={36} /> Motorsport En Vivo
-            </Typography>
-            <div className="live-indicator-container">
-              <span className="live-indicator-dot"></span>
-              <span className="text-white text-xs font-bold font-sans tracking-widest uppercase">EN VIVO</span>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row gap-4 items-center">
+            <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3">
+              <Radio className="text-primary" size={36} /> Motorsport En Vivo
+            </h3>
+            <div className="flex items-center gap-2 px-3 py-1 bg-error-container/20 rounded-sm">
+              <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+              <span className="text-error text-xs font-bold font-sans tracking-widest uppercase">EN VIVO</span>
             </div>
-          </Stack>
-          <Typography variant="subtitle1" color="text.secondary">
+          </div>
+          <p className="text-on-surface-variant text-base">
             Panel unificado de noticias y transmisiones de las categorías reinas del automovilismo mundial.
-          </Typography>
+          </p>
         </div>
 
-        <Stack direction="row" spacing={2} alignItems="center">
-          <span className="text-sm text-white/50 font-mono">{lastUpdatedText}</span>
+        <div className="flex flex-row gap-4 items-center">
+          <span className="text-sm text-on-surface-variant/50 font-mono">{lastUpdatedText}</span>
           <KineticButton 
             variant="outlined" 
             onClick={() => loadData(true)} 
             disabled={isUpdating}
-            style={{ minWidth: 'auto', padding: '8px' }}
+            className="p-2 min-w-0"
           >
-            <RotateCw size={18} className={isUpdating ? "animate-spin text-[#FF3100]" : "text-white"} />
+            <RotateCw size={18} className={isUpdating ? "animate-spin text-primary" : "text-on-surface"} />
           </KineticButton>
-        </Stack>
+        </div>
       </div>
 
-      {/* Barra de Filtros (Encima de todo el contenido) */}
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-8 border-b border-white/5 custom-scrollbar">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`filter-btn ${selectedCategory === cat ? 'active' : ''}`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Barra de Filtros */}
+      <div className="mb-8 border-b border-surface-container-high pb-4">
+        <FilterGroup value={selectedCategory} onValueChange={setSelectedCategory} className="w-full my-5">
+          {categories.map(cat => (
+            <FilterItem key={cat} value={cat}>
+              {cat}
+            </FilterItem>
+          ))}
+        </FilterGroup>
       </div>
 
       {/* Grid Layout Principal */}
@@ -237,26 +212,17 @@ export default function Live() {
         
         {/* Columna Izquierda: Noticias */}
         <div className="md:col-span-8">
-
-          {/* Listado de Noticias */}
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <CircularProgress color="primary" />
-              <Typography color="text.secondary" className="font-sans">Sintonizando transmisiones externas...</Typography>
+              <Loader2 className="animate-spin text-primary" size={32} />
+              <p className="text-on-surface-variant font-sans">Sintonizando transmisiones externas...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 slide-up">
               {filteredNews.map((item, index) => (
-                <KineticCard
+                <div
                   key={item.id || item.link || index}
-                  className="news-card"
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%',
-                    p: 0,
-                    overflow: 'hidden',
-                  }}
+                  className="bg-surface-container rounded-2xl flex flex-col h-full overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg"
                 >
                   <div className="relative">
                     <img
@@ -268,14 +234,14 @@ export default function Live() {
                       }}
                     />
                     <div className="absolute top-3 left-3">
-                      <span className={`category-badge ${getBadgeClass(item.category)}`}>
+                      <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider ${getBadgeClass(item.category)}`}>
                         {item.category}
                       </span>
                     </div>
                   </div>
 
-                  <Stack spacing={1.5} sx={{ p: 3, flexGrow: 1 }}>
-                    <div className="flex justify-between items-center text-xs text-white/50">
+                  <div className="p-6 flex flex-col gap-3 flex-grow">
+                    <div className="flex justify-between items-center text-xs text-on-surface-variant/70">
                       <span className="font-bold">{item.source}</span>
                       <span className="flex items-center gap-1 font-mono">
                         <Clock size={12} /> 
@@ -283,32 +249,32 @@ export default function Live() {
                       </span>
                     </div>
 
-                    <Typography variant="h6" fontWeight="bold" color="white" className="line-clamp-2 leading-tight">
+                    <h4 className="text-xl font-bold text-on-surface line-clamp-2 leading-tight">
                       {item.title}
-                    </Typography>
+                    </h4>
 
-                    <Typography variant="body2" color="text.secondary" className="line-clamp-3">
+                    <p className="text-sm text-on-surface-variant line-clamp-3">
                       {item.description}
-                    </Typography>
+                    </p>
 
-                    <div className="mt-auto pt-4 border-t border-white/5 flex justify-end">
+                    <div className="mt-auto pt-4 border-t border-surface-container-high flex justify-end">
                       <a 
                         href={item.link} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF3100] hover:text-[#cafd00] transition"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-tertiary transition-colors"
                       >
                         Leer artículo <ExternalLink size={12} />
                       </a>
                     </div>
-                  </Stack>
-                </KineticCard>
+                  </div>
+                </div>
               ))}
 
               {filteredNews.length === 0 && (
-                <div className="col-span-full py-16 text-center glass-panel p-6">
-                  <Info size={32} className="mx-auto mb-2 text-white/30" />
-                  <Typography color="text.secondary">No hay noticias en vivo disponibles en este momento para {selectedCategory}.</Typography>
+                <div className="col-span-full py-20 text-center bg-surface-container/50 rounded-2xl p-8">
+                  <Info size={32} className="mx-auto mb-2 text-on-surface-variant/50" />
+                  <p className="text-on-surface-variant">No hay noticias en vivo disponibles en este momento para {selectedCategory}.</p>
                 </div>
               )}
             </div>
@@ -317,35 +283,35 @@ export default function Live() {
 
         {/* Columna Derecha: Widgets Embebidos y Agenda */}
         <div className="md:col-span-4 slide-up">
-          <Stack spacing={4}>
+          <div className="flex flex-col gap-6">
             
             {/* Widget 1: Próximas Sesiones */}
-            <KineticCard sx={{ p: 3 }}>
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, borderBottom: '1px solid rgba(255, 255, 255, 0.05)', pb: 1.5 }}>
-                <Calendar className="text-[#FF3100]" size={20} />
+            <div className="bg-surface-container rounded-2xl p-6">
+              <div className="flex flex-row gap-3 items-center mb-4 border-b border-surface-container-high pb-3">
+                <Calendar className="text-primary" size={20} />
                 <div>
-                  <Typography variant="h6" fontWeight="bold" color="white">Próximas Sesiones</Typography>
-                  <span className="text-[10px] text-white/50 uppercase font-mono">Calendario Oficial</span>
+                  <h6 className="text-lg font-bold text-on-surface leading-tight">Próximas Sesiones</h6>
+                  <span className="text-[10px] text-on-surface-variant uppercase font-mono">Calendario Oficial</span>
                 </div>
-              </Stack>
+              </div>
               
-              <Stack spacing={2}>
+              <div className="flex flex-col gap-4">
                 {filteredRaces.map((race) => (
                   <div 
                     key={race.id} 
-                    className="p-3 rounded-[2px] bg-white/5 border border-white/5 flex flex-col gap-1 transition hover:bg-white/10"
+                    className="p-4 rounded-lg bg-surface-container-high flex flex-col gap-1 transition-colors hover:bg-surface-variant/30"
                   >
-                    <div className="flex justify-between items-center">
-                      <span className={`category-badge ${race.badgeClass}`}>{race.series}</span>
-                      <span className="text-xs font-mono font-bold text-white/70">{race.time}</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${race.badgeClass}`}>{race.series}</span>
+                      <span className="text-xs font-mono font-bold text-on-surface-variant">{race.time}</span>
                     </div>
-                    <Typography variant="body2" fontWeight="bold" color="white">{race.event}</Typography>
+                    <p className="text-sm font-bold text-on-surface">{race.event}</p>
                     <div className="flex justify-between items-center text-xs mt-1">
-                      <span className="text-white/60">{race.session}</span>
-                      <span className={`font-mono text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] ${
-                        race.status === 'En Vivo' ? 'bg-[#FF3100]/20 text-[#FF3100] animate-pulse' :
-                        race.status === 'Finalizado' ? 'bg-white/10 text-white/40' :
-                        'bg-white/5 text-white/60'
+                      <span className="text-on-surface-variant">{race.session}</span>
+                      <span className={`font-mono text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${
+                        race.status === 'En Vivo' ? 'bg-error-container/20 text-error animate-pulse' :
+                        race.status === 'Finalizado' ? 'bg-surface-variant text-on-surface-variant' :
+                        'bg-surface-container text-on-surface-variant'
                       }`}>
                         {race.status}
                       </span>
@@ -353,29 +319,22 @@ export default function Live() {
                   </div>
                 ))}
                 {filteredRaces.length === 0 && (
-                  <span className="text-xs text-white/40 font-sans text-center py-4">
+                  <span className="text-xs text-on-surface-variant text-center py-4">
                     No hay sesiones programadas para esta categoría.
                   </span>
                 )}
-              </Stack>
-            </KineticCard>
+              </div>
+            </div>
 
             {/* Widget 2: Información de Sincronización */}
-            <Alert 
-              severity="info" 
-              icon={<Volume2 size={18} />}
-              sx={{ 
-                backgroundColor: 'rgba(26, 30, 36, 0.4)', 
-                color: 'var(--text-secondary)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                fontFamily: '"Outfit", sans-serif',
-                '& .MuiAlert-icon': { color: 'var(--accent)' }
-              }}
-            >
-              Las noticias y horarios se sincronizan automáticamente cada hora en base a la actividad del usuario en la plataforma.
-            </Alert>
+            <div className="bg-surface-variant/30 rounded-lg p-4 flex flex-row gap-3 items-start border-l-2 border-primary">
+              <Volume2 size={18} className="text-primary shrink-0 mt-0.5" />
+              <p className="text-sm text-on-surface-variant">
+                Las noticias y horarios se sincronizan automáticamente cada hora en base a la actividad del usuario en la plataforma.
+              </p>
+            </div>
 
-          </Stack>
+          </div>
         </div>
 
       </div>

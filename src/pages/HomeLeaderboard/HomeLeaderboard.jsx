@@ -7,7 +7,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import KineticButton from '@/components/ui/KineticButton';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const formatMsToTime = (ms) => {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
@@ -32,13 +35,36 @@ const ORIGINAL_VISUAL_STYLES = [
 ];
 
 export default function HomeLeaderboard() {
-  const [selectedTrackId, setSelectedTrackId] = useState('track1');
+  const navigate = useNavigate();
+  const [tracks, setTracks] = useState([]);
+  const [selectedTrackId, setSelectedTrackId] = useState('');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('historical');
   const [isLoading, setIsLoading] = useState(false);
   const [filteredLeaderboard, setFilteredLeaderboard] = useState([]);
 
+  // Fetch tracks list on mount
+  useEffect(() => {
+    const fetchTracksList = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('tracks')
+          .select('id, name')
+          .order('name', { ascending: true });
+        if (error) throw error;
+        setTracks(data || []);
+        if (data && data.length > 0) {
+          setSelectedTrackId(data[0].id);
+        }
+      } catch (e) {
+        console.error('Error fetching tracks for selector:', e);
+      }
+    };
+    fetchTracksList();
+  }, []);
+
   // Fetch realtime leaderboard data from Supabase
-useEffect(() => {
+  useEffect(() => {
+    if (!selectedTrackId || selectedTrackId.length < 30) return;
     setIsLoading(true);
     const fetchLeaderboard = async () => {
       try {
@@ -141,11 +167,11 @@ useEffect(() => {
 
 
   return (
-    <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col bg-[#121212] items-center font-sans">
+    <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col bg-background items-center font-sans">
       <div className="w-full h-full max-w-md mx-auto md:max-w-2xl relative flex flex-col">
 
         {/* Zona Superior Fija */}
-        <div className="flex-shrink-0 z-40 bg-[#121212] pb-2 pt-4 px-4 w-full flex flex-col gap-4">
+        <div className="flex-shrink-0 z-40 bg-background pb-2 pt-4 px-4 w-full flex flex-col gap-4">
 
           {/* Header text and location */}
           <div className="self-stretch flex flex-col justify-start items-start md:gap-4">
@@ -155,15 +181,18 @@ useEffect(() => {
               <Select value={selectedTrackId} onValueChange={setSelectedTrackId}>
                 <SelectTrigger className="w-full rounded-none font-bold uppercase text-xs tracking-wide border-none bg-transparent shadow-none p-0 h-auto justify-start focus:ring-0">
                   <div className="flex items-center gap-2">
-                    <MapPin size={16} className="text-[#FF3100]" />
+                    <MapPin size={16} className="text-primary-dim" />
                     <SelectValue placeholder="Selecciona una pista">
-                      {selectedTrackId === 'track1' ? 'CITY KARTS - CC. SANTAFÉ BOGOTÁ' : 'XTREME KARTS CAJICÁ'}
+                      {tracks.find(t => t.id === selectedTrackId)?.name || 'Selecciona una pista'}
                     </SelectValue>
                   </div>
                 </SelectTrigger>
-                <SelectContent alignItemWithTrigger={false} align="start" sideOffset={8} className="rounded-none bg-[#1a1a1a] border-white/10 text-white">
-                  <SelectItem value="track1" className="text-xs font-bold uppercase cursor-pointer py-3">CITY KARTS - CC. SANTAFÉ BOGOTÁ</SelectItem>
-                  <SelectItem value="track2" className="text-xs font-bold uppercase cursor-pointer py-3">XTREME KARTS CAJICÁ</SelectItem>
+                <SelectContent alignItemWithTrigger={false} align="start" sideOffset={8} className="rounded-none bg-surface-container border-none text-white shadow-lg">
+                  {tracks.map(t => (
+                    <SelectItem key={t.id} value={t.id} className="text-xs font-bold uppercase cursor-pointer py-2">
+                      {t.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -174,7 +203,7 @@ useEffect(() => {
               className="w-full rounded-none overflow-hidden shrink-0 mb-2 md:h-[140px] md:opacity-100 md:mb-4"
               style={{ willChange: 'height, opacity' }}
             >
-              <div className="w-full h-full relative rounded-none flex items-center justify-center border border-white/5 bg-[#121212]" style={{ minHeight: '100%' }}>
+              <div className="w-full h-full relative rounded-none flex items-center justify-center border-none bg-background" style={{ minHeight: '100%' }}>
                 <img 
                   className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity" 
                   src="https://placehold.co/800x400/121212/333333" 
@@ -182,48 +211,35 @@ useEffect(() => {
                   fetchpriority="high"
                   decoding="async"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
 
                 <div className="z-10 flex flex-col items-center justify-center pointer-events-none">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-2 drop-shadow-md">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-2 drop-shadow-md text-on-surface-variant">
                     <path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8Z" strokeDasharray="4 4" />
                     <path d="M12 8v4l3 3" />
                   </svg>
-                  <span className="text-white/50 text-[10px] font-mono tracking-widest uppercase">Mapa del Circuito</span>
+                  <span className="text-white/50 text-[11px] font-mono tracking-widest uppercase">Mapa del Circuito</span>
                 </div>
               </div>
             </div>
 
             {/* Time filters */}
-            <div className="self-stretch p-1 bg-[#1a1a1a] inline-flex justify-start items-center gap-2">
-              <div
-                onClick={() => setSelectedTimeFilter('week')}
-                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'week' ? 'bg-white/10' : 'hover:bg-white/5'}`}
-              >
-                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'week' ? 'text-white' : 'text-white/60'}`}>Esta semana</div>
-              </div>
-              <div
-                onClick={() => setSelectedTimeFilter('month')}
-                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'month' ? 'bg-white/10' : 'hover:bg-white/5'}`}
-              >
-                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'month' ? 'text-white' : 'text-white/60'}`}>Este mes</div>
-              </div>
-              <div
-                onClick={() => setSelectedTimeFilter('historical')}
-                className={`flex-1 h-8 p-2 flex justify-center items-center gap-2.5 cursor-pointer transition-colors ${selectedTimeFilter === 'historical' ? 'bg-white/10' : 'hover:bg-white/5'}`}
-              >
-                <div className={`text-center justify-start text-sm font-normal font-sans transition-colors ${selectedTimeFilter === 'historical' ? 'text-white' : 'text-white/60'}`}>Histórico</div>
-              </div>
-            </div>
+            <Tabs value={selectedTimeFilter} onValueChange={setSelectedTimeFilter} className="w-full">
+              <TabsList className="w-full flex">
+                <TabsTrigger value="week" className="flex-1">Esta semana</TabsTrigger>
+                <TabsTrigger value="month" className="flex-1">Este mes</TabsTrigger>
+                <TabsTrigger value="historical" className="flex-1">Histórico</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           {/* Títulos de Columnas */}
           <div className="flex justify-between items-center w-full px-2 mt-2">
-            <div className="flex items-center gap-5">
-              <div className="text-white/40 text-[10px] font-bold font-sans tracking-widest w-[32px] text-center">POS</div>
-              <div className="text-white/40 text-[10px] font-bold font-sans tracking-widest text-left">DRIVER</div>
+            <div className="flex items-center gap-4">
+              <div className="text-white/40 text-[11px] font-bold font-sans tracking-widest w-[32px] text-center">POS</div>
+              <div className="text-white/40 text-[11px] font-bold font-sans tracking-widest text-left">DRIVER</div>
             </div>
-            <div className="text-white/40 text-[10px] font-bold font-sans tracking-widest text-right">LAP</div>
+            <div className="text-white/40 text-[11px] font-bold font-sans tracking-widest text-right">LAP</div>
           </div>
         </div>
 
@@ -239,13 +255,13 @@ useEffect(() => {
             <div className="flex-1 inline-flex flex-col justify-start items-start gap-1 w-full">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center w-full py-16 gap-4 opacity-70">
-                  <div className="w-8 h-8 border-[3px] border-[#FF3100] border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-8 h-8 border-[3px] border-primary-dim border-t-transparent rounded-full animate-spin"></div>
                   <div className="text-white/60 text-sm font-sans tracking-wide">Cargando tiempos...</div>
                 </div>
               ) : filteredLeaderboard.map((driver) => {
                 if (driver.hasPole) {
                   return (
-                    <div key={driver.id} data-pole="Yes" className={`self-stretch h-[52px] pl-[4px] pr-[8px] bg-[#1a1a1a] border-l-2 ${driver.teamColor} inline-flex justify-between items-center overflow-visible`}>
+                    <div key={driver.id} data-pole="Yes" className={`self-stretch h-[52px] pl-[4px] pr-[8px] bg-surface-container border-l-2 ${driver.teamColor} inline-flex justify-between items-center overflow-visible`}>
                       <div className="flex-1 flex justify-start items-center gap-1">
                         <div className="flex-1 flex justify-start items-center gap-1">
                           <div data-position={driver.position} data-type="Number" className="w-[42px] inline-flex flex-col justify-start items-center">
@@ -296,7 +312,7 @@ useEffect(() => {
                           </div>
                           <div className={`text-center justify-start ${driver.timeTextColor} text-sm font-normal font-mono`}>{driver.bestTime}</div>
                         </div>
-                        <div className="text-center justify-start text-white/60 text-[10px] font-normal font-mono">{driver.gap}</div>
+                        <div className="text-center justify-start text-white/60 text-[11px] font-normal font-mono">{driver.gap}</div>
                       </div>
                     </div>
                   );
@@ -304,7 +320,7 @@ useEffect(() => {
 
                 // Normal positions 4-10
                 return (
-                  <div key={driver.id} data-pole="No" className="self-stretch h-[52px] pl-1 pr-2 bg-[#1a1a1a] inline-flex justify-between items-center overflow-visible">
+                  <div key={driver.id} data-pole="No" className="self-stretch h-[52px] pl-1 pr-2 bg-surface-container inline-flex justify-between items-center overflow-visible">
                     <div className="flex-1 flex justify-start items-center gap-1">
                       <div className="flex-1 flex justify-start items-center gap-1">
                         <div data-position={driver.position} data-type="Number" className="w-[42px] inline-flex flex-col justify-center items-center">
@@ -336,7 +352,7 @@ useEffect(() => {
                         </div>
                         <div className={`text-center justify-start ${driver.timeTextColor} text-sm font-normal font-mono`}>{driver.bestTime}</div>
                       </div>
-                      <div className="text-center justify-start text-white/60 text-[10px] font-normal font-mono">{driver.gap}</div>
+                      <div className="text-center justify-start text-white/60 text-[11px] font-normal font-mono">{driver.gap}</div>
                     </div>
                   </div>
                 );
@@ -346,17 +362,22 @@ useEffect(() => {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-0 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center gap-2.5 p-4 bg-gradient-to-t from-[#121212] via-[#121212]/90 to-transparent backdrop-blur-[0px]">
-          <div className="self-stretch w-full h-10 px-3 py-2 bg-[#FF3100] shadow-[0px_-4px_28px_-4px_#FF3100] inline-flex justify-center items-center gap-2 cursor-pointer pointer-events-auto">
-            <div data-svg-wrapper className="relative">
+        <div className="fixed bottom-0 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center gap-2.5 p-4 bg-gradient-to-t from-background via-background/90 to-transparent backdrop-blur-[0px]">
+          <KineticButton 
+            variant="contained" 
+            color="primary" 
+            onClick={() => navigate('/profile')} 
+            className="self-stretch w-full shadow-[0_0_40px_rgba(202,253,0,0.15)] cursor-pointer pointer-events-auto h-12"
+          >
+            <div data-svg-wrapper className="relative text-black">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_45_2173)">
-                  <path d="M16.875 10.625C16.875 6.82804 13.797 3.75 10 3.75C6.20304 3.75 3.125 6.82804 3.125 10.625C3.125 14.422 6.20304 17.5 10 17.5" stroke="white" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M10 10.625L13.125 7.5" stroke="white" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M8.125 1.25H11.875" stroke="white" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M12.6875 14.875H15.8125" stroke="white" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M14.25 13.3125V16.4375" stroke="white" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M17.375 14.875C17.375 16.6009 15.9759 18 14.25 18C12.5241 18 11.125 16.6009 11.125 14.875C11.125 13.1491 12.5241 11.75 14.25 11.75C15.9759 11.75 17.375 13.1491 17.375 14.875Z" stroke="white" />
+                  <path d="M16.875 10.625C16.875 6.82804 13.797 3.75 10 3.75C6.20304 3.75 3.125 6.82804 3.125 10.625C3.125 14.422 6.20304 17.5 10 17.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M10 10.625L13.125 7.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M8.125 1.25H11.875" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12.6875 14.875H15.8125" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14.25 13.3125V16.4375" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M17.375 14.875C17.375 16.6009 15.9759 18 14.25 18C12.5241 18 11.125 16.6009 11.125 14.875C11.125 13.1491 12.5241 11.75 14.25 11.75C15.9759 11.75 17.375 13.1491 17.375 14.875Z" stroke="currentColor" />
                 </g>
                 <defs>
                   <clipPath id="clip0_45_2173">
@@ -365,8 +386,8 @@ useEffect(() => {
                 </defs>
               </svg>
             </div>
-            <div className="text-center justify-center text-white text-sm font-normal font-space uppercase tracking-wide">Subir Mi tiempo</div>
-          </div>
+            <span className="font-space uppercase tracking-wide text-black text-sm">Subir Mi tiempo</span>
+          </KineticButton>
         </div>
       </div>
     </div>

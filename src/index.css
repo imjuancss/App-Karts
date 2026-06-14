@@ -9,6 +9,41 @@
 @theme {
   --font-space: "Space Grotesk", sans-serif;
   --font-mono: "Geist Mono", monospace;
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-heading: "Space Grotesk", sans-serif;
+  --font-body: "Space Grotesk", sans-serif;
+  --font-label: "Space Grotesk", sans-serif;
+
+  --color-surface-container-highest: #262626;
+  --color-on-surface-variant: #adaaaa;
+  --color-primary-dim: #e12a00;
+  --color-primary-fixed: #ff5436;
+  --color-tertiary-fixed: #cafd00;
+  --color-outline-variant: #484847;
+
+  --color-background: #0e0e0e;
+  --color-on-surface: #ffffff;
+  --color-surface-variant: #262626;
+  --color-error: #ff6e84;
+  --color-surface: #0e0e0e;
+  --color-surface-container-low: #131313;
+  --color-surface-container-high: #20201f;
+  --color-tertiary-container: #cafd00;
+  --color-primary: #ff8f77;
+  --color-secondary: #e5e2e1;
+  --color-tertiary: #f3ffca;
+  --color-error-container: #a70138;
+  --color-on-primary-container: #4b0700;
+  --color-surface-container: #1a1a1a;
+  --color-error: #ff6e84;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+  font-size: inherit;
 }
 
 :root {
@@ -27,7 +62,7 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --font-family: 'Outfit', sans-serif;
+  --font-family: 'Space Grotesk', sans-serif;
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -228,7 +263,7 @@ select:focus {
 }
 
 @theme inline {
-  --font-sans: 'Outfit', var(--font-heading), sans-serif;
+  --font-sans: 'Space Grotesk', sans-serif;
   --font-mono: 'Geist Mono Variable', monospace;
   --font-heading: 'Space Grotesk Variable', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -306,6 +341,7 @@ select:focus {
 }
 
 @theme inline {
+  --font-sans: 'Space Grotesk', sans-serif;
   --font-mono: 'Geist Mono Variable', monospace;
   --font-heading: 'Space Grotesk Variable', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -356,6 +392,27 @@ select:focus {
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-mono;
+    @apply font-body;
   }
+}
+
+.card-hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    800px circle at var(--mouse-x, 0) var(--mouse-y, 0), 
+    rgba(255,255,255,0.03),
+    transparent 40%
+  );
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.card-hover:hover::before {
+  opacity: 1;
 }

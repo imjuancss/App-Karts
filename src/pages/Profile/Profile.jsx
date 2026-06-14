@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Trophy, Calendar, MessageSquare, Clock, Plus, MailOpen, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
+import { Input } from '../../components/ui/input';
+import { SelectNative } from '../../components/ui/select-native';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 
 const formatMsToTime = (ms) => {
-  if (!ms) return "00:00.000";
+  if (!ms || ms === Infinity) return "00:00.000";
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   const milliseconds = ms % 1000;
@@ -50,68 +53,80 @@ export default function Profile() {
   const [timeError, setTimeError] = useState('');
 
   const loadData = async (user) => {
-    setIsLoading(true);
-    let p = await getProfile(user.id);
-    
-    // Si por alguna razón el trigger falló, intentamos crearlo manualmente
-    if (!p) {
-      const { data } = await supabase.from('profiles').insert([{
-        id: user.id,
-        username: user.email.split('@')[0] + Math.floor(Math.random() * 1000),
-        full_name: user.user_metadata?.full_name || 'Piloto Nuevo'
-      }]).select().single();
+    try {
+      setIsLoading(true);
+      let p = await getProfile(user.id);
       
-      p = data || { id: user.id, full_name: user.user_metadata?.full_name || 'Piloto Nuevo', username: user.email.split('@')[0] };
+      // Si por alguna razón el trigger falló, intentamos crearlo manualmente
+      if (!p) {
+        const usernameBase = user.email ? user.email.split('@')[0] : 'piloto';
+        const { data } = await supabase.from('profiles').insert([{
+          id: user.id,
+          username: usernameBase + Math.floor(Math.random() * 1000),
+          full_name: user.user_metadata?.full_name || 'Piloto Nuevo'
+        }]).select().single();
+        
+        p = data || { id: user.id, full_name: user.user_metadata?.full_name || 'Piloto Nuevo', username: usernameBase };
+      }
+      setUserProfile(p);
+
+      // Cargar tiempos de vuelta
+      const times = await getUserLapTimes(user.id);
+      setUserTimes(times || []);
+
+      // Cargar invitaciones pendientes
+      if (user.email) {
+        const invites = await getPendingInvitations(user.email);
+        setPendingInvites(invites || []);
+      }
+
+      // Cargar campeonatos a los que se ha unido
+      const { data: participations, error: partError } = await supabase
+        .from('championship_participants')
+        .select(`
+          championship_id,
+          points,
+          championships (*)
+        `)
+        .eq('user_id', user.id);
+      
+      if (!partError) {
+        setUserChampionships(participations || []);
+      }
+
+      // Cargar todas las pistas para el modal
+      const tracks = await getTracks();
+      setAllTracks(tracks || []);
+      if (tracks && tracks.length > 0) {
+        setSelectedTrackId(tracks[0].id);
+      }
+    } catch (error) {
+      console.error("Error loading profile data:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setUserProfile(p);
-
-    // Cargar tiempos de vuelta
-    const times = await getUserLapTimes(user.id);
-    setUserTimes(times || []);
-
-    // Cargar invitaciones pendientes
-    const invites = await getPendingInvitations(user.email);
-    setPendingInvites(invites || []);
-
-    // Cargar campeonatos a los que se ha unido
-    const { data: participations, error: partError } = await supabase
-      .from('championship_participants')
-      .select(`
-        championship_id,
-        points,
-        championships (*)
-      `)
-      .eq('user_id', user.id);
-    
-    if (!partError) {
-      setUserChampionships(participations || []);
-    }
-
-    // Cargar todas las pistas para el modal
-    const tracks = await getTracks();
-    setAllTracks(tracks || []);
-    if (tracks && tracks.length > 0) {
-      setSelectedTrackId(tracks[0].id);
-    }
-    setIsLoading(false);
   };
 
   useEffect(() => {
     async function loadUser() {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      
-      if (user) {
-        setSessionUser(user);
-        await loadData(user);
-      } else {
-        setSessionUser(null);
-        setUserProfile(null);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        
+        if (user) {
+          setSessionUser(user);
+          await loadData(user);
+        } else {
+          setSessionUser(null);
+          setUserProfile(null);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error loading session:", error);
         setIsLoading(false);
       }
     }
     
-    // Escuchar cambios de sesión
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setSessionUser(session.user);
@@ -125,7 +140,7 @@ export default function Profile() {
     loadUser();
 
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -145,11 +160,9 @@ export default function Profile() {
 
       await registerLapTime(selectedTrackId, ms);
       
-      // Resetear formulario
       setTimeInput('');
       setIsTimeModalOpen(false);
 
-      // Recargar tiempos
       if (sessionUser) {
         const times = await getUserLapTimes(sessionUser.id);
         setUserTimes(times || []);
@@ -168,7 +181,6 @@ export default function Profile() {
       await acceptChampionshipInvitation(inviteId, champId);
       alert(`Te has unido exitosamente al campeonato: ${name}`);
       
-      // Recargar datos
       if (sessionUser) {
         await loadData(sessionUser);
       }
@@ -178,34 +190,45 @@ export default function Profile() {
     }
   };
 
-  if (isLoading) return <div className="profile-container fade-in"><p>Cargando perfil...</p></div>;
+  if (isLoading) return (
+    <div className="w-full h-[50vh] flex flex-col items-center justify-center gap-3">
+      <Loader2 className="animate-spin text-primary" size={36} />
+      <span className="text-on-surface-variant font-label tracking-widest uppercase text-sm">Cargando perfil...</span>
+    </div>
+  );
 
   if (!sessionUser || !userProfile) {
     return (
-      <div className="profile-container fade-in" style={{ textAlign: 'center', padding: '4rem 0' }}>
-        <h2>Aún no has iniciado sesión</h2>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Conéctate o vuelve a iniciar sesión con tu cuenta recién creada.</p>
-        <button className="primary-btn" style={{ marginTop: '1.5rem' }} onClick={() => navigate('/login')}>Iniciar Sesión / Registro</button>
+      <div className="w-full h-[50vh] flex flex-col items-center justify-center text-center px-6">
+        <h2 className="font-headline font-bold text-2xl text-on-surface mb-2 uppercase">Aún no has iniciado sesión</h2>
+        <p className="text-on-surface-variant font-body mb-8">Conéctate o vuelve a iniciar sesión con tu cuenta.</p>
+        <button onClick={() => navigate('/login')} className="bg-primary text-on-primary px-8 py-3 rounded-sm font-headline font-bold uppercase tracking-widest active:scale-95 transition-transform">
+          Iniciar Sesión / Registro
+        </button>
       </div>
     );
   }
 
+  const fastestLapMs = userTimes.length > 0 ? Math.min(...userTimes.map(t => t.lap_time_ms)) : null;
+  const totalPoints = userChampionships.reduce((a,c) => a + (c.points || 0), 0);
+  const userLevel = Math.floor(totalPoints / 100) + 1;
+
   return (
-    <div className="profile-container fade-in">
-      {/* Invitaciones Pendientes Banner */}
+    <div className="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen pb-16">
+      
+      {/* Banner Invitaciones */}
       {pendingInvites.length > 0 && (
-        <div className="pending-invitations-banner glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', border: '1px solid var(--accent)', background: 'rgba(250, 204, 21, 0.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-            <MailOpen size={24} color="var(--accent)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>¡Tienes invitaciones a torneos!</h3>
+        <div className="mx-6 mt-6 p-4 border border-tertiary-fixed/30 bg-tertiary-fixed/5 rounded-sm fade-in">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="material-symbols-outlined text-tertiary-fixed">mail</span>
+            <h3 className="font-headline font-bold text-tertiary-fixed uppercase tracking-widest text-sm">¡Invitaciones Pendientes!</h3>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="space-y-3">
             {pendingInvites.map(invite => (
-              <div key={invite.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '0.75rem 1rem', borderRadius: '8px' }}>
-                <span style={{ fontSize: '0.9rem' }}>Te invitaron a participar en: <strong>{invite.championships?.name}</strong></span>
+              <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-3 rounded-sm">
+                <span className="font-label text-sm uppercase">Campeonato: <strong className="text-white">{invite.championships?.name}</strong></span>
                 <button 
-                  className="primary-btn" 
-                  style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                  className="bg-tertiary-fixed text-on-tertiary-fixed px-4 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
                   onClick={() => handleAcceptInvite(invite.id, invite.championship_id, invite.championships?.name)}
                 >
                   Aceptar y Unirme
@@ -216,199 +239,193 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Header */}
-      <section className="profile-header glass-panel">
-        <div className="profile-cover"></div>
-        <div className="profile-info-wrapper">
-          <img src={userProfile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${userProfile.username}`} alt="Avatar" className="profile-avatar" />
-          <div className="profile-details">
-            <div className="profile-title">
-              <h1>{userProfile.full_name || 'Piloto'}</h1>
-              <span className="username">@{userProfile.username || 'usuario'}</span>
+      <main className="pt-0">
+        {/* Hero Section */}
+        <section className="relative w-full h-[300px] md:h-[530px] overflow-hidden">
+          <div className="absolute inset-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)' }}>
+            <img 
+              alt="Hero Profile" 
+              className="w-full h-full object-cover object-top brightness-75 grayscale-[0.2]" 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtypMzZ2sYCtTttlHvo6uSC83NO7eQ95fPqciLokYXmMOZbPJqmxXWw0Vu5-Pj7TvGEYnZ09vGOx55r-ROicmd7l7ZRIo8eAwvEQPFe-VdkBiY-Y7r6kepIVHK7uLrAzLGLJJL7Y9xwItjLi0bOJ8fgKG36sdmx-edj9x48N0Vxb62f66jci7s-B-p0upE4gQhRY6_YJYHkutoPIpq2xkyETbTbUFKvo8Qfaya1EMt73H-qKepJDn9Y-G9ehbheX4NARfgQH2WhVlE"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+          <div className="absolute bottom-8 left-6 right-6">
+            <div className="inline-block px-2 py-1 mb-3 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold tracking-[0.2em] rounded-sm">
+              NIVEL {userLevel}
             </div>
-            <p className="profile-bio">{userProfile.bio || 'Sin biografía.'}</p>
-            <div className="profile-meta">
-              <span><MapPin size={16}/> {userProfile.location || 'Bogotá, Colombia'}</span>
-              <span><Calendar size={16}/> Creado: {new Date(userProfile.created_at).toLocaleDateString()}</span>
+            <h1 className="text-4xl md:text-6xl font-headline font-bold italic tracking-tighter text-on-surface uppercase leading-none truncate">
+              {userProfile.full_name || 'PILOTO'}
+            </h1>
+            <p className="mt-2 text-primary font-headline font-medium tracking-widest text-sm opacity-80 uppercase truncate">
+              @{userProfile.username || 'USUARIO'} // {userProfile.location || 'BOGOTÁ, COLOMBIA'}
+            </p>
+          </div>
+        </section>
+
+        {/* Stats Grid */}
+        <section className="px-6 -mt-4 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-surface-container-low p-5 rounded-sm border-l-2 border-primary transition-all hover:bg-surface-container">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">CAMPEONATOS</span>
+              <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
+            </div>
+            <div className="text-4xl font-display font-bold">{userChampionships.length}</div>
+          </div>
+          <div className="bg-surface-container-low p-5 rounded-sm transition-all hover:bg-surface-container">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">MEJOR VUELTA</span>
+              <span className="material-symbols-outlined text-tertiary-fixed text-xl">timer</span>
+            </div>
+            <div className="text-4xl font-display font-bold text-tertiary-fixed">{formatMsToTime(fastestLapMs)}</div>
+          </div>
+          <div className="bg-surface-container-low p-5 rounded-sm transition-all hover:bg-surface-container">
+            <div className="flex justify-between items-start mb-4">
+              <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">PUNTOS TOTALES</span>
+              <span className="material-symbols-outlined text-on-surface-variant text-xl">analytics</span>
+            </div>
+            <div className="text-4xl font-display font-bold">{totalPoints}</div>
+            <div className="mt-4 w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+              <div className="h-full bg-primary" style={{ width: `${Math.min(100, (totalPoints % 100))}%`, boxShadow: '0 0 10px rgba(255,143,119,0.5)' }}></div>
             </div>
           </div>
-          <div className="profile-actions">
-            <button className="primary-btn" onClick={() => setIsTimeModalOpen(true)}><Plus size={16}/> Registrar Tiempo</button>
-            <button className="secondary-btn" onClick={async () => await supabase.auth.signOut()}>Cerrar Sesión</button>
-          </div>
-        </div>
-        
-        {/* Stats */}
-        <div className="profile-stats">
-          <div className="stat-card">
-            <span className="stat-value">{userTimes.length}</span>
-            <span className="stat-label">Récords Pista</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-value">{userChampionships.length}</span>
-            <span className="stat-label">Campeonatos</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-value">
-              {userChampionships.reduce((acc, c) => acc + (c.points || 0), 0)}
-            </span>
-            <span className="stat-label">Puntos Totales</span>
-          </div>
-          
-          {/* Stats */}
-          <Grid container spacing={3} className="pt-6 border-t border-white/10">
-            <Grid item xs={12} sm={4}>
-              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
-                <Typography variant="h3" fontWeight="bold" color="white">{userTimes.length}</Typography>
-                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Récords Pista</Typography>
-              </div>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
-                <Typography variant="h3" fontWeight="bold" color="white">{userChampionships.length}</Typography>
-                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Campeonatos</Typography>
-              </div>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
-                <Typography variant="h3" fontWeight="bold" color="#FF3100">
-                  {userChampionships.reduce((acc, c) => acc + (c.points || 0), 0)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" className="uppercase tracking-wider">Puntos Totales</Typography>
-              </div>
-            </Grid>
-          </Grid>
-        </div>
-      </section>
+        </section>
 
-      {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
-        <KineticButton
-          variant={activeTab === 'campeonatos' ? 'contained' : 'outlined'}
-          color={activeTab === 'campeonatos' ? 'primary' : 'inherit'}
-          onClick={() => setActiveTab('campeonatos')}
-          startIcon={<Trophy size={18}/>}
-          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-        >
-          <Trophy size={18}/> Mis Campeonatos ({userChampionships.length})
-        </KineticButton>
+        {/* Action Tabs & Content */}
+        <section className="mt-12 px-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex items-center mb-6 overflow-x-auto scrollbar-hide">
+              <TabsList className="w-full md:w-auto flex">
+                <TabsTrigger value="campeonatos" className="flex-1 md:flex-none">MIS CAMPEONATOS</TabsTrigger>
+                <TabsTrigger value="tiempos" className="flex-1 md:flex-none">MIS TIEMPOS</TabsTrigger>
+              </TabsList>
+              <div className="h-[1px] flex-grow bg-outline-variant/30 hidden md:block ml-4"></div>
+            </div>
 
-        <button 
-          className={`tab-btn ${activeTab === 'tiempos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tiempos')}
-        >
-          <Clock size={18}/> Mis Tiempos ({userTimes.length})
-        </button>
-
-        <KineticButton 
-          className={`tab-btn ${activeTab === 'actividad' ? 'active' : ''}`}
-          onClick={() => setActiveTab('actividad')}
-          startIcon={<MessageSquare size={18}/>}
-          sx={{ flexShrink: 0, px: 3, py: 1.5, borderRadius: 1, fontWeight: 'bold' }}
-        >
-          Actividad
-        </KineticButton>
-      </div>
-
-      {/* Tab Content */}
-      <KineticCard sx={{ p: 4, minHeight: '300px' }}>
-        {activeTab === 'campeonatos' && (
-          <div className="content-grid list-view fade-in">
-             {userChampionships.length === 0 ? (
-               <p style={{color: 'var(--text-secondary)'}}>Aún no te has inscrito a ningún campeonato.</p>
-             ) : (
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-                 {userChampionships.map(uc => (
-                   <div 
-                     key={uc.championship_id} 
-                     className="champ-item-list" 
-                     onClick={() => navigate(`/championships/${uc.championship_id}`)}
-                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'all 0.2s' }}
-                   >
-                     <div>
-                       <h4 style={{ margin: 0, color: 'white' }}>{uc.championships?.name}</h4>
-                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Estado: {uc.championships?.status}</span>
-                     </div>
-                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                       <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--accent)' }}>{uc.points} pts</span>
-                       <Trophy size={18} color="var(--accent)" />
-                     </div>
-                   </div>
-                 ))}
-               </div>
-             )}
-          </div>
-        )}
-
-        {activeTab === 'tiempos' && (
-          <div className="fade-in" style={{ width: '100%' }}>
-            {userTimes.length === 0 ? (
-              <p style={{color: 'var(--text-secondary)'}}>No has registrado ningún tiempo todavía.</p>
-            ) : (
-              <div className="times-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {userTimes.map(time => (
-                  <div key={time.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.15)', borderLeft: '3px solid var(--accent)', borderRadius: '0 8px 8px 0' }}>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '0.95rem' }}>{time.tracks?.name}</h4>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}><MapPin size={12} style={{ display: 'inline', marginRight: '3px' }}/>{time.tracks?.location}</span>
+            <TabsContent value="campeonatos" className="space-y-4 mt-0">
+              {userChampionships.length === 0 ? (
+                <p className="text-on-surface-variant text-sm font-label uppercase">NO ESTÁS INSCRITO A NINGÚN CAMPEONATO.</p>
+              ) : (
+                userChampionships.map(uc => (
+                  <div key={uc.championship_id} onClick={() => navigate(`/championships/${uc.championship_id}`)} className="flex items-center justify-between py-3 border-b border-outline-variant/10 group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
+                        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">emoji_events</span>
+                      </div>
+                      <div>
+                        <p className="font-headline font-bold text-sm tracking-tight group-hover:text-primary transition-colors uppercase">{uc.championships?.name}</p>
+                        <p className="text-[9px] font-label text-on-surface-variant tracking-wider uppercase">ESTADO: {uc.championships?.status} • {uc.points} PUNTOS</p>
+                      </div>
                     </div>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1.05rem', color: 'white' }}>
-                      {formatMsToTime(time.lap_time_ms)}
-                    </span>
+                    <span className="material-symbols-outlined text-tertiary-fixed text-sm">arrow_forward_ios</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                ))
+              )}
+            </TabsContent>
 
-        {activeTab === 'actividad' && (
-          <div className="fade-in">
-            <Typography color="text.secondary">No hay actividad reciente.</Typography>
-          </div>
-        )}
-      </KineticCard>
+            <TabsContent value="tiempos" className="space-y-4 mt-0">
+              {userTimes.length === 0 ? (
+                <p className="text-on-surface-variant text-sm font-label uppercase">NO HAS REGISTRADO NINGÚN TIEMPO.</p>
+              ) : (
+                userTimes.map(time => (
+                  <div key={time.id} className="flex items-center justify-between py-3 border-b border-outline-variant/10 group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
+                        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">timer</span>
+                      </div>
+                      <div>
+                        <p className="font-headline font-bold text-sm tracking-tight group-hover:text-primary transition-colors uppercase">{time.tracks?.name}</p>
+                        <p className="text-[9px] font-label text-on-surface-variant tracking-wider uppercase">{time.tracks?.location}</p>
+                      </div>
+                    </div>
+                    <span className="font-display font-bold text-tertiary-fixed tracking-wider">{formatMsToTime(time.lap_time_ms)}</span>
+                  </div>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
+        </section>
+
+        {/* Technical Action Cards */}
+        <section className="mt-12 px-6 grid grid-cols-1 gap-4">
+          <button onClick={() => setIsTimeModalOpen(true)} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative">
+            <div className="relative z-10">
+              <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
+              <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">AÑADIR NUEVO RÉCORD DE VUELTA</p>
+            </div>
+            <span className="material-symbols-outlined text-primary group-hover:translate-x-2 transition-transform">add_circle</span>
+          </button>
+          
+          <button onClick={async () => await supabase.auth.signOut()} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group">
+            <div>
+              <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>
+              <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">SALIR DE LA CUENTA ACTUAL</p>
+            </div>
+            <span className="material-symbols-outlined text-error group-hover:translate-x-2 transition-transform">logout</span>
+          </button>
+        </section>
+      </main>
 
       {/* Modal Registrar Tiempo */}
       {isTimeModalOpen && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-content glass-panel" style={{ padding: '2rem', width: '90%', maxWidth: '450px', borderRadius: '12px', background: '#1e1e2f' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.25rem' }}>Registrar Tiempo de Vuelta</h3>
+        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface-container-high p-6 w-full max-w-md rounded-sm border border-outline-variant/30 fade-in shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline font-bold text-xl uppercase tracking-widest text-white">REGISTRAR TIEMPO</h3>
+              <button onClick={() => setIsTimeModalOpen(false)} className="text-on-surface-variant hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
             {timeError && (
-              <p style={{ color: '#f87171', fontSize: '0.875rem', marginBottom: '1rem' }}>{timeError}</p>
+              <div className="bg-error/10 border border-error/50 p-3 mb-6 rounded-sm">
+                <p className="text-error font-label text-xs uppercase tracking-wider">{timeError}</p>
+              </div>
             )}
+            
             <form onSubmit={handleRegisterLapTime}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', opacity: 0.8 }}>Seleccionar Circuito</label>
-                <select 
+              <div className="mb-6">
+                <label className="block text-on-surface-variant font-label text-xs uppercase tracking-widest mb-2">CIRCUITO</label>
+                <SelectNative 
                   value={selectedTrackId} 
                   onChange={e => setSelectedTrackId(e.target.value)} 
                   required
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: '#121212', color: 'white' }}
+                  className="w-full"
                 >
-                  <option value="" disabled>Selecciona una pista...</option>
+                  <option value="" disabled>SELECCIONA UNA PISTA...</option>
                   {allTracks.map(t => (
                     <option key={t.id} value={t.id}>{t.name} ({t.location})</option>
                   ))}
-                </select>
+                </SelectNative>
               </div>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', opacity: 0.8 }}>Tu mejor tiempo (mm:ss.SSS o ss.SSS)</label>
-                <input 
+              <div className="mb-8">
+                <label className="block text-on-surface-variant font-label text-xs uppercase tracking-widest mb-2">TIEMPO (MM:SS.SSS O SS.SSS)</label>
+                <Input 
                   type="text" 
-                  placeholder="Ej: 00:44.520 o 44.520" 
+                  placeholder="00:44.520" 
                   value={timeInput} 
                   onChange={e => setTimeInput(e.target.value)} 
                   required 
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.2)', color: 'white', fontFamily: 'monospace' }} 
+                  className="w-full text-tertiary-fixed font-display font-bold tracking-widest text-xl placeholder:text-outline-variant" 
                 />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" className="secondary-btn" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime}>Cancelar</button>
-                <button type="submit" className="primary-btn" disabled={isSubmittingTime}>
-                  {isSubmittingTime ? <Loader2 className="spinner" size={20} /> : 'Registrar'}
-                </button>
-              </div>
+               <div className="flex justify-end gap-3">
+                 <button 
+                   type="button" 
+                   onClick={() => setIsTimeModalOpen(false)} 
+                   disabled={isSubmittingTime}
+                   className="px-6 py-3 font-headline font-bold uppercase tracking-widest text-sm text-on-surface hover:bg-surface-variant transition-colors rounded-sm"
+                 >
+                   CANCELAR
+                 </button>
+                 <button 
+                   type="submit" 
+                   disabled={isSubmittingTime}
+                   className="px-6 py-3 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest text-sm rounded-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 min-w-[140px]"
+                 >
+                   {isSubmittingTime ? <Loader2 className="animate-spin" size={16} /> : 'REGISTRAR'}
+                 </button>
+               </div>
             </form>
           </div>
         </div>

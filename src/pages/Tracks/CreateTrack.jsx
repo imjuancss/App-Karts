@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
+import KineticCard from '../../components/ui/KineticCard';
+import KineticButton from '../../components/ui/KineticButton';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
 import { createTrack } from '../../services/api';
 
 export default function CreateTrack() {
@@ -72,9 +78,9 @@ export default function CreateTrack() {
         )}
 
         <form onSubmit={handleSubmit} className="track-form">
-          <div className="form-group">
-            <label>Nombre del Circuito</label>
-            <input 
+          <div className="form-group mb-4">
+            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Nombre del Circuito</label>
+            <Input 
               type="text" 
               placeholder="Ej: Circuito Xtreme Karts" 
               value={name} 
@@ -83,10 +89,10 @@ export default function CreateTrack() {
             />
           </div>
 
-          <div className="form-row">
+          <div className="form-row grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="form-group">
-              <label>Ubicación / Ciudad</label>
-              <input 
+              <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Ubicación / Ciudad</label>
+              <Input 
                 type="text" 
                 placeholder="Ej: Bogotá" 
                 value={location} 
@@ -95,8 +101,8 @@ export default function CreateTrack() {
               />
             </div>
             <div className="form-group">
-              <label>Costo por Heat (Aprox)</label>
-              <input 
+              <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Costo por Heat (Aprox)</label>
+              <Input 
                 type="text" 
                 placeholder="Ej: $50.000" 
                 value={costInfo} 
@@ -105,9 +111,9 @@ export default function CreateTrack() {
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Horarios de Atención</label>
-            <input 
+          <div className="form-group mb-4">
+            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Horarios de Atención</label>
+            <Input 
               type="text" 
               placeholder="Ej: Mar-Dom: 10am - 10pm" 
               value={schedule} 
@@ -115,9 +121,9 @@ export default function CreateTrack() {
             />
           </div>
 
-          <div className="form-group">
-            <label>URL de Imagen de Portada (Opcional)</label>
-            <input 
+          <div className="form-group mb-4">
+            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">URL de Imagen de Portada (Opcional)</label>
+            <Input 
               type="url" 
               placeholder="Ej: https://images.unsplash.com/..." 
               value={coverImage} 
@@ -125,9 +131,9 @@ export default function CreateTrack() {
             />
           </div>
 
-          <div className="form-group">
-            <label>Descripción y Detalles</label>
-            <textarea 
+          <div className="form-group mb-6">
+            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Descripción y Detalles</label>
+            <Textarea 
               rows="4" 
               placeholder="Detalles sobre el trazado, asfalto, exigencia..." 
               value={description} 
@@ -135,9 +141,9 @@ export default function CreateTrack() {
             />
           </div>
 
-          <button type="submit" className="primary-btn" style={{marginTop: '1rem'}} disabled={isSubmitting}>
-            {isSubmitting ? <Loader2 className="spinner" size={20} /> : 'Registrar Circuito'}
-          </button>
+          <KineticButton type="submit" variant="contained" color="primary" className="w-full mt-4" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Registrar Circuito'}
+          </KineticButton>
         </form>
       </KineticCard>
     </div>
