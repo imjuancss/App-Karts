@@ -583,12 +583,16 @@ export async function fetchExternalMotorsportNews() {
 
   const allNews = [];
 
+  // Deduplicar por link — si el mismo artículo aparece en varios feeds,
+  // se conserva solo la primera versión (la del feed más específico).
+  const seenLinks = new Map();
+
   for (const feed of feeds) {
     try {
       const response = await fetch(
         `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`
       );
-      
+
       if (!response.ok) {
         console.warn(`No se pudo obtener el feed de ${feed.source} (${feed.category})`);
         continue;
@@ -600,14 +604,19 @@ export async function fetchExternalMotorsportNews() {
       for (const item of data.items) {
         const title = item.title;
         const link = item.link;
+
+        // Saltar si este artículo ya fue añadido desde otro feed
+        if (seenLinks.has(link)) continue;
+        seenLinks.set(link, true);
+
         // Limpiar la descripción de etiquetas HTML
         const rawDesc = item.description || item.content || '';
         const description = cleanDescription(rawDesc);
-        
+
         // Obtener URL de imagen
-        const image_url = item.thumbnail || 
-                           item.enclosure?.link || 
-                           extractImageFromHtml(rawDesc) || 
+        const image_url = item.thumbnail ||
+                           item.enclosure?.link ||
+                           extractImageFromHtml(rawDesc) ||
                            'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
 
         // Formatear fecha a ISO String
@@ -759,34 +768,54 @@ export async function fetchMotorsportCalendars() {
     { url: 'https://files-wrc.motorsportcalendars.com/wrc_race.ics', series: 'WRC' }
   ];
 
+  // Proxies CORS ordenados por prioridad
+  const proxies = [
+    (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    (url) => `https://thingproxy.freeboard.io/fetch/${url}`,
+  ];
+
+  async function fetchWithProxies(url) {
+    for (const proxyFn of proxies) {
+      try {
+        const proxyUrl = proxyFn(url);
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) continue;
+        const text = await res.text();
+        // allorigins devuelve JSON con campo "contents"
+        if (proxyUrl.includes('allorigins')) {
+          try { return JSON.parse(text).contents || ''; } catch { continue; }
+        }
+        // Los otros proxies devuelven texto directo
+        if (text.includes('BEGIN:VCALENDAR')) return text;
+      } catch (_) { /* intentar siguiente proxy */ }
+    }
+    return null;
+  }
+
   let allEvents = [];
   const now = new Date();
 
-  // Se hacen llamadas en paralelo a todos los orígenes usando un proxy para evitar CORS
   const fetchPromises = sources.map(async (source) => {
     try {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(source.url)}`);
-      const data = await res.json();
-      if (data.contents) {
-        const events = parseICS(data.contents, source.series);
-        // Filtrar solo las carreras recientes (últimos 3 días) y las futuras, de esta temporada
-        const recentAndFuture = events.filter(e => {
-          const diffDays = (e.dateObj - now) / (1000 * 60 * 60 * 24);
-          return diffDays > -3 && diffDays < 365;
-        });
-        return recentAndFuture;
+      const icsText = await fetchWithProxies(source.url);
+      if (!icsText || !icsText.includes('BEGIN:VCALENDAR')) {
+        console.warn(`No se pudo obtener calendario ICS para ${source.series}`);
+        return [];
       }
+      const events = parseICS(icsText, source.series);
+      return events.filter(e => {
+        const diffDays = (e.dateObj - now) / (1000 * 60 * 60 * 24);
+        return diffDays > -3 && diffDays < 365;
+      });
     } catch (err) {
       console.error(`Error obteniendo calendario para ${source.series}:`, err);
+      return [];
     }
-    return [];
   });
 
   const results = await Promise.all(fetchPromises);
   results.forEach(evts => { allEvents = [...allEvents, ...evts]; });
-
-  // Ordenar de manera cronológica
   allEvents.sort((a, b) => a.dateObj - b.dateObj);
-
   return allEvents;
 }
