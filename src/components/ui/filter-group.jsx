@@ -34,8 +34,8 @@ const FilterItem = React.forwardRef(({ className, value, children, ...props }, r
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-2 text-xs font-headline font-bold uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50",
         isSelected
-          ? "bg-surface-variant text-primary-dim"
-          : "bg-surface-container-highest text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface",
+          ? "bg-white/30 text-white"
+          : "bg-transparent text-on-surface-variant hover:bg-white/10 hover:text-on-surface",
         className
       )}
       {...props}

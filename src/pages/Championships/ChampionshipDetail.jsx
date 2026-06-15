@@ -5,6 +5,7 @@ import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, j
 import Badge from '../../components/ui/Badge';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import KineticButton from '../../components/ui/KineticButton';
 
 const formatMsToTime = (ms) => {
   if (!ms) return "00:00.000";

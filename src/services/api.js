@@ -545,28 +545,33 @@ function extractImageFromHtml(htmlDesc) {
 export async function fetchExternalMotorsportNews() {
   const feeds = [
     {
-      url: 'https://www.motorsport.com/rss/f1/news/',
+      url: 'https://lat.motorsport.com/rss/f1/news/',
       category: 'Formula 1',
       source: 'Motorsport.com'
     },
     {
-      url: 'https://www.motorsport.com/rss/motogp/news/',
+      url: 'https://lat.motorsport.com/rss/motogp/news/',
       category: 'MotoGP',
       source: 'Motorsport.com'
     },
     {
-      url: 'https://www.motorsport.com/rss/indycar/news/',
+      url: 'https://lat.motorsport.com/rss/indycar/news/',
       category: 'IndyCar',
       source: 'Motorsport.com'
     },
     {
-      url: 'https://www.motorsport.com/rss/wrc/news/',
+      url: 'https://lat.motorsport.com/rss/wrc/news/',
       category: 'WRC',
       source: 'Motorsport.com'
     },
     {
-      url: 'https://www.motorsport.com/rss/wec/news/',
+      url: 'https://lat.motorsport.com/rss/wec/news/',
       category: 'WEC',
+      source: 'Motorsport.com'
+    },
+    {
+      url: 'https://lat.motorsport.com/rss/imsa/news/',
+      category: 'IMSA',
       source: 'Motorsport.com'
     },
     {
@@ -666,4 +671,122 @@ export async function checkAndUpdateNews() {
   }
 }
 
+// ========================================
+// MOTORSPORT CALENDARS (Dynamic ICS Parsing)
+// ========================================
 
+function parseICS(icsData, seriesName) {
+  const events = [];
+  const lines = icsData.split(/\r?\n/);
+  let currentEvent = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.startsWith('BEGIN:VEVENT')) {
+      currentEvent = {};
+    } else if (line.startsWith('END:VEVENT')) {
+      if (currentEvent) events.push(currentEvent);
+      currentEvent = null;
+    } else if (currentEvent) {
+      if (line.startsWith('SUMMARY:')) currentEvent.summary = line.substring(8).replace(/\\,/g, ',');
+      else if (line.startsWith('DTSTART:')) currentEvent.dtstart = line.substring(8);
+      else if (line.startsWith('LOCATION:')) currentEvent.location = line.substring(9).replace(/\\,/g, ',');
+    }
+  }
+
+  const formatIcsDate = (dt) => {
+    if (!dt) return new Date();
+    // Formato común: 20260125T184000Z
+    let dStr = dt;
+    // Si contiene timezone (TZID=...:20260125T184000)
+    if (dt.includes(':')) {
+      dStr = dt.split(':')[1];
+    }
+    
+    if (dStr.length >= 15) {
+      const y = parseInt(dStr.substring(0,4));
+      const m = parseInt(dStr.substring(4,6)) - 1;
+      const d = parseInt(dStr.substring(6,8));
+      const h = parseInt(dStr.substring(9,11));
+      const min = parseInt(dStr.substring(11,13));
+      const s = parseInt(dStr.substring(13,15));
+      if (dStr.endsWith('Z')) {
+        return new Date(Date.UTC(y, m, d, h, min, s));
+      } else {
+        return new Date(y, m, d, h, min, s);
+      }
+    }
+    return new Date();
+  };
+
+  return events.map((e, idx) => {
+    const dateObj = formatIcsDate(e.dtstart);
+    let eventName = e.summary || 'Carrera';
+    let session = 'Evento';
+    
+    if (eventName.includes(' - ')) {
+      const parts = eventName.split(' - ');
+      eventName = parts[0].trim();
+      session = parts.slice(1).join(' - ').trim();
+    }
+    
+    const now = new Date();
+    const diffHours = (dateObj - now) / (1000 * 60 * 60);
+    let status = 'Próximamente';
+    if (diffHours < 0 && diffHours > -5) status = 'En Vivo'; 
+    else if (diffHours <= -5) status = 'Finalizado';
+
+    return {
+      id: `${seriesName}-${idx}-${dateObj.getTime()}`,
+      series: seriesName,
+      event: eventName,
+      session: session,
+      dateObj: dateObj,
+      time: dateObj.toLocaleString('es-ES', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' (Local)',
+      status: status,
+      location: e.location || ''
+    };
+  });
+}
+
+export async function fetchMotorsportCalendars() {
+  const sources = [
+    { url: 'https://files-f1.motorsportcalendars.com/f1-calendar_p1_p2_p3_qualifying_sprint_grand_prix.ics', series: 'Formula 1' },
+    { url: 'https://files-wsc.motorsportcalendars.com/imsa-sportscar-championship_race.ics', series: 'IMSA' },
+    { url: 'https://files-wsc.motorsportcalendars.com/fia-world-endurance-championship_race.ics', series: 'WEC' },
+    { url: 'https://files-indycar.motorsportcalendars.com/indycar_race.ics', series: 'IndyCar' },
+    { url: 'https://files-motogp.motorsportcalendars.com/motogp_race.ics', series: 'MotoGP' },
+    { url: 'https://files-wrc.motorsportcalendars.com/wrc_race.ics', series: 'WRC' }
+  ];
+
+  let allEvents = [];
+  const now = new Date();
+
+  // Se hacen llamadas en paralelo a todos los orígenes usando un proxy para evitar CORS
+  const fetchPromises = sources.map(async (source) => {
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(source.url)}`);
+      const data = await res.json();
+      if (data.contents) {
+        const events = parseICS(data.contents, source.series);
+        // Filtrar solo las carreras recientes (últimos 3 días) y las futuras, de esta temporada
+        const recentAndFuture = events.filter(e => {
+          const diffDays = (e.dateObj - now) / (1000 * 60 * 60 * 24);
+          return diffDays > -3 && diffDays < 365;
+        });
+        return recentAndFuture;
+      }
+    } catch (err) {
+      console.error(`Error obteniendo calendario para ${source.series}:`, err);
+    }
+    return [];
+  });
+
+  const results = await Promise.all(fetchPromises);
+  results.forEach(evts => { allEvents = [...allEvents, ...evts]; });
+
+  // Ordenar de manera cronológica
+  allEvents.sort((a, b) => a.dateObj - b.dateObj);
+
+  return allEvents;
+}
