@@ -109,8 +109,9 @@ export default function Live() {
       setFilteredNews(news);
       setFilteredCalendar(calendarEvents);
     } else {
-      setFilteredNews(news.filter(item => item.category === selectedCategory));
-      setFilteredCalendar(calendarEvents.filter(item => item.series === selectedCategory));
+      // Comparación case-insensitive para evitar discrepancias de mayúsculas
+      setFilteredNews(news.filter(item => item.category?.toLowerCase() === selectedCategory.toLowerCase()));
+      setFilteredCalendar(calendarEvents.filter(item => item.series?.toLowerCase() === selectedCategory.toLowerCase()));
     }
   }, [selectedCategory, news, calendarEvents]);
 
