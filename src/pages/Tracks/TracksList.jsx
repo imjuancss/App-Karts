@@ -42,7 +42,7 @@ export default function TracksList() {
       
       {/* Hero Title Section */}
       <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        <div className="space-y-2">
+        <div className="flex flex-col gap-4">
           <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
             <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
             Pistas de Karts

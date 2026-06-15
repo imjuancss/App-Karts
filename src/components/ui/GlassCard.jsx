@@ -1,4 +1,4 @@
-import React from 'react';
+import { cn } from '../../lib/utils';
 
 /**
  * GlassCard Component
@@ -31,7 +31,7 @@ export default function GlassCard({ children, variant = 'low', padding = 'p-6', 
   }
 
   return (
-    <div className={`${baseClasses} ${className}`} {...props}>
+    <div className={cn(baseClasses, className)} {...props}>
       {children}
     </div>
   );

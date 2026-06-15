@@ -117,9 +117,9 @@ export default function Layout({ children }) {
 
         {/* Performance Stats (Sidebar Footer) */}
         {fastestLap && (
-          <div className="mt-auto pt-8 border-t border-outline-variant/10">
+          <div className="absolute bottom-6 left-6 right-6 pt-6 border-t border-outline-variant/10">
             <div className="glass-panel p-4 rounded-lg">
-              <p className="text-[10px] font-bold text-tertiary-fixed uppercase tracking-[0.2em] mb-2">Fastest Lap</p>
+              <p className="text-[10px] font-bold text-tertiary-fixed uppercase tracking-[0.2em] mb-2">Your fastest lap</p>
               <div className="flex items-end gap-2">
                 <span className="font-display text-2xl font-bold leading-none text-white">{fastestLap}</span>
                 <span className="text-tertiary-fixed text-[10px] font-bold pb-1">+0.002s</span>

@@ -60,6 +60,27 @@ Traditional drop shadows are too "soft" for a racing environment. We use archite
   - Inactive State: `bg-surface-container-highest text-on-surface-variant`.
   - Roundedness: `rounded-sm`.
 
+### 5.3 Page Master Containers & Responsive Bounds
+## Layout Architecture
+
+**Master Containers:**
+Every page MUST have a single master container wrapping its content.
+- Example: `<main className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-10 md:gap-16">`
+
+**Content Group Containers & Explicit Structural Grouping:**
+- Every logical group of content MUST be explicitly wrapped in a Flexbox container (`flex flex-col gap-X`).
+- Never leave elements "floating" without a container, especially inside Tabs, Dialogs, or below Navigation components.
+- Never rely on arbitrary margins (like `mt-8`, `mb-8`, `space-y-*`) to separate unrelated adjacent blocks. Use the flex gap of the parent.
+- Example for groups: `className="bg-surface-container-low p-6 flex flex-col gap-6"`
+
+**Component Padding:**
+- Use padding strictly for inner breathing room (`p-4` on mobile, `p-6` as standard default, up to `md:p-8` for large sections).
+- Do not use exaggerated padding (`p-6 md:p-8` or `p-8 md:p-12`) on small component-level cards or list items. Stick to the design system default `p-6`. (`gap-6`).
+- **Responsive Bounds:**
+  - *Forms:* Limitar el ancho horizontal de formularios e inputs usando `max-w-md` o `max-w-2xl` según complejidad. No permitir inputs de 1200px de ancho en Desktop.
+  - *Reading Text & Details:* Limitar los bloques de texto o detalles de lectura a anchos confortables (`max-w-3xl` o `max-w-5xl`).
+  - *Grids:* Usar grillas responsivas para tarjetas (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`).
+
 ## 6. Do's and Don'ts
 
 ### Do
@@ -82,3 +103,5 @@ Just as a racetrack needs runoff areas to prevent crashes, an interface needs sp
 *   **The Container Boundary**: Use `w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8` as the standard wrapper for content. This prevents the UI from bleeding infinitely on ultrawide monitors, ensuring a focused, readable track.
 *   **Vertical Rhythm (The Racing Line)**: Do not use random `mt-` or `mb-` margins inside lists or sections. Let the parent container dictate the rhythm. Page-level wrappers must use `flex flex-col gap-10 md:gap-16` (or `space-y-10 md:space-y-16`) to separate main layout blocks (header, content sections, footer), while smaller component groups or list items use `gap-6 md:gap-8` to ensure breathing room without visual clutter.
 *   **Breathing Room (Component Padding)**: Internal padding for cards or surface blocks must scale. Start with `p-4` for mobile, and scale to `md:p-6 lg:p-8`. A cramped component feels cheap; a spacious component feels engineered.
+*   **Title & Description Spacing (The Clearance Zone)**: To prevent text items from colliding or sticking together, do not use `mb-2` or zero spacing between titles and descriptions. Always separate titles (like `h1`, `h2`, `h3`, `h4`) from their subheadings or descriptive paragraphs by a minimum of `mb-4` (or `mb-3` in high-density components) or place them in a `flex flex-col gap-3` (12px) container.
+*   **Card Content Spacing**: Any content inside a card (`GlassCard`, `KineticCard`, etc.) must have structured vertical separation. Never let text blocks or other components sit immediately adjacent with zero margins. Use standard Tailwind spacing values (`gap-3` or `gap-4`) to ensure a readable and clean visual rhythm.
