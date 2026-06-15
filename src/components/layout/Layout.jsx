@@ -71,9 +71,9 @@ export default function Layout({ children }) {
   return (
     <div className="layout-container">
       {/* Sidebar Desktop */}
-      <nav className="hidden md:flex fixed left-0 top-0 h-screen w-72 flex-col p-6 bg-background border-r border-outline-variant/10 z-50">
+      <nav className="hidden md:flex fixed left-0 top-0 h-screen w-72 flex-col gap-12 p-6 bg-background border-r border-outline-variant/10 z-50">
         {/* Header / Logo */}
-        <div className="mb-12 flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <div className="w-10 h-10 kinetic-gradient rounded-sm flex items-center justify-center transform -skew-x-12">
             <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>flag</span>
           </div>
@@ -83,7 +83,7 @@ export default function Layout({ children }) {
         </div>
         
         {/* Navigation Items */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {navLinks.map((item) => (
             <NavLink 
               key={item.to} 
@@ -146,14 +146,14 @@ export default function Layout({ children }) {
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)}>
-          <nav className="mobile-nav glass-panel bg-background/95 border-l border-outline-variant/10 w-72" onClick={e => e.stopPropagation()}>
+          <nav className="flex flex-col gap-12 w-72 h-full p-6 relative bg-background/95 border-l border-outline-variant/10 glass-panel" onClick={e => e.stopPropagation()}>
             <button 
               onClick={() => setMobileMenuOpen(false)} 
               className="absolute top-4 right-4 text-on-surface flex items-center justify-center p-2 rounded hover:bg-surface-variant/30 transition-colors"
             >
               <span className="material-symbols-outlined text-2xl">close</span>
             </button>
-            <div className="mb-12 flex items-center gap-4 px-2">
+            <div className="flex items-center gap-4 px-2">
               <div className="w-10 h-10 kinetic-gradient rounded-sm flex items-center justify-center transform -skew-x-12">
                 <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>flag</span>
               </div>
@@ -161,7 +161,7 @@ export default function Layout({ children }) {
                 Kart<span className="text-primary-dim">Social</span>
               </h1>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {navLinks.map((item) => (
                 <NavLink 
                   key={item.to} 

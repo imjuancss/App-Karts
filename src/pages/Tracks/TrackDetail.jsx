@@ -157,7 +157,7 @@ export default function TrackDetail() {
         </div>
       </header>
 
-      <main className="w-full pb-24 flex flex-col gap-10 md:gap-16">
+      <main className="w-full pb-24 flex flex-col gap-6 md:gap-8">
         {/* Hero Section */}
         <section className="relative w-full aspect-video md:aspect-[21/9] overflow-hidden">
           <img 
@@ -176,7 +176,7 @@ export default function TrackDetail() {
         </section>
 
 
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-10 md:gap-16">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-6 md:gap-8">
           {/* Technical Telemetry / Quick Info */}
           <section className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-surface-container p-6 rounded-sm flex flex-col justify-between gap-8">

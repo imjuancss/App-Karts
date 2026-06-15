@@ -236,7 +236,7 @@ export default function ChampionshipDetail() {
         </div>
       </header>
 
-      <main className="pt-24 pb-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col gap-12">
+      <main className="pt-24 pb-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col gap-6 md:gap-8">
         {/* Hero Section */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-8 relative overflow-hidden aspect-[21/9] rounded-sm group">

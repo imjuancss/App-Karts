@@ -12,7 +12,7 @@ import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
 export default function DesignSystem() {
   const [filterValue, setFilterValue] = useState('all');
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body flex flex-col gap-10 md:gap-16">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body flex flex-col gap-6 md:gap-8">
       <header>
         <h1 className="font-headline text-4xl font-bold uppercase tracking-tighter text-primary-dim mb-4">Velocity Noir</h1>
         <p className="text-on-surface-variant font-label uppercase tracking-widest text-sm">Design System & UI Components</p>
