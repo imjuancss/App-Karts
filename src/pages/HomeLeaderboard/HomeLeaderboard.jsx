@@ -10,7 +10,7 @@ import { MapPin, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import KineticButton from '@/components/ui/KineticButton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FilterGroup, FilterItem } from '@/components/ui/filter-group';
 const formatMsToTime = (ms) => {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
@@ -226,13 +226,11 @@ export default function HomeLeaderboard() {
             </div>
 
             {/* Time filters */}
-            <Tabs value={selectedTimeFilter} onValueChange={setSelectedTimeFilter} className="w-full">
-              <TabsList className="w-full flex">
-                <TabsTrigger value="week" className="flex-1">Esta semana</TabsTrigger>
-                <TabsTrigger value="month" className="flex-1">Este mes</TabsTrigger>
-                <TabsTrigger value="historical" className="flex-1">Histórico</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <FilterGroup value={selectedTimeFilter} onValueChange={setSelectedTimeFilter} className="w-full flex">
+              <FilterItem value="week" className="flex-1">Esta semana</FilterItem>
+              <FilterItem value="month" className="flex-1">Este mes</FilterItem>
+              <FilterItem value="historical" className="flex-1">Histórico</FilterItem>
+            </FilterGroup>
           </div>
 
           {/* Títulos de Columnas */}

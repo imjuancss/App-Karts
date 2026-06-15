@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Radio, Calendar, ExternalLink, Clock, RotateCw, Volume2, Info, Loader2 } from 'lucide-react';
-import { getMotorsportNews, checkAndUpdateNews, fetchExternalMotorsportNews } from '../../services/api';
+import { getMotorsportNews, checkAndUpdateNews, fetchExternalMotorsportNews, fetchMotorsportCalendars } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
 import KineticCard from '../../components/ui/KineticCard';
 import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
@@ -8,73 +8,33 @@ import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
 export default function Live() {
   const [news, setNews] = useState([]);
   const [filteredNews, setFilteredNews] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [filteredCalendar, setFilteredCalendar] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [isLoading, setIsLoading] = useState(true);
+  const [isCalendarLoading, setIsCalendarLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdatedText, setLastUpdatedText] = useState('Actualizando...');
 
-  const todayRaces = [
-    {
-      id: 1,
-      series: 'Formula 1',
-      event: 'GP de España (Barcelona)',
-      session: 'Prácticas Libres 1 (FP1)',
-      time: '13:30 (Esp) / 07:30 (Col)',
-      status: 'Finalizado',
-      badgeClass: 'bg-primary/10 text-primary-dim'
-    },
-    {
-      id: 2,
-      series: 'Formula 1',
-      event: 'GP de España (Barcelona)',
-      session: 'Prácticas Libres 2 (FP2)',
-      time: '17:00 (Esp) / 11:00 (Col)',
-      status: 'Próximamente',
-      badgeClass: 'bg-primary/10 text-primary-dim'
-    },
-    {
-      id: 3,
-      series: 'MotoGP',
-      event: 'GP de República Checa (Brno)',
-      session: 'Prácticas Libres 1',
-      time: 'Viernes 19/Junio',
-      status: 'Próximamente',
-      badgeClass: 'bg-error-container/30 text-error'
-    },
-    {
-      id: 4,
-      series: 'IndyCar',
-      event: 'GP de Road America',
-      session: 'Prácticas Libres 1',
-      time: 'Viernes 19/Junio',
-      status: 'Próximamente',
-      badgeClass: 'bg-tertiary-container/20 text-tertiary-fixed'
-    },
-    {
-      id: 5,
-      series: 'WRC',
-      event: 'Rally Acrópolis de Grecia',
-      session: 'Shakedown',
-      time: 'Jueves 25/Junio',
-      status: 'Próximamente',
-      badgeClass: 'bg-surface-variant text-on-surface-variant'
-    },
-    {
-      id: 6,
-      series: 'WEC',
-      event: '24 Horas de Le Mans',
-      session: 'Carrera de Resistencia (24h)',
-      time: 'Sábado 13/Junio - 16:00 (Esp) / 09:00 (Col)',
-      status: 'Próximamente',
-      badgeClass: 'bg-surface-variant text-on-surface-variant'
+  const loadCalendar = async () => {
+    setIsCalendarLoading(true);
+    try {
+      const events = await fetchMotorsportCalendars();
+      setCalendarEvents(events);
+      if (selectedCategory === 'Todos') {
+        setFilteredCalendar(events);
+      } else {
+        setFilteredCalendar(events.filter(race => race.series === selectedCategory));
+      }
+    } catch (e) {
+      console.error("Error fetching calendar:", e);
+    } finally {
+      setIsCalendarLoading(false);
     }
-  ];
-
-  const filteredRaces = selectedCategory === 'Todos'
-    ? todayRaces
-    : todayRaces.filter(race => race.series === selectedCategory);
+  };
 
   async function loadData(forceUpdate = false) {
+    loadCalendar();
     if (forceUpdate) {
       setIsUpdating(true);
       setLastUpdatedText('Actualizando feeds...');
@@ -147,10 +107,12 @@ export default function Live() {
   useEffect(() => {
     if (selectedCategory === 'Todos') {
       setFilteredNews(news);
+      setFilteredCalendar(calendarEvents);
     } else {
       setFilteredNews(news.filter(item => item.category === selectedCategory));
+      setFilteredCalendar(calendarEvents.filter(item => item.series === selectedCategory));
     }
-  }, [selectedCategory, news]);
+  }, [selectedCategory, news, calendarEvents]);
 
   const getBadgeClass = (category) => {
     switch(category?.toLowerCase()) {
@@ -159,11 +121,12 @@ export default function Live() {
       case 'indycar': return 'bg-tertiary-container/20 text-tertiary-fixed';
       case 'wrc': return 'bg-surface-variant text-on-surface-variant';
       case 'wec': return 'bg-surface-variant text-on-surface-variant';
+      case 'imsa': return 'bg-surface-variant text-on-surface-variant';
       default: return 'bg-surface-variant text-on-surface-variant';
     }
   };
 
-  const categories = ['Todos', 'Formula 1', 'MotoGP', 'IndyCar', 'WRC', 'WEC'];
+  const categories = ['Todos', 'Formula 1', 'MotoGP', 'IndyCar', 'WRC', 'WEC', 'IMSA'];
 
   return (
     <div className="fade-in flex flex-col gap-6 md:gap-8 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20">
@@ -280,32 +243,40 @@ export default function Live() {
               </div>
               
               <div className="flex flex-col gap-4">
-                {filteredRaces.map((race) => (
-                  <div 
-                    key={race.id} 
-                    className="p-4 rounded-sm bg-surface-container-high flex flex-col gap-1 transition-colors hover:bg-surface-variant/30"
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${race.badgeClass}`}>{race.series}</span>
-                      <span className="text-xs font-mono font-bold text-on-surface-variant">{race.time}</span>
-                    </div>
-                    <p className="text-sm font-bold text-on-surface">{race.event}</p>
-                    <div className="flex justify-between items-center text-xs mt-1">
-                      <span className="text-on-surface-variant">{race.session}</span>
-                      <span className={`font-mono text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${
-                        race.status === 'En Vivo' ? 'bg-error-container/20 text-error animate-pulse' :
-                        race.status === 'Finalizado' ? 'bg-surface-variant text-on-surface-variant' :
-                        'bg-surface-container text-on-surface-variant'
-                      }`}>
-                        {race.status}
-                      </span>
-                    </div>
+                {isCalendarLoading ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="animate-spin text-primary" size={24} />
                   </div>
-                ))}
-                {filteredRaces.length === 0 && (
-                  <span className="text-xs text-on-surface-variant text-center py-4">
-                    No hay sesiones programadas para esta categoría.
-                  </span>
+                ) : (
+                  <>
+                    {filteredCalendar.map((race) => (
+                      <div 
+                        key={race.id} 
+                        className="p-4 rounded-sm bg-surface-container-high flex flex-col gap-1 transition-colors hover:bg-surface-variant/30"
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${getBadgeClass(race.series)}`}>{race.series}</span>
+                          <span className="text-xs font-mono font-bold text-on-surface-variant text-right">{race.time}</span>
+                        </div>
+                        <p className="text-sm font-bold text-on-surface">{race.event}</p>
+                        <div className="flex justify-between items-center text-xs mt-1">
+                          <span className="text-on-surface-variant line-clamp-1 mr-2">{race.session}</span>
+                          <span className={`font-mono text-[10px] shrink-0 font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${
+                            race.status === 'En Vivo' ? 'bg-error-container/20 text-error animate-pulse' :
+                            race.status === 'Finalizado' ? 'bg-surface-variant text-on-surface-variant' :
+                            'bg-surface-container text-on-surface-variant'
+                          }`}>
+                            {race.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {filteredCalendar.length === 0 && (
+                      <span className="text-xs text-on-surface-variant text-center py-4">
+                        No hay sesiones programadas para esta categoría en los próximos días.
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
             </div>

@@ -37,6 +37,7 @@
   --color-on-primary-container: #4b0700;
   --color-surface-container: #1a1a1a;
   --color-error: #ff6e84;
+
 }
 
 .material-symbols-outlined {
@@ -369,6 +370,7 @@ select:focus {
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -415,4 +417,8 @@ select:focus {
 }
 .card-hover:hover::before {
   opacity: 1;
+}
+
+.bg-active-tab {
+  background-color: rgba(255, 255, 255, 0.3) !important;
 }
