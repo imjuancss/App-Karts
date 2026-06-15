@@ -236,7 +236,7 @@ export default function ChampionshipDetail() {
         </div>
       </header>
 
-      <main className="pt-24 pb-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col gap-8 md:gap-12">
+      <main className="pt-24 pb-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col gap-12">
         {/* Hero Section */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-8 relative overflow-hidden aspect-[21/9] rounded-sm group">
@@ -264,7 +264,7 @@ export default function ChampionshipDetail() {
             </div>
           </div>
           <div className="lg:col-span-4 flex flex-col gap-4">
-            <div className="bg-surface-container-low p-5 flex flex-col justify-between flex-1 relative overflow-hidden rounded-sm">
+            <div className="bg-surface-container-low p-6 flex flex-col justify-between flex-1 relative overflow-hidden rounded-sm">
               <div className="relative z-10">
                 <span className="font-label text-xs text-on-surface-variant uppercase tracking-widest mb-4 block">Detalles del Torneo</span>
                 <div className="space-y-6">
@@ -316,7 +316,7 @@ export default function ChampionshipDetail() {
             <div className="lg:col-span-8">
               <TabsContent value="ranking" className="fade-in mt-0">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-headline text-2xl font-bold uppercase tracking-tight">Standings Generales del Torneo</h3>
+                  <h3 className="font-headline text-2xl font-bold uppercase tracking-tight mb-4">Standings Generales del Torneo</h3>
                 </div>
                 {champ.participants.length === 0 ? (
                   <div className="bg-surface-container-low p-10 text-center text-on-surface-variant font-label uppercase tracking-widest rounded-sm">
@@ -360,7 +360,7 @@ export default function ChampionshipDetail() {
                 )}
               </TabsContent>
 
-              <TabsContent value="fechas" className="fade-in grid grid-cols-1 md:grid-cols-2 gap-8 mt-0">
+              <TabsContent value="fechas" className="flex flex-col gap-6">
                 {/* Rounds List */}
                 <div>
                   <h3 className="font-headline text-xl font-bold uppercase tracking-tight mb-6">Calendario de Fechas</h3>
@@ -377,7 +377,7 @@ export default function ChampionshipDetail() {
                           </span>
                           <span className="text-xs text-on-surface-variant font-label uppercase">Fecha {idx + 1}</span>
                         </div>
-                        <h4 className="font-headline font-bold text-lg mb-1">{round.tracks?.name}</h4>
+                        <h4 className="font-headline font-bold text-lg mb-3">{round.tracks?.name}</h4>
                         <div className="flex items-center gap-2 text-on-surface-variant text-sm">
                           <span className="material-symbols-outlined text-sm">calendar_today</span>
                           <span>{round.date}</span>
@@ -393,7 +393,7 @@ export default function ChampionshipDetail() {
                     <div>
                       <div className="flex justify-between items-start mb-6">
                         <div>
-                          <h3 className="font-headline text-xl font-bold uppercase tracking-tight">Ronda #{selectedRoundIdx + 1}</h3>
+                          <h3 className="font-headline text-xl font-bold uppercase tracking-tight mb-4">Ronda #{selectedRoundIdx + 1}</h3>
                           <p className="text-on-surface-variant text-sm font-label uppercase tracking-widest mt-1">
                             Circuito: {activeRound.tracks?.name}
                           </p>
@@ -470,16 +470,16 @@ export default function ChampionshipDetail() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="rules" className="fade-in grid grid-cols-1 md:grid-cols-2 gap-8 mt-0">
+              <TabsContent value="rules" className="flex flex-col gap-6">
                 <div className="space-y-6">
-                  <div className="bg-surface-container-low p-5 rounded-sm">
-                    <h4 className="font-headline font-bold uppercase tracking-widest mb-2">Acerca del Torneo</h4>
+                  <div className="bg-surface-container-low p-6 rounded-sm">
+                    <h4 className="font-headline font-bold uppercase tracking-widest mb-4">Acerca del Torneo</h4>
                     <p className="text-on-surface-variant text-sm leading-relaxed">
                       {champ.description || 'Sin descripción detallada disponible para este evento.'}
                     </p>
                   </div>
-                  <div className="bg-surface-container-low p-5 rounded-sm border-l-4 border-primary-dim">
-                    <h4 className="font-headline font-bold uppercase tracking-widest mb-2">Puntajes de Ronda (Fórmula 1)</h4>
+                  <div className="bg-surface-container-low p-6 rounded-sm border-l-4 border-primary-dim">
+                    <h4 className="font-headline font-bold uppercase tracking-widest mb-4">Puntajes de Ronda (Fórmula 1)</h4>
                     <p className="text-on-surface-variant text-sm leading-relaxed">
                       Al finalizar cada fecha, se otorgarán los siguientes puntos en base a los mejores tiempos de vuelta:
                       <br/><br/>
@@ -490,8 +490,8 @@ export default function ChampionshipDetail() {
                   </div>
                 </div>
 
-                <div className="bg-surface-container-high p-5 rounded-sm h-fit border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
-                  <h4 className="font-headline font-bold uppercase tracking-widest mb-2">Invitar Amigos</h4>
+                <div className="bg-surface-container-high p-6 rounded-sm h-fit border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
+                  <h4 className="font-headline font-bold uppercase tracking-widest mb-4">Invitar Amigos</h4>
                   <p className="text-on-surface-variant text-xs mb-6">
                     Ingresa el correo electrónico de tu amigo para invitarlo a competir en este torneo. Le llegará un correo y podrá inscribirse.
                   </p>
@@ -522,8 +522,8 @@ export default function ChampionshipDetail() {
           {/* Side Actions & Metrics */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             {!isParticipant && champ.status === 'open' && (
-              <div className="bg-surface-container-highest p-5 relative overflow-hidden border-l-4 border-primary-dim rounded-r-sm">
-                <h4 className="font-headline text-xl font-bold uppercase mb-2">Inscripción al Evento</h4>
+              <div className="bg-surface-container-highest p-6 relative overflow-hidden border-l-4 border-primary-dim rounded-r-sm">
+                <h4 className="font-headline text-xl font-bold uppercase mb-4">Inscripción al Evento</h4>
                 <p className="text-on-surface-variant text-sm mb-6">Asegura tu puesto en la parrilla de salida y compite por la victoria.</p>
                 <div className="flex flex-col gap-4 mb-6">
                   <div className="flex justify-between items-center text-sm">
@@ -551,14 +551,14 @@ export default function ChampionshipDetail() {
               </div>
             )}
 
-            <div className="bg-surface-container p-5 rounded-sm">
+            <div className="bg-surface-container p-6 rounded-sm">
               <h4 className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Información Técnica</h4>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-surface-container-low p-5 rounded-sm">
+                <div className="bg-surface-container-low p-6 rounded-sm">
                   <span className="text-[11px] uppercase font-label text-on-surface-variant">Nivel de Competencia</span>
                   <p className="font-headline text-lg font-bold text-tertiary-fixed truncate">{champ.level || 'Profesional'}</p>
                 </div>
-                <div className="bg-surface-container-low p-5 rounded-sm">
+                <div className="bg-surface-container-low p-6 rounded-sm">
                   <span className="text-[11px] uppercase font-label text-on-surface-variant">Ubicación</span>
                   <p className="font-headline text-lg font-bold truncate">{champ.location || 'Múltiples'}</p>
                 </div>
@@ -581,14 +581,14 @@ export default function ChampionshipDetail() {
       {/* Time Entry Modal */}
       {isTimeModalOpen && activeRound && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface-container-high border-none p-5 w-full max-w-md rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] relative fade-in">
+          <div className="bg-surface-container-high border-none p-6 w-full max-w-md rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] relative fade-in">
             <button 
               onClick={() => setIsTimeModalOpen(false)}
               className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
-            <h3 className="font-headline text-2xl font-bold uppercase tracking-tight mb-2">Registrar Tiempo</h3>
+            <h3 className="font-headline text-2xl font-bold uppercase tracking-tight mb-4">Registrar Tiempo</h3>
             <p className="text-on-surface-variant text-sm mb-6">
               Fecha #{selectedRoundIdx + 1} - {activeRound.tracks?.name}
             </p>

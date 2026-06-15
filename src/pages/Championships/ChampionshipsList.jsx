@@ -40,7 +40,7 @@ export default function ChampionshipsList() {
 
       {/* Hero Header Section */}
       <header className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-8">
-        <div className="space-y-2 max-w-2xl">
+        <div className="flex flex-col gap-4 max-w-2xl">
           <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
             <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>trophy</span>
             Campeonatos Activos

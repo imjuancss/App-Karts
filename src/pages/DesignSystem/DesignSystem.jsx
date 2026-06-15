@@ -12,14 +12,14 @@ import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
 export default function DesignSystem() {
   const [filterValue, setFilterValue] = useState('all');
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body">
-      <header className="mb-12">
-        <h1 className="font-headline text-4xl font-bold uppercase tracking-tighter text-primary-dim mb-2">Velocity Noir</h1>
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body flex flex-col gap-10 md:gap-16">
+      <header>
+        <h1 className="font-headline text-4xl font-bold uppercase tracking-tighter text-primary-dim mb-4">Velocity Noir</h1>
         <p className="text-on-surface-variant font-label uppercase tracking-widest text-sm">Design System & UI Components</p>
       </header>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">1. Buttons (KineticButton)</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">1. Buttons (KineticButton)</h2>
         <div className="flex flex-wrap gap-6 items-center bg-surface-container-low p-10 rounded-sm">
           <div className="flex flex-col gap-2">
             <span className="text-xs text-on-surface-variant uppercase font-label">Primary (Contained)</span>
@@ -48,8 +48,8 @@ export default function DesignSystem() {
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">2. Badges (Status Indicators)</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">2. Badges (Status Indicators)</h2>
         <div className="flex flex-wrap gap-6 items-center bg-surface-container-low p-10 rounded-sm">
           <Badge variant="open" pulse>Inscripciones Abiertas</Badge>
           <Badge variant="closed" icon="lock">Cerrado</Badge>
@@ -60,38 +60,38 @@ export default function DesignSystem() {
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">3. Surface Cards (GlassCard)</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">3. Surface Cards (GlassCard)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <GlassCard variant="glass">
-            <h3 className="font-headline font-bold uppercase mb-2">Variant: Glass</h3>
+          <GlassCard variant="glass" className="flex flex-col gap-3">
+            <h3 className="font-headline font-bold uppercase">Variant: Glass</h3>
             <p className="text-sm text-on-surface-variant">Uses backdrop-blur and semi-transparent background for overlays.</p>
           </GlassCard>
           
-          <GlassCard variant="low">
-            <h3 className="font-headline font-bold uppercase mb-2">Variant: Low</h3>
+          <GlassCard variant="low" className="flex flex-col gap-3">
+            <h3 className="font-headline font-bold uppercase">Variant: Low</h3>
             <p className="text-sm text-on-surface-variant">Standard surface container low. Best for lists or secondary cards.</p>
           </GlassCard>
 
-          <GlassCard variant="high">
-            <h3 className="font-headline font-bold uppercase mb-2">Variant: High</h3>
+          <GlassCard variant="high" className="flex flex-col gap-3">
+            <h3 className="font-headline font-bold uppercase">Variant: High</h3>
             <p className="text-sm text-on-surface-variant">Surface container high with subtle border.</p>
           </GlassCard>
 
-          <GlassCard variant="highest">
-            <h3 className="font-headline font-bold uppercase mb-2">Variant: Highest</h3>
+          <GlassCard variant="highest" className="flex flex-col gap-3">
+            <h3 className="font-headline font-bold uppercase">Variant: Highest</h3>
             <p className="text-sm text-on-surface-variant">Maximum contrast surface. Good for emphasized content.</p>
           </GlassCard>
 
-          <GlassCard variant="primary-border">
-            <h3 className="font-headline font-bold uppercase mb-2">Variant: Primary Border</h3>
+          <GlassCard variant="primary-border" className="flex flex-col gap-3">
+            <h3 className="font-headline font-bold uppercase">Variant: Primary Border</h3>
             <p className="text-sm text-on-surface-variant">Surface highest with a thick left border accent.</p>
           </GlassCard>
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">4. Complex Composites (HeroHeader)</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">4. Complex Composites (HeroHeader)</h2>
         <HeroHeader 
           title="Componente Hero"
           subtitle="Circuito de Prueba / Showcase"
@@ -119,8 +119,8 @@ export default function DesignSystem() {
         </HeroHeader>
       </section>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">5. Forms & Inputs</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">5. Forms & Inputs</h2>
         <div className="bg-surface-container-low p-10 rounded-sm flex flex-col gap-8 max-w-2xl">
           <div className="flex flex-col gap-2">
             <label className="text-xs text-on-surface-variant font-label uppercase tracking-widest">Standard Input</label>
@@ -146,8 +146,8 @@ export default function DesignSystem() {
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">6. Navigation (Tabs)</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">6. Navigation (Tabs)</h2>
         <div className="bg-surface-container-low p-10 rounded-sm max-w-3xl">
           <Tabs defaultValue="tab1">
             <TabsList>
@@ -168,8 +168,8 @@ export default function DesignSystem() {
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">7. Filters / Toggles (FilterGroup)</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">7. Filters / Toggles (FilterGroup)</h2>
         <div className="bg-surface-container-low p-10 rounded-sm max-w-3xl">
           <FilterGroup value={filterValue} onValueChange={setFilterValue}>
             <FilterItem value="all">Todas</FilterItem>
@@ -181,8 +181,8 @@ export default function DesignSystem() {
         </div>
       </section>
 
-      <section className="mb-16">
-        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight mb-6">8. Typography Specs</h2>
+      <section className="flex flex-col gap-6 md:gap-8">
+        <h2 className="font-headline text-2xl font-bold uppercase tracking-tight">8. Typography Specs</h2>
         <div className="bg-surface-container-low p-10 rounded-sm flex flex-col gap-6">
           <div>
             <span className="text-xs text-on-surface-variant font-label uppercase">Headline Large (Space Grotesk)</span>

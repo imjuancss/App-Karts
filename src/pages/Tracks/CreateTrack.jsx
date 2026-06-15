@@ -56,8 +56,8 @@ export default function CreateTrack() {
   };
 
   return (
-    <div className="create-track-container fade-in">
-      <Stack direction="row" mb={3}>
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-10 md:gap-16 py-12 font-body fade-in">
+      <div className="flex">
         <KineticButton 
           variant="text" 
           color="secondary" 
@@ -66,9 +66,9 @@ export default function CreateTrack() {
         >
           Volver
         </KineticButton>
-      </Stack>
+      </div>
 
-      <GlassCard variant="low" className="max-w-[800px] mx-auto p-4 md:p-8">
+      <GlassCard variant="low" className="w-full max-w-2xl mx-auto p-6 md:p-10">
         <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Circuito</Typography>
         
         {errorMsg && (

@@ -214,7 +214,7 @@ export default function Profile() {
   const userLevel = Math.floor(totalPoints / 100) + 1;
 
   return (
-    <div className="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen pb-16">
+    <div className="text-on-surface font-body selection:bg-primary/30 min-h-screen pb-16">
       
       {/* Banner Invitaciones */}
       {pendingInvites.length > 0 && (
@@ -241,7 +241,7 @@ export default function Profile() {
         </div>
       )}
 
-      <main className="pt-0">
+      <main className="pt-0 flex flex-col gap-10 md:gap-16">
         {/* Hero Section */}
         <section className="relative w-full h-[300px] md:h-[530px] overflow-hidden">
           <div className="absolute inset-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)' }}>
@@ -266,23 +266,25 @@ export default function Profile() {
           </div>
         </section>
 
+
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-10 md:gap-16 -mt-10 relative z-10">
         {/* Stats Grid */}
-        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 -mt-4 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          <div className="bg-surface-container-low p-5 rounded-sm border-l-2 border-primary transition-all hover:bg-surface-container">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <div className="bg-surface-container-low p-6 rounded-sm border-l-2 border-primary transition-all hover:bg-surface-container">
             <div className="flex justify-between items-start mb-4">
               <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">CAMPEONATOS</span>
               <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
             </div>
             <div className="text-4xl font-display font-bold">{userChampionships.length}</div>
           </div>
-          <div className="bg-surface-container-low p-5 rounded-sm transition-all hover:bg-surface-container">
+          <div className="bg-surface-container-low p-6 rounded-sm transition-all hover:bg-surface-container">
             <div className="flex justify-between items-start mb-4">
               <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">MEJOR VUELTA</span>
               <span className="material-symbols-outlined text-tertiary-fixed text-xl">timer</span>
             </div>
             <div className="text-4xl font-display font-bold text-tertiary-fixed">{formatMsToTime(fastestLapMs)}</div>
           </div>
-          <div className="bg-surface-container-low p-5 rounded-sm transition-all hover:bg-surface-container">
+          <div className="bg-surface-container-low p-6 rounded-sm transition-all hover:bg-surface-container">
             <div className="flex justify-between items-start mb-4">
               <span className="text-on-surface-variant font-label text-[10px] tracking-[0.2em] uppercase">PUNTOS TOTALES</span>
               <span className="material-symbols-outlined text-on-surface-variant text-xl">analytics</span>
@@ -295,7 +297,7 @@ export default function Profile() {
         </section>
 
         {/* Action Tabs & Content */}
-        <section className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mt-12">
+        <section className="w-full max-w-5xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex items-center mb-6 overflow-x-auto scrollbar-hide">
               <TabsList className="w-full md:w-auto flex">
@@ -350,8 +352,8 @@ export default function Profile() {
         </section>
 
         {/* Technical Action Cards */}
-        <section className="mt-12 px-6 grid grid-cols-1 gap-4">
-          <button onClick={() => setIsTimeModalOpen(true)} className="bg-surface-container-highest p-5 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative">
+        <section className="w-full max-w-lg grid grid-cols-1 gap-4 mb-8">
+          <button onClick={() => setIsTimeModalOpen(true)} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative">
             <div className="relative z-10">
               <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
               <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">AÑADIR NUEVO RÉCORD DE VUELTA</p>
@@ -359,7 +361,7 @@ export default function Profile() {
             <span className="material-symbols-outlined text-primary group-hover:translate-x-2 transition-transform">add_circle</span>
           </button>
           
-          <button onClick={async () => await supabase.auth.signOut()} className="bg-surface-container-highest p-5 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group">
+          <button onClick={async () => await supabase.auth.signOut()} className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group">
             <div>
               <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>
               <p className="text-[10px] text-on-surface-variant tracking-widest mt-1 uppercase">SALIR DE LA CUENTA ACTUAL</p>
@@ -367,6 +369,7 @@ export default function Profile() {
             <span className="material-symbols-outlined text-error group-hover:translate-x-2 transition-transform">logout</span>
           </button>
         </section>
+        </div>
       </main>
 
       {/* Modal Registrar Tiempo */}

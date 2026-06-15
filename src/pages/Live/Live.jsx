@@ -169,13 +169,13 @@ export default function Live() {
     <div className="fade-in flex flex-col gap-10 md:gap-16 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20">
       {/* Header Panel */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-row gap-4 items-center">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-4 items-center">
             <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
               <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>sensors</span>
               Motorsport En Vivo
             </h3>
-            <div className="flex items-center gap-2 px-3 py-1 bg-error-container/20 rounded-sm">
+            <div className="flex items-center gap-2 px-3 py-1 bg-error-container/20 rounded-sm whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
               <span className="text-error text-xs font-bold font-sans tracking-widest uppercase">EN VIVO</span>
             </div>
@@ -199,10 +199,10 @@ export default function Live() {
       </header>
 
       {/* Barra de Filtros */}
-      <div>
-        <FilterGroup value={selectedCategory} onValueChange={setSelectedCategory} className="w-full my-5">
+      <div className="w-full">
+        <FilterGroup value={selectedCategory} onValueChange={setSelectedCategory} className="w-full my-5 flex-wrap">
           {categories.map(cat => (
-            <FilterItem key={cat} value={cat}>
+            <FilterItem key={cat} value={cat} className="shrink-0">
               {cat}
             </FilterItem>
           ))}
@@ -273,7 +273,7 @@ export default function Live() {
             <div className="bg-surface-container rounded-sm p-5">
               <div className="flex flex-row gap-3 items-center mb-4 pb-3">
                 <Calendar className="text-primary" size={20} />
-                <div>
+                <div className="flex flex-col gap-1">
                   <h6 className="text-lg font-bold text-on-surface leading-tight">Próximas Sesiones</h6>
                   <span className="text-[10px] text-on-surface-variant uppercase font-mono">Calendario Oficial</span>
                 </div>

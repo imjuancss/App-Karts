@@ -171,7 +171,7 @@ export default function HomeLeaderboard() {
       <div className="w-full h-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 relative flex flex-col">
 
         {/* Zona Superior Fija */}
-        <div className="flex-shrink-0 z-40 bg-background/80 backdrop-blur-md pb-2 pt-4 px-4 w-full flex flex-col gap-4">
+        <div className="flex-shrink-0 z-40 bg-transparent backdrop-blur-md pb-2 pt-4 px-4 w-full flex flex-col gap-4">
           
           {/* Header Panel */}
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/10 pb-4">
@@ -216,7 +216,7 @@ export default function HomeLeaderboard() {
               className="w-full rounded-none overflow-hidden shrink-0 mb-2 md:h-[140px] md:opacity-100 md:mb-4"
               style={{ willChange: 'height, opacity' }}
             >
-              <div className="w-full h-full relative rounded-none flex items-center justify-center border-none bg-background" style={{ minHeight: '100%' }}>
+              <div className="w-full h-full relative rounded-none flex items-center justify-center border-none bg-transparent" style={{ minHeight: '100%' }}>
                 <img 
                   className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity" 
                   src="https://placehold.co/800x400/121212/333333" 
@@ -224,7 +224,7 @@ export default function HomeLeaderboard() {
                   fetchpriority="high"
                   decoding="async"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
 
                 <div className="z-10 flex flex-col items-center justify-center pointer-events-none">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-2 drop-shadow-md text-on-surface-variant">
@@ -375,7 +375,7 @@ export default function HomeLeaderboard() {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-0 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center gap-2.5 p-4 bg-gradient-to-t from-background via-background/90 to-transparent backdrop-blur-[0px]">
+        <div className="fixed bottom-0 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center gap-2.5 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent backdrop-blur-[0px]">
           <KineticButton 
             variant="contained" 
             color="primary" 
