@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import KineticButton from '@/components/ui/KineticButton';
@@ -167,24 +167,13 @@ export default function HomeLeaderboard() {
 
 
   return (
-    <div className="w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col items-center font-sans">
+    <div className="fade-in w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col items-center font-sans">
       <div className="w-full h-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 relative flex flex-col">
 
         {/* Zona Superior Fija */}
         <div className="flex-shrink-0 z-40 bg-transparent backdrop-blur-md pb-2 pt-4 px-4 w-full flex flex-col gap-4">
           
-          {/* Header Panel */}
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-outline-variant/10 pb-4">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
-                <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
-                Home
-              </h3>
-              <p className="text-on-surface-variant text-sm font-body">
-                Tiempos de clasificación y telemetría de los circuitos en tiempo real.
-              </p>
-            </div>
-          </header>
+
 
           {/* Header text and location */}
           <div className="self-stretch flex flex-col justify-start items-start md:gap-4">
@@ -263,13 +252,12 @@ export default function HomeLeaderboard() {
           className="flex-1 overflow-y-auto px-4 pb-24 w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
 
-          {/* List Wrapper */}
           <div className="self-stretch flex-1 inline-flex justify-center items-start gap-2.5 w-full">
-            <div className="flex-1 inline-flex flex-col justify-start items-start gap-1 w-full">
+            <div className="flex-1 inline-flex flex-col justify-start items-start gap-1 w-full slide-up">
               {isLoading ? (
-                <div className="flex flex-col items-center justify-center w-full py-16 gap-4 opacity-70">
-                  <div className="w-8 h-8 border-[3px] border-primary-dim border-t-transparent rounded-full animate-spin"></div>
-                  <div className="text-white/60 text-sm font-sans tracking-wide">Cargando tiempos...</div>
+                <div className="flex flex-col items-center justify-center w-full py-20 gap-4">
+                  <Loader2 className="animate-spin text-primary" size={32} />
+                  <p className="text-on-surface-variant text-sm font-sans">Cargando tiempos...</p>
                 </div>
               ) : filteredLeaderboard.map((driver) => {
                 if (driver.hasPole) {

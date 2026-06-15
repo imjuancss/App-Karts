@@ -56,7 +56,7 @@ export default function CreateTrack() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-10 md:gap-16 py-12 font-body fade-in">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-6 md:gap-8 py-12 font-body fade-in">
       <div className="flex">
         <KineticButton 
           variant="text" 

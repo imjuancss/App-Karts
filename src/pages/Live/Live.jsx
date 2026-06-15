@@ -166,7 +166,7 @@ export default function Live() {
   const categories = ['Todos', 'Formula 1', 'MotoGP', 'IndyCar', 'WRC', 'WEC'];
 
   return (
-    <div className="fade-in flex flex-col gap-10 md:gap-16 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20">
+    <div className="fade-in flex flex-col gap-6 md:gap-8 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20">
       {/* Header Panel */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex flex-col gap-4">

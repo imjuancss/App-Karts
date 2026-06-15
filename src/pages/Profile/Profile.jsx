@@ -6,6 +6,7 @@ import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvi
 import { Input } from '../../components/ui/input';
 import { SelectNative } from '../../components/ui/select-native';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import Auth from '../Auth/Auth';
 
 const formatMsToTime = (ms) => {
   if (!ms || ms === Infinity) return "00:00.000";
@@ -198,15 +199,7 @@ export default function Profile() {
   );
 
   if (!sessionUser || !userProfile) {
-    return (
-      <div className="w-full h-[50vh] flex flex-col items-center justify-center text-center px-6">
-        <h2 className="font-headline font-bold text-2xl text-on-surface mb-2 uppercase">Aún no has iniciado sesión</h2>
-        <p className="text-on-surface-variant font-body mb-8">Conéctate o vuelve a iniciar sesión con tu cuenta.</p>
-        <button onClick={() => navigate('/login')} className="bg-primary text-on-primary px-8 py-3 rounded-sm font-headline font-bold uppercase tracking-widest active:scale-95 transition-transform">
-          Iniciar Sesión / Registro
-        </button>
-      </div>
-    );
+    return <Auth />;
   }
 
   const fastestLapMs = userTimes.length > 0 ? Math.min(...userTimes.map(t => t.lap_time_ms)) : null;
@@ -241,7 +234,7 @@ export default function Profile() {
         </div>
       )}
 
-      <main className="pt-0 flex flex-col gap-10 md:gap-16">
+      <main className="pt-0 flex flex-col gap-6 md:gap-8">
         {/* Hero Section */}
         <section className="relative w-full h-[300px] md:h-[530px] overflow-hidden">
           <div className="absolute inset-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)', maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)' }}>
@@ -267,7 +260,7 @@ export default function Profile() {
         </section>
 
 
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-10 md:gap-16 -mt-10 relative z-10">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-6 md:gap-8 -mt-10 relative z-10">
         {/* Stats Grid */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           <div className="bg-surface-container-low p-6 rounded-sm border-l-2 border-primary transition-all hover:bg-surface-container">

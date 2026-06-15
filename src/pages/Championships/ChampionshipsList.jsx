@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getChampionships } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
 import KineticCard from '../../components/ui/KineticCard';
+import { Loader2 } from 'lucide-react';
 
 export default function ChampionshipsList() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function ChampionshipsList() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-10 md:gap-16 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 relative">
+    <div className="fade-in flex flex-col gap-6 md:gap-8 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 relative">
 
       {/* Hero Header Section */}
       <header className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-8">
@@ -62,10 +63,11 @@ export default function ChampionshipsList() {
 
       {/* Main Content - Bento Inspired Grid */}
       <main>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start slide-up">
           {isLoading ? (
-            <div className="col-span-full flex justify-center py-12">
-              <p className="text-on-surface-variant animate-pulse font-headline text-lg">Cargando campeonatos...</p>
+            <div className="col-span-full flex flex-col justify-center items-center py-20 gap-4">
+              <Loader2 className="animate-spin text-primary" size={32} />
+              <p className="text-on-surface-variant text-sm font-sans">Cargando campeonatos...</p>
             </div>
           ) : (
             champs.map(champ => {
