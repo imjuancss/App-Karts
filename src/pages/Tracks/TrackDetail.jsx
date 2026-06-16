@@ -136,6 +136,7 @@ export default function TrackDetail() {
 
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
+      window.dispatchEvent(new Event('lap-times-updated'));
       alert('¡Tiempo registrado con éxito!');
     } catch (err) {
       console.error(err);

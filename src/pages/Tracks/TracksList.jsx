@@ -33,14 +33,14 @@ export default function TracksList() {
 
     if (categoryFilter === 'all') return matchesSearch;
 
-    const isIndoor = t.name?.toLowerCase().includes('indoor') || t.description?.toLowerCase().includes('indoor');
-    if (categoryFilter === 'indoor') return matchesSearch && isIndoor;
-    if (categoryFilter === 'outdoor') return matchesSearch && !isIndoor;
+    const type = t.circuit_type || 'kart';
+    if (categoryFilter === 'kart') return matchesSearch && type === 'kart';
+    if (categoryFilter === 'autodromo') return matchesSearch && type === 'autodromo';
     return matchesSearch;
   });
 
   return (
-    <PageContainer className="fade-in relative">
+    <PageContainer className="fade-in">
       <PageHeader
         layout="row"
         title="Pistas de Karts"
@@ -49,26 +49,37 @@ export default function TracksList() {
           <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
         }
         actions={
-          <div className="w-full md:w-[500px] flex flex-col gap-4">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary-dim transition-colors" style={{ fontSize: '18px' }}>search</span>
-              </div>
-              <Input
-                className="pl-16 pr-6 py-6 text-[11px] font-label font-medium uppercase tracking-[0.1em]"
-                placeholder="BUSCAR PISTA POR NOMBRE, CIUDAD O CATEGORIA..."
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <FilterGroup value={categoryFilter} onValueChange={(val) => setCategoryFilter(categoryFilter === val ? 'all' : val)} className="flex w-full">
-              <FilterItem value="indoor" className="flex-1">INDOOR</FilterItem>
-              <FilterItem value="outdoor" className="flex-1">OUTDOOR</FilterItem>
-            </FilterGroup>
-          </div>
+          <KineticButton
+            variant="contained"
+            color="primary"
+            onClick={() => navigate('/tracks/new')}
+            className="shrink-0 font-headline font-bold uppercase tracking-[0.2em] text-xs px-8 py-4 shadow-[0_0_40px_rgba(225,42,0,0.4)]"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+            <span>Crear Pista</span>
+          </KineticButton>
         }
       />
+
+      <div className="flex flex-col gap-4 w-full">
+        <div className="relative group w-full">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary-dim transition-colors" style={{ fontSize: '18px' }}>search</span>
+          </div>
+          <Input
+            className="pl-16 pr-6 py-6 text-[11px] font-label font-medium uppercase tracking-[0.1em] w-full"
+            placeholder="BUSCAR PISTA POR NOMBRE, CIUDAD O CATEGORIA..."
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <FilterGroup value={categoryFilter} onValueChange={setCategoryFilter} className="flex w-full justify-start">
+          <FilterItem value="all" className="shrink-0 text-[10px] sm:text-xs">TODOS</FilterItem>
+          <FilterItem value="kart" className="shrink-0 text-[10px] sm:text-xs">KARTS</FilterItem>
+          <FilterItem value="autodromo" className="shrink-0 text-[10px] sm:text-xs">AUTÓDROMO</FilterItem>
+        </FilterGroup>
+      </div>
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start slide-up">
         {isLoading ? (
@@ -190,16 +201,6 @@ export default function TracksList() {
           </div>
         </div>
       </section>
-
-      <div className="fixed bottom-8 right-6 md:right-12 z-50">
-        <button
-          type="button"
-          onClick={() => navigate('/tracks/new')}
-          className="w-16 h-16 bg-tertiary-fixed text-black shadow-[0_0_30px_rgba(202,253,0,0.3)] flex items-center justify-center transition-all hover:scale-110 active:scale-90 rounded-sm border-none cursor-pointer"
-        >
-          <span className="material-symbols-outlined font-bold" style={{ fontSize: '30px' }}>add</span>
-        </button>
-      </div>
     </PageContainer>
   );
 }

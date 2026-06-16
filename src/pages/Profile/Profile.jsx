@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
@@ -72,6 +72,7 @@ function ListRow({ icon, title, subtitle, trailing, onClick }) {
 
 export default function Profile() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('campeonatos');
   const [sessionUser, setSessionUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
@@ -175,6 +176,25 @@ export default function Profile() {
     };
   }, []);
 
+  useEffect(() => {
+    if (isLoading || !sessionUser) return;
+
+    const tab = searchParams.get('tab');
+    const shouldUpload = searchParams.get('subir-tiempo') === '1';
+
+    if (tab === 'tiempos' || shouldUpload) {
+      setActiveTab('tiempos');
+    }
+
+    if (shouldUpload) {
+      setIsTimeModalOpen(true);
+    }
+
+    if (tab || shouldUpload) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [isLoading, sessionUser, searchParams, setSearchParams]);
+
   const handleRegisterLapTime = async (e) => {
     e.preventDefault();
     setIsSubmittingTime(true);
@@ -198,6 +218,7 @@ export default function Profile() {
         const times = await getUserLapTimes(sessionUser.id);
         setUserTimes(times || []);
       }
+      window.dispatchEvent(new Event('lap-times-updated'));
       alert('¡Tiempo guardado exitosamente!');
     } catch (err) {
       console.error(err);

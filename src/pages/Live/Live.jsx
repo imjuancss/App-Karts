@@ -193,7 +193,7 @@ export default function Live() {
                       <span className="font-bold">{item.source}</span>
                       <span className="flex items-center gap-1 font-mono">
                         <Clock size={12} />
-                        {new Date(item.pub_date).toLocaleDateString([], {day: 'numeric', month: 'short'})} a las {new Date(item.pub_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {new Date(item.pub_date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
                       </span>
                     </>
                   }

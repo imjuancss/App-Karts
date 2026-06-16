@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Trash2, Plus, Loader2, Award } from 'lucide-react';
+import { Trash2, Plus, Loader2, Award } from 'lucide-react';
 import { getTracks, createChampionship } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
-import GlassCard from '../../components/ui/GlassCard';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import PageContainer from '../../components/layout/PageContainer';
-import ContentSection from '../../components/layout/ContentSection';
+import CreateFormLayout, { FormSectionDivider } from '../../components/layout/CreateFormLayout';
 import FormSection from '../../components/layout/FormSection';
+import FormField from '../../components/forms/FormField';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../components/ui/select";
+} from '../../components/ui/select';
 
 export default function CreateChampionship() {
   const navigate = useNavigate();
@@ -33,7 +32,7 @@ export default function CreateChampionship() {
   const [rounds, setRounds] = useState([
     { track_id: '', date: '' },
     { track_id: '', date: '' },
-    { track_id: '', date: '' }
+    { track_id: '', date: '' },
   ]);
 
   const [isLoadingTracks, setIsLoadingTracks] = useState(true);
@@ -51,7 +50,7 @@ export default function CreateChampionship() {
       setRounds([
         { track_id: initialTrackId, date: '' },
         { track_id: (tracks && tracks[1]?.id) || '', date: '' },
-        { track_id: (tracks && tracks[2]?.id) || '', date: '' }
+        { track_id: (tracks && tracks[2]?.id) || '', date: '' },
       ]);
       setIsLoadingTracks(false);
     }
@@ -59,10 +58,7 @@ export default function CreateChampionship() {
   }, [preselectedTrackId]);
 
   const handleAddRound = () => {
-    setRounds([
-      ...rounds,
-      { track_id: allTracks[0]?.id || '', date: '' }
-    ]);
+    setRounds([...rounds, { track_id: allTracks[0]?.id || '', date: '' }]);
   };
 
   const handleRemoveRound = (idx) => {
@@ -70,18 +66,11 @@ export default function CreateChampionship() {
       setErrorMsg('Un campeonato debe tener como mínimo 3 fechas/pistas.');
       return;
     }
-    const updated = rounds.filter((_, i) => i !== idx);
-    setRounds(updated);
+    setRounds(rounds.filter((_, i) => i !== idx));
   };
 
   const handleRoundChange = (idx, field, value) => {
-    const updated = rounds.map((r, i) => {
-      if (i === idx) {
-        return { ...r, [field]: value };
-      }
-      return r;
-    });
-    setRounds(updated);
+    setRounds(rounds.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
   };
 
   const handleSubmit = async (e) => {
@@ -109,10 +98,9 @@ export default function CreateChampionship() {
         prize_label: prizeLabel,
         start_date: startDate || null,
         end_date: endDate || null,
-        entry_fee: entryFee ? Number(entryFee) : 0
+        entry_fee: entryFee ? Number(entryFee) : 0,
       }, rounds);
 
-      alert('¡Campeonato creado exitosamente!');
       navigate('/championships');
     } catch (err) {
       console.error(err);
@@ -122,188 +110,153 @@ export default function CreateChampionship() {
     }
   };
 
-  const fieldClass = 'flex flex-col gap-2';
-
-  if (isLoadingTracks) {
-    return (
-      <PageContainer compact className="min-h-[50vh] items-center justify-center fade-in">
-        <p className="text-on-surface-variant font-label uppercase tracking-widest text-sm">Cargando pistas disponibles...</p>
-      </PageContainer>
-    );
-  }
-
   return (
-    <PageContainer className="fade-in">
-      <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 md:gap-8">
-        <ContentSection>
-          <button
-            type="button"
-            className="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors font-medium self-start"
-            onClick={() => navigate('/championships')}
-          >
-            <ArrowLeft size={20} /> Volver
-          </button>
-        </ContentSection>
+    <CreateFormLayout
+      backLabel="Volver"
+      onBack={() => navigate('/championships')}
+      title="Crear Nuevo Torneo"
+      description="Configura las fechas, premios y rondas de tu campeonato."
+      errorMsg={errorMsg}
+      isLoading={isLoadingTracks}
+      loadingMessage="Cargando pistas disponibles..."
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <FormSection maxWidth="full">
+          <FormField label="Nombre del torneo">
+            <Input
+              type="text"
+              placeholder="Ej: Gran Copa Bogotá Karting"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </FormField>
 
-        <GlassCard variant="low" className="w-full p-6 md:p-8">
-          <ContentSection>
-            <h1 className="text-3xl font-headline font-bold text-on-surface uppercase tracking-tight">Crear Nuevo Torneo</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Inicio">
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </FormField>
+            <FormField label="Fin">
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </FormField>
+          </div>
 
-            {errorMsg && (
-              <div className="p-4 bg-error-container/20 text-error rounded-sm text-sm border-none">
-                <p>{errorMsg}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Premio especial">
+              <div className="relative flex items-center">
+                <Award size={18} className="absolute left-4 text-on-surface-variant opacity-50 pointer-events-none" />
+                <Input
+                  type="text"
+                  placeholder="Ej: Trofeo + Casco Sparco"
+                  value={prizeLabel}
+                  onChange={(e) => setPrizeLabel(e.target.value)}
+                  className="pl-12"
+                />
               </div>
-            )}
+            </FormField>
+            <FormField label="Inscripción (COP)">
+              <Input
+                type="number"
+                placeholder="Ej: 25000"
+                value={entryFee}
+                onChange={(e) => setEntryFee(e.target.value)}
+              />
+            </FormField>
+          </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-              <FormSection maxWidth="full">
-                <div className={fieldClass}>
-                  <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Nombre del Torneo</label>
+          <FormField label="Descripción y reglas">
+            <Textarea
+              rows={3}
+              placeholder="Escribe detalles del campeonato, premios extra, categorías..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="resize-y"
+            />
+          </FormField>
+        </FormSection>
+
+        <div className="flex flex-col gap-4 md:gap-6">
+          <FormSectionDivider
+            title="Calendario de rondas"
+            action={
+              <button
+                type="button"
+                onClick={handleAddRound}
+                className="w-full sm:w-auto bg-surface-container hover:bg-surface-container-high text-on-surface-variant px-4 py-2.5 rounded-sm text-xs flex items-center justify-center gap-2 font-label font-bold uppercase tracking-wider transition-colors min-h-11"
+              >
+                <Plus size={16} /> Añadir ronda
+              </button>
+            }
+          />
+
+          <div className="flex flex-col gap-4">
+            {rounds.map((round, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col md:flex-row gap-4 items-stretch md:items-end bg-surface-container p-4 rounded-sm"
+              >
+                <div className="font-headline font-bold text-primary-dim text-sm md:self-center md:pt-0 shrink-0">
+                  #{idx + 1}
+                </div>
+
+                <FormField label="Pista / circuito" className="flex-1">
+                  <Select value={round.track_id} onValueChange={(val) => handleRoundChange(idx, 'track_id', val)}>
+                    <SelectTrigger className="w-full bg-surface-container-high border-none text-on-surface h-12">
+                      <SelectValue placeholder="Selecciona una pista..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-surface-container-highest border-none text-on-surface">
+                      {allTracks.map((t) => (
+                        <SelectItem key={t.id} value={t.id} className="hover:bg-surface-variant focus:bg-surface-variant cursor-pointer">
+                          {t.name} ({t.location})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Fecha" className="flex-1">
                   <Input
-                    type="text"
-                    placeholder="Ej: Gran Copa Bogotá Karting"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
+                    type="date"
+                    value={round.date}
+                    onChange={(e) => handleRoundChange(idx, 'date', e.target.value)}
                     required
-                    className="bg-surface-container border-none text-on-surface py-6 px-4"
+                    className="h-12"
                   />
-                </div>
+                </FormField>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={fieldClass}>
-                    <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Inicio</label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={e => setStartDate(e.target.value)}
-                      className="bg-surface-container border-none text-on-surface py-6 px-4"
-                    />
-                  </div>
-                  <div className={fieldClass}>
-                    <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Fin</label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={e => setEndDate(e.target.value)}
-                      className="bg-surface-container border-none text-on-surface py-6 px-4"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={fieldClass}>
-                    <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Premio Especial</label>
-                    <div className="relative flex items-center">
-                      <Award size={18} className="absolute left-4 text-on-surface-variant opacity-50" />
-                      <Input
-                        type="text"
-                        placeholder="Ej: Trofeo + Casco Sparco"
-                        value={prizeLabel}
-                        onChange={e => setPrizeLabel(e.target.value)}
-                        className="pl-12 bg-surface-container border-none text-on-surface py-6 pr-4 w-full"
-                      />
-                    </div>
-                  </div>
-                  <div className={fieldClass}>
-                    <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Inscripción (COP)</label>
-                    <Input
-                      type="number"
-                      placeholder="Ej: 25000"
-                      value={entryFee}
-                      onChange={e => setEntryFee(e.target.value)}
-                      className="bg-surface-container border-none text-on-surface py-6 px-4"
-                    />
-                  </div>
-                </div>
-
-                <div className={fieldClass}>
-                  <label className="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Descripción y Reglas</label>
-                  <Textarea
-                    rows={3}
-                    placeholder="Escribe detalles del campeonato, premios extra, categorías..."
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    className="w-full resize-y"
-                  />
-                </div>
-              </FormSection>
-
-              <ContentSection className="pt-6 border-t border-outline-variant/10">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <h3 className="text-xl font-bold text-on-surface font-headline uppercase tracking-tight">Calendario de Rondas</h3>
+                {rounds.length > 3 && (
                   <button
                     type="button"
-                    onClick={handleAddRound}
-                    className="bg-surface-variant hover:bg-surface-variant/80 text-on-surface-variant px-4 py-2 rounded-sm text-sm flex items-center gap-2 font-bold uppercase tracking-wider transition-colors"
+                    onClick={() => handleRemoveRound(idx)}
+                    className="bg-error/10 text-error hover:bg-error/20 p-3 rounded-sm flex items-center justify-center transition-colors border-none min-h-12 w-full md:w-12 shrink-0"
+                    aria-label={`Eliminar ronda ${idx + 1}`}
                   >
-                    <Plus size={16} /> Añadir Ronda
+                    <Trash2 size={18} />
                   </button>
-                </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
-                <div className="flex flex-col gap-4">
-                  {rounds.map((round, idx) => (
-                    <div
-                      key={idx}
-                      className="flex flex-col md:flex-row gap-4 items-start md:items-end bg-surface-container p-4 rounded-sm border-none"
-                    >
-                      <div className="font-bold text-primary-dim self-start md:self-center pt-2 md:pt-0">
-                        #{idx + 1}
-                      </div>
-
-                      <div className="flex-1 w-full flex flex-col gap-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Pista / Circuito</label>
-                        <Select value={round.track_id} onValueChange={(val) => handleRoundChange(idx, 'track_id', val)}>
-                          <SelectTrigger className="w-full bg-surface-container-high border-none text-on-surface h-12">
-                            <SelectValue placeholder="Selecciona una pista..." />
-                          </SelectTrigger>
-                          <SelectContent className="bg-surface-container-highest border-none text-on-surface">
-                            {allTracks.map(t => (
-                              <SelectItem key={t.id} value={t.id} className="hover:bg-surface-variant focus:bg-surface-variant cursor-pointer">
-                                {t.name} ({t.location})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="flex-1 w-full flex flex-col gap-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Fecha</label>
-                        <Input
-                          type="date"
-                          value={round.date}
-                          onChange={e => handleRoundChange(idx, 'date', e.target.value)}
-                          required
-                          className="bg-surface-container-high border-none text-on-surface h-12 px-4"
-                        />
-                      </div>
-
-                      {rounds.length > 3 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveRound(idx)}
-                          className="bg-error-container/10 text-error hover:bg-error-container/20 p-3 rounded-sm flex items-center justify-center transition-colors border-none self-end md:self-auto h-12 w-full md:w-auto"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </ContentSection>
-
-              <KineticButton
-                type="submit"
-                variant="contained"
-                color="primary"
-                className="w-full h-14 text-lg font-bold uppercase tracking-widest"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={24} /> : 'Crear Campeonato'}
-              </KineticButton>
-            </form>
-          </ContentSection>
-        </GlassCard>
-      </div>
-    </PageContainer>
+        <KineticButton
+          type="submit"
+          variant="contained"
+          color="primary"
+          className="w-full min-h-12 md:min-h-14 font-headline font-bold uppercase tracking-widest"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Crear campeonato'}
+        </KineticButton>
+      </form>
+    </CreateFormLayout>
   );
 }
