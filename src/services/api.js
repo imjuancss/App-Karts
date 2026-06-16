@@ -54,6 +54,38 @@ export async function updateTrack(id, trackData) {
   return data;
 }
 
+const TRACK_COVER_BUCKET = 'track-covers';
+const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+export async function uploadTrackCover(file) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error('Debes iniciar sesión para subir imágenes');
+
+  if (!ALLOWED_COVER_TYPES.includes(file.type)) {
+    throw new Error('Formato no válido. Usa JPG, PNG o WebP.');
+  }
+  if (file.size > MAX_COVER_SIZE_BYTES) {
+    throw new Error('La imagen supera el límite de 5 MB.');
+  }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const filePath = `${user.id}/${Date.now()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(TRACK_COVER_BUCKET)
+    .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) throw uploadError;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from(TRACK_COVER_BUCKET)
+    .getPublicUrl(filePath);
+
+  return publicUrl;
+}
+
 // ========================================
 // TRACK REVIEWS
 // ========================================
@@ -153,7 +185,14 @@ export async function getChampionships() {
   const { data, error } = await supabase
     .from('championships')
     .select(`
-      *
+      *,
+      tracks (*),
+      championship_rounds (
+        id,
+        track_id,
+        round_number,
+        tracks (*)
+      )
     `)
     .order('created_at', { ascending: false });
   if (error) {

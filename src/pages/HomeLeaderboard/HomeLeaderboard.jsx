@@ -48,7 +48,7 @@ export default function HomeLeaderboard() {
       try {
         const { data, error } = await supabase
           .from('tracks')
-          .select('id, name')
+          .select('id, name, cover_image')
           .order('name', { ascending: true });
         if (error) throw error;
         setTracks(data || []);
@@ -123,6 +123,8 @@ export default function HomeLeaderboard() {
   const lastScrollTop = useRef(0);
   const currentHeaderHeight = useRef(0);
 
+  const selectedTrack = tracks.find((t) => t.id === selectedTrackId);
+  const selectedTrackCover = selectedTrack?.cover_image || 'https://placehold.co/800x400/121212/333333';
   const MOBILE_MAX_H = 100;
   const DESKTOP_BREAKPOINT = 768;
 
@@ -208,8 +210,8 @@ export default function HomeLeaderboard() {
               <div className="w-full h-full relative rounded-none flex items-center justify-center border-none bg-transparent" style={{ minHeight: '100%' }}>
                 <img 
                   className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity" 
-                  src="https://placehold.co/800x400/121212/333333" 
-                  alt="Track cover" 
+                  src={selectedTrackCover}
+                  alt={selectedTrack?.name ? `Portada de ${selectedTrack.name}` : 'Portada del circuito'}
                   fetchpriority="high"
                   decoding="async"
                 />
@@ -361,12 +363,12 @@ export default function HomeLeaderboard() {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-0 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center gap-2.5 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent backdrop-blur-[0px]">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center p-4">
           <KineticButton 
             variant="contained" 
             color="primary" 
             onClick={() => navigate('/profile')} 
-            className="self-stretch w-full shadow-[0_0_40px_rgba(202,253,0,0.15)] cursor-pointer pointer-events-auto h-12"
+            className="cursor-pointer pointer-events-auto h-12 px-8 shadow-[0_0_40px_rgba(225,42,0,0.4)]"
           >
             <div data-svg-wrapper className="relative text-black">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

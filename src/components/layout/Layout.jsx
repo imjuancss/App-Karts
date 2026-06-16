@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { getUserLapTimes } from '../../services/api';
 import './Layout.css';
@@ -12,9 +12,92 @@ const formatMsToTime = (ms) => {
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
 };
 
+const formatGap = (leaderMs, currentMs) => {
+  if (leaderMs === currentMs) return 'Líder';
+  const diff = currentMs - leaderMs;
+  const seconds = Math.floor(diff / 1000);
+  const milliseconds = diff % 1000;
+  return `+${seconds}.${milliseconds.toString().padStart(3, '0')}s`;
+};
+
+function SidebarLapPanel({ isLoading, sessionUser, userFastestMs, leaderMs }) {
+  if (isLoading) {
+    return (
+      <div className="glass-panel p-4 rounded-lg animate-pulse">
+        <div className="h-3 w-24 bg-surface-container-highest rounded mb-2" />
+        <div className="h-8 w-32 bg-surface-container-highest rounded" />
+      </div>
+    );
+  }
+
+  if (!sessionUser) {
+    return (
+      <Link
+        to="/login"
+        className="glass-panel p-4 rounded-lg block hover:bg-white/5 transition-colors group"
+      >
+        <p className="text-[10px] font-bold text-tertiary-fixed uppercase tracking-[0.2em] mb-2">
+          Tu mejor vuelta
+        </p>
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-headline text-sm font-bold uppercase text-white group-hover:text-primary-dim transition-colors">
+            Iniciar sesión
+          </span>
+          <span className="material-symbols-outlined text-primary-dim text-lg">login</span>
+        </div>
+      </Link>
+    );
+  }
+
+  if (!userFastestMs) {
+    return (
+      <Link
+        to="/profile?subir-tiempo=1"
+        className="glass-panel p-4 rounded-lg block hover:bg-white/5 transition-colors group"
+      >
+        <p className="text-[10px] font-bold text-tertiary-fixed uppercase tracking-[0.2em] mb-2">
+          Tu mejor vuelta
+        </p>
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-headline text-sm font-bold uppercase text-white group-hover:text-primary-dim transition-colors">
+            Subir mi tiempo
+          </span>
+          <span className="material-symbols-outlined text-primary-dim text-lg group-hover:translate-x-0.5 transition-transform">
+            add_circle
+          </span>
+        </div>
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      to="/profile?tab=tiempos"
+      className="glass-panel p-4 rounded-lg block hover:bg-white/5 transition-colors"
+    >
+      <p className="text-[10px] font-bold text-tertiary-fixed uppercase tracking-[0.2em] mb-2">
+        Tu mejor vuelta
+      </p>
+      <div className="flex items-end gap-2">
+        <span className="font-display text-2xl font-bold leading-none text-white">
+          {formatMsToTime(userFastestMs)}
+        </span>
+        {leaderMs != null && (
+          <span className="text-tertiary-fixed text-[10px] font-bold pb-1">
+            {formatGap(leaderMs, userFastestMs)}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
 export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [fastestLap, setFastestLap] = useState("00:48.254");
+  const [sessionUser, setSessionUser] = useState(null);
+  const [userFastestMs, setUserFastestMs] = useState(null);
+  const [leaderMs, setLeaderMs] = useState(null);
+  const [isLoadingLap, setIsLoadingLap] = useState(true);
 
   const navLinks = [
     { to: "/", icon: "home", label: "Home" },
@@ -29,42 +112,59 @@ export default function Layout({ children }) {
   }
 
   useEffect(() => {
-    const fetchFastestLap = async () => {
+    const fetchSidebarLap = async () => {
+      setIsLoadingLap(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const times = await getUserLapTimes(session.user.id);
-          if (times && times.length > 0) {
-            const bestTime = Math.min(...times.map(t => t.lap_time_ms));
-            setFastestLap(formatMsToTime(bestTime));
-          } else {
-            setFastestLap("00:48.254");
-          }
-        } else {
-          // Fetch global fastest lap
+        const user = session?.user ?? null;
+        setSessionUser(user);
+
+        if (!user) {
+          setUserFastestMs(null);
+          setLeaderMs(null);
+          return;
+        }
+
+        const times = await getUserLapTimes(user.id);
+        if (times && times.length > 0) {
+          const bestMs = Math.min(...times.map((t) => t.lap_time_ms));
+          setUserFastestMs(bestMs);
+
           const { data, error } = await supabase
             .from('lap_times')
             .select('lap_time_ms')
             .order('lap_time_ms', { ascending: true })
             .limit(1);
-          if (!error && data && data.length > 0) {
-            setFastestLap(formatMsToTime(data[0].lap_time_ms));
+
+          if (!error && data?.length > 0) {
+            setLeaderMs(data[0].lap_time_ms);
           } else {
-            setFastestLap("00:48.254");
+            setLeaderMs(null);
           }
+        } else {
+          setUserFastestMs(null);
+          setLeaderMs(null);
         }
       } catch (e) {
-        console.error("Error fetching sidebar fastest lap:", e);
+        console.error('Error fetching sidebar lap data:', e);
+        setUserFastestMs(null);
+        setLeaderMs(null);
+      } finally {
+        setIsLoadingLap(false);
       }
     };
-    fetchFastestLap();
+
+    fetchSidebarLap();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchFastestLap();
+      fetchSidebarLap();
     });
+
+    window.addEventListener('lap-times-updated', fetchSidebarLap);
 
     return () => {
       subscription?.unsubscribe();
+      window.removeEventListener('lap-times-updated', fetchSidebarLap);
     };
   }, []);
 
@@ -116,17 +216,14 @@ export default function Layout({ children }) {
         </div>
 
         {/* Performance Stats (Sidebar Footer) */}
-        {fastestLap && (
-          <div className="absolute bottom-6 left-6 right-6 pt-6 border-t border-outline-variant/10">
-            <div className="glass-panel p-4 rounded-lg">
-              <p className="text-[10px] font-bold text-tertiary-fixed uppercase tracking-[0.2em] mb-2">Your fastest lap</p>
-              <div className="flex items-end gap-2">
-                <span className="font-display text-2xl font-bold leading-none text-white">{fastestLap}</span>
-                <span className="text-tertiary-fixed text-[10px] font-bold pb-1">+0.002s</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="absolute bottom-6 left-6 right-6 pt-6 border-t border-outline-variant/10">
+          <SidebarLapPanel
+            isLoading={isLoadingLap}
+            sessionUser={sessionUser}
+            userFastestMs={userFastestMs}
+            leaderMs={leaderMs}
+          />
+        </div>
       </nav>
 
       {/* Mobile Topbar */}
@@ -192,6 +289,14 @@ export default function Layout({ children }) {
                   )}
                 </NavLink>
               ))}
+            </div>
+            <div className="mt-auto pt-6 border-t border-outline-variant/10">
+              <SidebarLapPanel
+                isLoading={isLoadingLap}
+                sessionUser={sessionUser}
+                userFastestMs={userFastestMs}
+                leaderMs={leaderMs}
+              />
             </div>
           </nav>
         </div>

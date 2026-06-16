@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { getTrackById, updateTrack, getProfile } from '../../services/api';
+import { Loader2 } from 'lucide-react';
+import { getTrackById, updateTrack, getProfile, uploadTrackCover } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import KineticButton from '../../components/ui/KineticButton';
 import GlassCard from '../../components/ui/GlassCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
+import PageContainer from '../../components/layout/PageContainer';
+import ContentSection from '../../components/layout/ContentSection';
+import CreateFormLayout from '../../components/layout/CreateFormLayout';
+import FormSection from '../../components/layout/FormSection';
+import FormField from '../../components/forms/FormField';
+import CoverImageField from '../../components/forms/CoverImageField';
 
+const DEFAULT_COVER = 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop';
 
 export default function EditTrack() {
   const { id } = useParams();
@@ -20,9 +26,11 @@ export default function EditTrack() {
   const [costInfo, setCostInfo] = useState('');
   const [schedule, setSchedule] = useState('');
   const [description, setDescription] = useState('');
+  const [circuitType, setCircuitType] = useState('kart');
   const [coverImage, setCoverImage] = useState('');
   const [trazado, setTrazado] = useState('');
-  
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,7 +43,7 @@ export default function EditTrack() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
-        
+
         if (!user) {
           setErrorMsg('Debes iniciar sesión para editar un circuito.');
           setIsLoading(false);
@@ -54,7 +62,6 @@ export default function EditTrack() {
         const isCreator = trackData.creator_id === user.id;
 
         if (!isCreator && !isAdmin) {
-          alert('No tienes permisos para editar esta pista. Solo el creador o un administrador pueden editarla.');
           navigate(`/tracks/${id}`);
           return;
         }
@@ -64,6 +71,7 @@ export default function EditTrack() {
         setCostInfo(trackData.cost_info || '');
         setDescription(trackData.description || '');
         setCoverImage(trackData.cover_image || '');
+        setCircuitType(trackData.circuit_type || 'kart');
         setTrazado(trackData.trazado || '');
 
         if (trackData.schedule) {
@@ -78,7 +86,7 @@ export default function EditTrack() {
           }
         }
       } catch (error) {
-        console.error("Error al cargar pista para edición:", error);
+        console.error('Error al cargar pista para edición:', error);
         setErrorMsg('Error al cargar la información de la pista.');
       } finally {
         setIsLoading(false);
@@ -87,6 +95,20 @@ export default function EditTrack() {
 
     checkPermissionsAndLoad();
   }, [id, navigate]);
+
+  const handleCoverSelect = async (file) => {
+    setErrorMsg('');
+    setIsUploadingCover(true);
+    try {
+      const url = await uploadTrackCover(file);
+      setCoverImage(url);
+    } catch (error) {
+      console.error('Error al subir imagen:', error);
+      setErrorMsg(error.message || 'No se pudo subir la imagen.');
+    } finally {
+      setIsUploadingCover(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,138 +129,132 @@ export default function EditTrack() {
         cost_info: costInfo,
         schedule: scheduleObj,
         description,
-        cover_image: coverImage || 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop',
-        trazado: trazado || null
+        circuit_type: circuitType,
+        cover_image: coverImage || DEFAULT_COVER,
+        trazado: trazado || null,
       });
 
-      alert('¡Circuito actualizado exitosamente!');
       navigate(`/tracks/${id}`);
     } catch (error) {
-      console.error("Error al actualizar la pista:", error);
+      console.error('Error al actualizar la pista:', error);
       setErrorMsg(error.message || 'Error al actualizar el circuito.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
+  if (errorMsg && !name && !isLoading) {
     return (
-      <div className="create-track-container fade-in" style={{ textAlign: 'center' }}>
-        <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando pista...</Typography>
-      </div>
-    );
-  }
-
-  if (errorMsg) {
-    return (
-      <div className="create-track-container fade-in text-center">
-        <GlassCard variant="low" className="max-w-[500px] mx-auto p-8">
-          <Typography color="error" mb={2}>Pista no encontrada o no tienes permisos para editarla.</Typography>
-          <KineticButton variant="contained" onClick={() => navigate('/tracks')}>Volver a pistas</KineticButton>
+      <PageContainer compact className="items-center justify-center fade-in">
+        <GlassCard variant="low" className="w-full max-w-md mx-auto">
+          <ContentSection>
+            <p className="text-error font-label text-sm uppercase tracking-wider">{errorMsg}</p>
+            <KineticButton variant="contained" onClick={() => navigate('/tracks')}>Volver a pistas</KineticButton>
+          </ContentSection>
         </GlassCard>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="create-track-container fade-in">
-      <Stack direction="row" mb={3}>
-        <KineticButton 
-          variant="text" 
-          color="secondary" 
-          onClick={() => navigate(`/tracks/${id}`)}
-          startIcon={<ArrowLeft size={20}/>}
-        >
-          Cancelar
-        </KineticButton>
-      </Stack>
-
-      <GlassCard variant="low" className="max-w-[800px] mx-auto p-4 md:p-8">
-        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Editar Circuito</Typography>
-
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            <KineticInput
-              label="Nombre del Circuito"
+    <CreateFormLayout
+      backLabel="Cancelar"
+      onBack={() => navigate(`/tracks/${id}`)}
+      title="Editar circuito"
+      description="Actualiza la información del circuito y su foto de portada."
+      errorMsg={errorMsg}
+      isLoading={isLoading}
+      loadingMessage="Cargando pista..."
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <FormSection maxWidth="full">
+          <FormField label="Nombre del circuito">
+            <Input
+              type="text"
               placeholder="Ej: Circuito Xtreme Karts"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               required
-              fullWidth
             />
+          </FormField>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Ubicación / Ciudad"
-                  placeholder="Ej: Bogotá"
-                  value={location}
-                  onChange={e => setLocation(e.target.value)}
-                  required
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Costo por Heat (Aprox)"
-                  placeholder="Ej: $50.000"
-                  value={costInfo}
-                  onChange={e => setCostInfo(e.target.value)}
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
+          <FormField label="Tipo de circuito">
+            <FilterGroup value={circuitType} onValueChange={setCircuitType} className="w-full flex">
+              <FilterItem value="kart" className="flex-1 min-w-0 text-[10px] sm:text-xs px-2 sm:px-4">
+                Pista de Karts
+              </FilterItem>
+              <FilterItem value="autodromo" className="flex-1 min-w-0 text-[10px] sm:text-xs px-2 sm:px-4">
+                Autódromo
+              </FilterItem>
+            </FilterGroup>
+          </FormField>
 
-            <KineticInput
-              label="Horarios de Atención"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Ubicación / ciudad">
+              <Input
+                type="text"
+                placeholder="Ej: Bogotá"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
+              />
+            </FormField>
+            <FormField label="Costo por heat (aprox.)">
+              <Input
+                type="text"
+                placeholder="Ej: $50.000"
+                value={costInfo}
+                onChange={(e) => setCostInfo(e.target.value)}
+              />
+            </FormField>
+          </div>
+
+          <FormField label="Horarios de atención">
+            <Input
+              type="text"
               placeholder="Ej: Mar-Dom: 10am - 10pm"
               value={schedule}
-              onChange={e => setSchedule(e.target.value)}
-              fullWidth
+              onChange={(e) => setSchedule(e.target.value)}
             />
+          </FormField>
 
-            <KineticInput
-              label="URL de Imagen de Portada (Opcional)"
-              placeholder="Ej: https://images.unsplash.com/..."
-              type="url"
-              value={coverImage}
-              onChange={e => setCoverImage(e.target.value)}
-              fullWidth
-            />
+          <CoverImageField
+            value={coverImage}
+            onChange={setCoverImage}
+            onFileSelect={handleCoverSelect}
+            isUploading={isUploadingCover}
+            disabled={isSubmitting}
+          />
 
-            <KineticInput
-              label="URL de Imagen del Trazado (Opcional)"
-              placeholder="Ej: https://images.unsplash.com/... (Imagen del trazado del circuito)"
+          <FormField label="URL de imagen del trazado (opcional)" hint="Imagen del layout del circuito.">
+            <Input
               type="url"
+              placeholder="Ej: https://..."
               value={trazado}
-              onChange={e => setTrazado(e.target.value)}
-              fullWidth
+              onChange={(e) => setTrazado(e.target.value)}
             />
+          </FormField>
 
-            <KineticInput
-              label="Descripción y Detalles"
-              placeholder="Detalles sobre el trazado, asfalto, exigencia..."
-              multiline
+          <FormField label="Descripción y detalles">
+            <Textarea
               rows={4}
+              placeholder="Detalles sobre el trazado, asfalto, exigencia..."
               value={description}
-              onChange={e => setDescription(e.target.value)}
-              fullWidth
+              onChange={(e) => setDescription(e.target.value)}
             />
+          </FormField>
+        </FormSection>
 
-            <KineticButton 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              size="large"
-              disabled={isSubmitting}
-              sx={{ mt: 2, py: 1.5 }}
-            >
-              {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Guardar Cambios'}
-            </KineticButton>
-          </Stack>
-        </form>
-      </GlassCard>
-    </div>
+        <KineticButton
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={isSubmitting || isUploadingCover}
+          className="w-full min-h-12 md:min-h-14 font-headline font-bold uppercase tracking-widest"
+        >
+          {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Guardar cambios'}
+        </KineticButton>
+      </form>
+    </CreateFormLayout>
   );
 }
