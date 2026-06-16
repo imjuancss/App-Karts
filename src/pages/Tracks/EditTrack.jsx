@@ -5,11 +5,11 @@ import { getTrackById, updateTrack, getProfile } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import KineticButton from '../../components/ui/KineticButton';
 import GlassCard from '../../components/ui/GlassCard';
-import KineticInput from '../../components/ui/KineticInput';
-import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-
+import { Input } from '../../components/ui/input';
+import { Textarea } from '../../components/ui/textarea';
+import PageContainer from '../../components/layout/PageContainer';
+import ContentSection from '../../components/layout/ContentSection';
+import FormSection from '../../components/layout/FormSection';
 
 export default function EditTrack() {
   const { id } = useParams();
@@ -22,7 +22,7 @@ export default function EditTrack() {
   const [description, setDescription] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [trazado, setTrazado] = useState('');
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,7 +35,7 @@ export default function EditTrack() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
-        
+
         if (!user) {
           setErrorMsg('Debes iniciar sesión para editar un circuito.');
           setIsLoading(false);
@@ -123,122 +123,135 @@ export default function EditTrack() {
 
   if (isLoading) {
     return (
-      <div className="create-track-container fade-in" style={{ textAlign: 'center' }}>
-        <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent)' }} />
-        <Typography color="text.secondary">Cargando pista...</Typography>
-      </div>
+      <PageContainer compact className="min-h-[50vh] items-center justify-center fade-in">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-primary" size={40} />
+          <p className="text-on-surface-variant font-label uppercase tracking-widest text-sm">Cargando pista...</p>
+        </div>
+      </PageContainer>
     );
   }
 
   if (errorMsg) {
     return (
-      <div className="create-track-container fade-in text-center">
-        <GlassCard variant="low" className="max-w-[500px] mx-auto p-8">
-          <Typography color="error" mb={2}>Pista no encontrada o no tienes permisos para editarla.</Typography>
-          <KineticButton variant="contained" onClick={() => navigate('/tracks')}>Volver a pistas</KineticButton>
+      <PageContainer compact className="items-center justify-center fade-in">
+        <GlassCard variant="low" className="w-full max-w-md mx-auto">
+          <ContentSection>
+            <p className="text-error font-label text-sm uppercase tracking-wider">{errorMsg}</p>
+            <KineticButton variant="contained" onClick={() => navigate('/tracks')}>Volver a pistas</KineticButton>
+          </ContentSection>
         </GlassCard>
-      </div>
+      </PageContainer>
     );
   }
 
+  const fieldClass = 'flex flex-col gap-2';
+
   return (
-    <div className="create-track-container fade-in">
-      <Stack direction="row" mb={3}>
-        <KineticButton 
-          variant="text" 
-          color="secondary" 
+    <PageContainer className="fade-in">
+      <ContentSection>
+        <KineticButton
+          variant="text"
+          color="secondary"
           onClick={() => navigate(`/tracks/${id}`)}
-          startIcon={<ArrowLeft size={20}/>}
+          startIcon={<ArrowLeft size={20} />}
         >
           Cancelar
         </KineticButton>
-      </Stack>
+      </ContentSection>
 
-      <GlassCard variant="low" className="max-w-[800px] mx-auto p-4 md:p-8">
-        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Editar Circuito</Typography>
+      <GlassCard variant="low" className="w-full max-w-2xl mx-auto">
+        <ContentSection>
+          <h1 className="text-3xl font-headline font-bold text-on-surface uppercase tracking-tight">Editar Circuito</h1>
 
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            <KineticInput
-              label="Nombre del Circuito"
-              placeholder="Ej: Circuito Xtreme Karts"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              fullWidth
-            />
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Ubicación / Ciudad"
-                  placeholder="Ej: Bogotá"
-                  value={location}
-                  onChange={e => setLocation(e.target.value)}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <FormSection maxWidth="full">
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">Nombre del Circuito</label>
+                <Input
+                  type="text"
+                  placeholder="Ej: Circuito Xtreme Karts"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                   required
-                  fullWidth
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <KineticInput
-                  label="Costo por Heat (Aprox)"
-                  placeholder="Ej: $50.000"
-                  value={costInfo}
-                  onChange={e => setCostInfo(e.target.value)}
-                  fullWidth
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={fieldClass}>
+                  <label className="text-on-surface-variant font-label uppercase text-xs">Ubicación / Ciudad</label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: Bogotá"
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <label className="text-on-surface-variant font-label uppercase text-xs">Costo por Heat (Aprox)</label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: $50.000"
+                    value={costInfo}
+                    onChange={e => setCostInfo(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">Horarios de Atención</label>
+                <Input
+                  type="text"
+                  placeholder="Ej: Mar-Dom: 10am - 10pm"
+                  value={schedule}
+                  onChange={e => setSchedule(e.target.value)}
                 />
-              </Grid>
-            </Grid>
+              </div>
 
-            <KineticInput
-              label="Horarios de Atención"
-              placeholder="Ej: Mar-Dom: 10am - 10pm"
-              value={schedule}
-              onChange={e => setSchedule(e.target.value)}
-              fullWidth
-            />
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">URL de Imagen de Portada (Opcional)</label>
+                <Input
+                  type="url"
+                  placeholder="Ej: https://images.unsplash.com/..."
+                  value={coverImage}
+                  onChange={e => setCoverImage(e.target.value)}
+                />
+              </div>
 
-            <KineticInput
-              label="URL de Imagen de Portada (Opcional)"
-              placeholder="Ej: https://images.unsplash.com/..."
-              type="url"
-              value={coverImage}
-              onChange={e => setCoverImage(e.target.value)}
-              fullWidth
-            />
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">URL de Imagen del Trazado (Opcional)</label>
+                <Input
+                  type="url"
+                  placeholder="Ej: https://images.unsplash.com/... (Imagen del trazado del circuito)"
+                  value={trazado}
+                  onChange={e => setTrazado(e.target.value)}
+                />
+              </div>
 
-            <KineticInput
-              label="URL de Imagen del Trazado (Opcional)"
-              placeholder="Ej: https://images.unsplash.com/... (Imagen del trazado del circuito)"
-              type="url"
-              value={trazado}
-              onChange={e => setTrazado(e.target.value)}
-              fullWidth
-            />
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">Descripción y Detalles</label>
+                <Textarea
+                  rows={4}
+                  placeholder="Detalles sobre el trazado, asfalto, exigencia..."
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                />
+              </div>
+            </FormSection>
 
-            <KineticInput
-              label="Descripción y Detalles"
-              placeholder="Detalles sobre el trazado, asfalto, exigencia..."
-              multiline
-              rows={4}
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              fullWidth
-            />
-
-            <KineticButton 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              size="large"
+            <KineticButton
+              type="submit"
+              variant="contained"
+              color="primary"
               disabled={isSubmitting}
-              sx={{ mt: 2, py: 1.5 }}
+              className="w-full"
             >
               {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Guardar Cambios'}
             </KineticButton>
-          </Stack>
-        </form>
+          </form>
+        </ContentSection>
       </GlassCard>
-    </div>
+    </PageContainer>
   );
 }

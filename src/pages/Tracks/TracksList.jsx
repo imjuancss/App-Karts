@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Zap, Loader2 } from 'lucide-react';
+import { Zap, Loader2 } from 'lucide-react';
 import { getTracks } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
 import KineticCard from '../../components/ui/KineticCard';
 import { Input } from '../../components/ui/input';
 import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
+import PageContainer from '../../components/layout/PageContainer';
+import PageHeader from '../../components/layout/PageHeader';
 
 export default function TracksList() {
   const navigate = useNavigate();
@@ -28,9 +30,9 @@ export default function TracksList() {
     const matchesSearch = t.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           t.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           t.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     if (categoryFilter === 'all') return matchesSearch;
-    
+
     const isIndoor = t.name?.toLowerCase().includes('indoor') || t.description?.toLowerCase().includes('indoor');
     if (categoryFilter === 'indoor') return matchesSearch && isIndoor;
     if (categoryFilter === 'outdoor') return matchesSearch && !isIndoor;
@@ -38,43 +40,37 @@ export default function TracksList() {
   });
 
   return (
-    <div className="fade-in flex flex-col gap-6 md:gap-8 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 font-body">
-      
-      {/* Hero Title Section */}
-      <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-        <div className="flex flex-col gap-4">
-          <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
-            <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
-            Pistas de Karts
-          </h3>
-          <p className="font-body text-on-surface-variant text-base tracking-wide">
-            Encuentra los mejores circuitos para correr en la región
-          </p>
-        </div>
-        
-        {/* Technical Search/Filter Bar */}
-        <div className="w-full md:w-[500px] space-y-4">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary-dim transition-colors" style={{ fontSize: '18px' }}>search</span>
+    <PageContainer className="fade-in relative">
+      <PageHeader
+        layout="row"
+        title="Pistas de Karts"
+        description="Encuentra los mejores circuitos para correr en la región"
+        icon={
+          <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
+        }
+        actions={
+          <div className="w-full md:w-[500px] flex flex-col gap-4">
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary-dim transition-colors" style={{ fontSize: '18px' }}>search</span>
+              </div>
+              <Input
+                className="pl-16 pr-6 py-6 text-[11px] font-label font-medium uppercase tracking-[0.1em]"
+                placeholder="BUSCAR PISTA POR NOMBRE, CIUDAD O CATEGORIA..."
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <Input 
-              className="pl-16 pr-6 py-6 text-[11px] font-label font-medium uppercase tracking-[0.1em]" 
-              placeholder="BUSCAR PISTA POR NOMBRE, CIUDAD O CATEGORIA..." 
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <FilterGroup value={categoryFilter} onValueChange={(val) => setCategoryFilter(categoryFilter === val ? 'all' : val)} className="flex w-full">
+              <FilterItem value="indoor" className="flex-1">INDOOR</FilterItem>
+              <FilterItem value="outdoor" className="flex-1">OUTDOOR</FilterItem>
+            </FilterGroup>
           </div>
-          <FilterGroup value={categoryFilter} onValueChange={(val) => setCategoryFilter(categoryFilter === val ? 'all' : val)} className="flex w-full">
-            <FilterItem value="indoor" className="flex-1">INDOOR</FilterItem>
-            <FilterItem value="outdoor" className="flex-1">OUTDOOR</FilterItem>
-          </FilterGroup>
-        </div>
-      </header>
+        }
+      />
 
-      {/* Featured Circuit Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start slide-up">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start slide-up">
         {isLoading ? (
           <div className="col-span-full flex flex-col justify-center items-center py-20 gap-4">
             <Loader2 className="animate-spin text-primary" size={32} />
@@ -92,7 +88,7 @@ export default function TracksList() {
                   hasHighRating ? (
                     <div className="bg-tertiary-fixed text-black px-2 py-1 flex items-center gap-1.5 shadow-[0_0_40px_rgba(202,253,0,0.15)] rounded-sm select-none">
                       <span className="font-headline text-[11px] font-bold tracking-widest uppercase">HOT TRACK</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse" />
                     </div>
                   ) : null
                 }
@@ -116,17 +112,18 @@ export default function TracksList() {
                   </div>
                 }
                 footer={
-                  <button 
+                  <button
+                    type="button"
                     onClick={() => navigate(`/tracks/${track.id}`)}
                     className="w-full relative overflow-hidden group/btn py-3 flex justify-between items-center px-6 active:scale-[0.98] transition-transform rounded-sm border-none cursor-pointer"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-dim via-primary-fixed to-primary-dim opacity-100 group-hover/btn:animate-pulse"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-dim via-primary-fixed to-primary-dim opacity-100 group-hover/btn:animate-pulse" />
                     <span className="font-headline font-bold text-xs tracking-[0.15em] uppercase text-black relative z-10">VER DETALLES</span>
                     <span className="material-symbols-outlined text-black group-hover/btn:translate-x-1 transition-transform relative z-10" style={{ fontSize: '16px' }}>arrow_forward</span>
                   </button>
                 }
               >
-                <div className="bg-surface-container-high/50 p-4 border-l-2 border-primary-dim rounded-r-sm mt-1">
+                <div className="bg-surface-container-high/50 p-4 border-l-2 border-primary-dim rounded-r-sm">
                   <p className="font-body text-xs text-on-surface leading-relaxed tracking-wide line-clamp-2">
                     {track.cost_info || 'Consultar costo'}
                   </p>
@@ -142,18 +139,17 @@ export default function TracksList() {
         )}
       </section>
 
-      {/* PERFORMANCE STATS SECTION (Bento Style) */}
-      <section className="mt-16 grid grid-cols-1 xl:grid-cols-4 gap-8">
-        <div className="xl:col-span-3 bg-surface-container-low p-10 rounded-sm border border-outline-variant/10">
-          <div className="flex justify-between items-center mb-8">
+      <section className="grid grid-cols-1 xl:grid-cols-4 gap-6 md:gap-8">
+        <div className="xl:col-span-3 bg-surface-container-low p-6 md:p-8 rounded-sm border border-outline-variant/10 flex flex-col gap-6">
+          <div className="flex justify-between items-center gap-4">
             <h4 className="font-headline font-bold text-xl uppercase tracking-widest italic text-white">Live Leaderboard</h4>
             <div className="flex gap-2 items-center">
-              <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-error animate-pulse" />
               <span className="text-[11px] font-bold text-error uppercase tracking-widest hidden sm:inline">Live Track Status</span>
             </div>
           </div>
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-8 bg-surface-container-high/50 border-l-2 border-tertiary-fixed rounded-r-sm hover:bg-surface-container-highest transition-colors gap-y-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 md:p-8 bg-surface-container-high/50 border-l-2 border-tertiary-fixed rounded-r-sm hover:bg-surface-container-highest transition-colors gap-4">
               <div className="flex items-center gap-4">
                 <span className="font-headline font-bold text-lg text-tertiary-fixed w-8">#1</span>
                 <span className="font-headline font-bold uppercase text-white">J. Sanchez</span>
@@ -163,7 +159,7 @@ export default function TracksList() {
                 <span className="font-display font-bold text-tertiary-fixed text-lg neon-glow">43.882s</span>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-8 bg-surface-container-high/50 border-l-2 border-on-surface-variant/20 rounded-r-sm hover:bg-surface-container-highest transition-colors gap-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 md:p-8 bg-surface-container-high/50 border-l-2 border-on-surface-variant/20 rounded-r-sm hover:bg-surface-container-highest transition-colors gap-4">
               <div className="flex items-center gap-4">
                 <span className="font-headline font-bold text-lg text-on-surface-variant/60 w-8">#2</span>
                 <span className="font-headline font-bold uppercase text-white">M. Verstappen</span>
@@ -175,17 +171,17 @@ export default function TracksList() {
             </div>
           </div>
         </div>
-        
-        <div className="bg-primary-dim p-8 rounded-sm flex flex-col justify-between overflow-hidden relative group">
-          <div className="relative z-10">
+
+        <div className="bg-primary-dim p-6 md:p-8 rounded-sm flex flex-col justify-between gap-6 overflow-hidden relative group">
+          <div className="relative z-10 flex flex-col gap-4">
             <span className="text-[11px] font-bold text-white/80 uppercase tracking-[0.2em]">Next GP Event</span>
-            <h4 className="font-headline font-bold text-4xl italic text-white mt-4 leading-none uppercase tracking-tighter">Velocity Masters</h4>
-            <p className="text-white/60 text-xs mt-4 font-medium uppercase tracking-widest">Nov 24 • Cajicá Circuit</p>
+            <h4 className="font-headline font-bold text-4xl italic text-white leading-none uppercase tracking-tighter">Velocity Masters</h4>
+            <p className="text-white/60 text-xs font-medium uppercase tracking-widest">Nov 24 • Cajicá Circuit</p>
           </div>
-          <KineticButton 
+          <KineticButton
             variant="contained"
             color="inherit"
-            className="relative z-10 bg-white text-primary-dim hover:bg-white/90 font-headline text-xs mt-8 self-start border-none"
+            className="relative z-10 bg-white text-primary-dim hover:bg-white/90 font-headline text-xs self-start border-none"
           >
             Register Now
           </KineticButton>
@@ -195,16 +191,15 @@ export default function TracksList() {
         </div>
       </section>
 
-      {/* Bottom Action Floating Button */}
       <div className="fixed bottom-8 right-6 md:right-12 z-50">
-        <button 
+        <button
+          type="button"
           onClick={() => navigate('/tracks/new')}
           className="w-16 h-16 bg-tertiary-fixed text-black shadow-[0_0_30px_rgba(202,253,0,0.3)] flex items-center justify-center transition-all hover:scale-110 active:scale-90 rounded-sm border-none cursor-pointer"
         >
           <span className="material-symbols-outlined font-bold" style={{ fontSize: '30px' }}>add</span>
         </button>
       </div>
-
-    </div>
+    </PageContainer>
   );
 }

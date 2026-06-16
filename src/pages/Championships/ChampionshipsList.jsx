@@ -4,6 +4,8 @@ import { getChampionships } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
 import KineticCard from '../../components/ui/KineticCard';
 import { Loader2 } from 'lucide-react';
+import PageContainer from '../../components/layout/PageContainer';
+import PageHeader from '../../components/layout/PageHeader';
 
 export default function ChampionshipsList() {
   const navigate = useNavigate();
@@ -37,42 +39,37 @@ export default function ChampionshipsList() {
   }, []);
 
   return (
-    <div className="fade-in flex flex-col gap-6 md:gap-8 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 relative">
+    <PageContainer className="fade-in relative">
+      <PageHeader
+        layout="row"
+        title="Campeonatos Activos"
+        description="Domina el asfalto. Únete a las ligas de karting más competitivas y demuestra tu velocidad."
+        icon={
+          <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>trophy</span>
+        }
+        actions={
+          <KineticButton
+            variant="contained"
+            color="primary"
+            onClick={() => navigate('/championships/new')}
+            className="shrink-0 font-headline font-bold uppercase tracking-[0.2em] text-xs px-8 py-4 shadow-[0_0_40px_rgba(225,42,0,0.4)] cursor-pointer"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
+            <span>NUEVO TORNEO</span>
+          </KineticButton>
+        }
+      />
 
-      {/* Hero Header Section */}
-      <header className="relative flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-8">
-        <div className="flex flex-col gap-4 max-w-2xl">
-          <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
-            <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>trophy</span>
-            Campeonatos Activos
-          </h3>
-          <p className="font-body text-on-surface-variant text-sm md:text-base max-w-lg leading-relaxed">
-            Domina el asfalto. Únete a las ligas de karting más competitivas y demuestra tu velocidad.
-          </p>
-        </div>
-        <KineticButton 
-          variant="contained"
-          color="primary"
-          onClick={() => navigate('/championships/new')}
-          className="shrink-0 font-headline font-bold uppercase tracking-[0.2em] text-xs px-8 py-4 shadow-[0_0_40px_rgba(225,42,0,0.4)] cursor-pointer"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add</span>
-          <span>NUEVO TORNEO</span>
-        </KineticButton>
-      </header>
-
-      {/* Main Content - Bento Inspired Grid */}
-      <main>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start slide-up">
-          {isLoading ? (
-            <div className="col-span-full flex flex-col justify-center items-center py-20 gap-4">
-              <Loader2 className="animate-spin text-primary" size={32} />
-              <p className="text-on-surface-variant text-sm font-sans">Cargando campeonatos...</p>
-            </div>
-          ) : (
-            champs.map(champ => {
-              const isOpen = champ.status?.toLowerCase().includes('abierta') || champ.status?.toLowerCase().includes('abiertas');
-              return (
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start slide-up">
+        {isLoading ? (
+          <div className="col-span-full flex flex-col justify-center items-center py-20 gap-4">
+            <Loader2 className="animate-spin text-primary" size={32} />
+            <p className="text-on-surface-variant text-sm font-sans">Cargando campeonatos...</p>
+          </div>
+        ) : (
+          champs.map(champ => {
+            const isOpen = champ.status?.toLowerCase().includes('abierta') || champ.status?.toLowerCase().includes('abiertas');
+            return (
               <KineticCard
                 key={champ.id}
                 onClick={() => navigate(`/championships/${champ.id}`)}
@@ -108,16 +105,15 @@ export default function ChampionshipsList() {
                   </div>
                 }
               />
-              );
-            })
-          )}
-          {!isLoading && champs.length === 0 && (
-            <div className="col-span-full text-center py-12">
-              <p className="text-on-surface-variant font-headline text-lg">No se encontraron campeonatos activos.</p>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+            );
+          })
+        )}
+        {!isLoading && champs.length === 0 && (
+          <div className="col-span-full text-center py-12">
+            <p className="text-on-surface-variant font-headline text-lg">No se encontraron campeonatos activos.</p>
+          </div>
+        )}
+      </section>
+    </PageContainer>
   );
 }

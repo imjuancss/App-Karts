@@ -23,7 +23,7 @@ export function Tabs({ defaultValue, value, onValueChange, className, children }
 
   return (
     <TabsContext.Provider value={{ value: tab, onValueChange: handleTabChange }}>
-      <div className={cn("w-full", className)}>
+      <div className={cn("w-full flex flex-col gap-4", className)}>
         {children}
       </div>
     </TabsContext.Provider>
@@ -66,7 +66,7 @@ export function TabsContent({ value, className, children }) {
   if (context.value !== value) return null
 
   return (
-    <div className={cn("mt-4 outline-none", className)}>
+    <div className={cn("outline-none", className)}>
       {children}
     </div>
   )

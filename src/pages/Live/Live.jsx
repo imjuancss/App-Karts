@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Radio, Calendar, ExternalLink, Clock, RotateCw, Volume2, Info, Loader2 } from 'lucide-react';
+import { Calendar, ExternalLink, Clock, RotateCw, Volume2, Info, Loader2 } from 'lucide-react';
 import { getMotorsportNews, checkAndUpdateNews, fetchExternalMotorsportNews, fetchMotorsportCalendars } from '../../services/api';
 import KineticButton from '../../components/ui/KineticButton';
 import KineticCard from '../../components/ui/KineticCard';
 import { FilterGroup, FilterItem } from '../../components/ui/filter-group';
+import PageContainer from '../../components/layout/PageContainer';
+import ContentSection from '../../components/layout/ContentSection';
 
 export default function Live() {
   const [news, setNews] = useState([]);
@@ -109,7 +111,6 @@ export default function Live() {
       setFilteredNews(news);
       setFilteredCalendar(calendarEvents);
     } else {
-      // Comparación case-insensitive para evitar discrepancias de mayúsculas
       setFilteredNews(news.filter(item => item.category?.toLowerCase() === selectedCategory.toLowerCase()));
       setFilteredCalendar(calendarEvents.filter(item => item.series?.toLowerCase() === selectedCategory.toLowerCase()));
     }
@@ -130,17 +131,16 @@ export default function Live() {
   const categories = ['Todos', 'Formula 1', 'MotoGP', 'IndyCar', 'WRC', 'WEC', 'IMSA'];
 
   return (
-    <div className="fade-in flex flex-col gap-6 md:gap-8 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20">
-      {/* Header Panel */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <h3 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
+    <PageContainer className="fade-in">
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="flex flex-col gap-3 max-w-2xl">
+          <div className="flex flex-wrap items-center gap-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-on-surface flex items-center gap-3 font-headline">
               <span className="material-symbols-outlined text-primary-dim text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>sensors</span>
               Motorsport En Vivo
-            </h3>
+            </h1>
             <div className="flex items-center gap-2 px-3 py-1 bg-error-container/20 rounded-sm whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-error animate-pulse" />
               <span className="text-error text-xs font-bold font-sans tracking-widest uppercase">EN VIVO</span>
             </div>
           </div>
@@ -148,12 +148,11 @@ export default function Live() {
             Panel unificado de noticias y transmisiones de las categorías reinas del automovilismo mundial.
           </p>
         </div>
-
-        <div className="flex flex-row gap-4 items-center">
+        <div className="flex flex-row gap-4 items-center shrink-0">
           <span className="text-sm text-on-surface-variant/50 font-mono">{lastUpdatedText}</span>
-          <KineticButton 
-            variant="outlined" 
-            onClick={() => loadData(true)} 
+          <KineticButton
+            variant="outlined"
+            onClick={() => loadData(true)}
             disabled={isUpdating}
             className="p-2 min-w-0"
           >
@@ -162,21 +161,15 @@ export default function Live() {
         </div>
       </header>
 
-      {/* Barra de Filtros */}
-      <div className="w-full">
-        <FilterGroup value={selectedCategory} onValueChange={setSelectedCategory} className="w-full my-5 flex-wrap">
-          {categories.map(cat => (
-            <FilterItem key={cat} value={cat} className="shrink-0">
-              {cat}
-            </FilterItem>
-          ))}
-        </FilterGroup>
-      </div>
+      <FilterGroup value={selectedCategory} onValueChange={setSelectedCategory} className="w-full flex-wrap">
+        {categories.map(cat => (
+          <FilterItem key={cat} value={cat} className="shrink-0">
+            {cat}
+          </FilterItem>
+        ))}
+      </FilterGroup>
 
-      {/* Grid Layout Principal */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        
-        {/* Columna Izquierda: Noticias */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
         <div className="md:col-span-8">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -199,7 +192,7 @@ export default function Live() {
                     <>
                       <span className="font-bold">{item.source}</span>
                       <span className="flex items-center gap-1 font-mono">
-                        <Clock size={12} /> 
+                        <Clock size={12} />
                         {new Date(item.pub_date).toLocaleDateString([], {day: 'numeric', month: 'short'})} a las {new Date(item.pub_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </span>
                     </>
@@ -207,9 +200,9 @@ export default function Live() {
                   title={item.title}
                   description={item.description}
                   footer={
-                    <a 
-                      href={item.link} 
-                      target="_blank" 
+                    <a
+                      href={item.link}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-tertiary transition-colors"
                     >
@@ -220,8 +213,8 @@ export default function Live() {
               ))}
 
               {filteredNews.length === 0 && (
-                <div className="col-span-full py-20 text-center bg-surface-container/50 rounded-sm p-8">
-                  <Info size={32} className="mx-auto mb-2 text-on-surface-variant/50" />
+                <div className="col-span-full py-20 text-center bg-surface-container/50 rounded-sm p-8 flex flex-col items-center gap-3">
+                  <Info size={32} className="text-on-surface-variant/50" />
                   <p className="text-on-surface-variant">No hay noticias en vivo disponibles en este momento para {selectedCategory}.</p>
                 </div>
               )}
@@ -229,20 +222,17 @@ export default function Live() {
           )}
         </div>
 
-        {/* Columna Derecha: Widgets Embebidos y Agenda */}
         <div className="md:col-span-4 slide-up">
-          <div className="flex flex-col gap-6">
-            
-            {/* Widget 1: Próximas Sesiones */}
-            <div className="bg-surface-container rounded-sm p-5">
-              <div className="flex flex-row gap-3 items-center mb-4 pb-3">
-                <Calendar className="text-primary" size={20} />
+          <ContentSection>
+            <div className="bg-surface-container rounded-sm p-6 flex flex-col gap-4">
+              <div className="flex flex-row gap-3 items-center">
+                <Calendar className="text-primary shrink-0" size={20} />
                 <div className="flex flex-col gap-1">
                   <h6 className="text-lg font-bold text-on-surface leading-tight">Próximas Sesiones</h6>
                   <span className="text-[10px] text-on-surface-variant uppercase font-mono">Calendario Oficial</span>
                 </div>
               </div>
-              
+
               <div className="flex flex-col gap-4">
                 {isCalendarLoading ? (
                   <div className="flex justify-center py-4">
@@ -251,17 +241,17 @@ export default function Live() {
                 ) : (
                   <>
                     {filteredCalendar.map((race) => (
-                      <div 
-                        key={race.id} 
-                        className="p-4 rounded-sm bg-surface-container-high flex flex-col gap-1 transition-colors hover:bg-surface-variant/30"
+                      <div
+                        key={race.id}
+                        className="p-4 rounded-sm bg-surface-container-high flex flex-col gap-2 transition-colors hover:bg-surface-variant/30"
                       >
-                        <div className="flex justify-between items-center mb-1">
+                        <div className="flex justify-between items-center">
                           <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${getBadgeClass(race.series)}`}>{race.series}</span>
                           <span className="text-xs font-mono font-bold text-on-surface-variant text-right">{race.time}</span>
                         </div>
                         <p className="text-sm font-bold text-on-surface">{race.event}</p>
-                        <div className="flex justify-between items-center text-xs mt-1">
-                          <span className="text-on-surface-variant line-clamp-1 mr-2">{race.session}</span>
+                        <div className="flex justify-between items-center gap-2 text-xs">
+                          <span className="text-on-surface-variant line-clamp-1">{race.session}</span>
                           <span className={`font-mono text-[10px] shrink-0 font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${
                             race.status === 'En Vivo' ? 'bg-error-container/20 text-error animate-pulse' :
                             race.status === 'Finalizado' ? 'bg-surface-variant text-on-surface-variant' :
@@ -282,18 +272,15 @@ export default function Live() {
               </div>
             </div>
 
-            {/* Widget 2: Información de Sincronización */}
             <div className="bg-surface-variant/30 rounded-sm p-4 flex flex-row gap-3 items-start border-l-2 border-primary">
-              <Volume2 size={18} className="text-primary shrink-0 mt-0.5" />
+              <Volume2 size={18} className="text-primary shrink-0" />
               <p className="text-sm text-on-surface-variant">
                 Las noticias y horarios se sincronizan automáticamente cada hora en base a la actividad del usuario en la plataforma.
               </p>
             </div>
-
-          </div>
+          </ContentSection>
         </div>
-
       </div>
-    </div>
+    </PageContainer>
   );
 }

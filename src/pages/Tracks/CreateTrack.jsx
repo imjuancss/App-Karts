@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
 import GlassCard from '../../components/ui/GlassCard';
 import KineticButton from '../../components/ui/KineticButton';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
+import PageContainer from '../../components/layout/PageContainer';
+import ContentSection from '../../components/layout/ContentSection';
+import FormSection from '../../components/layout/FormSection';
 import { createTrack } from '../../services/api';
 
 export default function CreateTrack() {
@@ -26,8 +27,6 @@ export default function CreateTrack() {
     setErrorMsg('');
 
     try {
-      // Intentamos estructurar el horario como JSON si tiene un formato clave/valor
-      // De lo contrario, lo guardamos como un objeto con una clave "horario"
       let scheduleObj = { horario: schedule };
       try {
         if (schedule.startsWith('{')) {
@@ -55,97 +54,103 @@ export default function CreateTrack() {
     }
   };
 
+  const fieldClass = 'flex flex-col gap-2';
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col gap-6 md:gap-8 py-12 font-body fade-in">
-      <div className="flex">
-        <KineticButton 
-          variant="text" 
-          color="secondary" 
+    <PageContainer className="fade-in">
+      <ContentSection>
+        <KineticButton
+          variant="text"
+          color="secondary"
           onClick={() => navigate('/tracks')}
-          startIcon={<ArrowLeft size={20}/>}
+          startIcon={<ArrowLeft size={20} />}
         >
           Volver
         </KineticButton>
-      </div>
+      </ContentSection>
 
-      <GlassCard variant="low" className="w-full max-w-2xl mx-auto p-6 md:p-10">
-        <Typography variant="h3" mb={4} sx={{ color: 'white' }}>Crear Nuevo Circuito</Typography>
-        
-        {errorMsg && (
-          <div className="auth-error" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgb(239, 68, 68)', color: '#f87171', borderRadius: '8px' }}>
-            <p>{errorMsg}</p>
-          </div>
-        )}
+      <GlassCard variant="low" className="w-full max-w-2xl mx-auto">
+        <ContentSection>
+          <h1 className="text-3xl font-headline font-bold text-on-surface uppercase tracking-tight">Crear Nuevo Circuito</h1>
 
-        <form onSubmit={handleSubmit} className="track-form">
-          <div className="form-group mb-4">
-            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Nombre del Circuito</label>
-            <Input 
-              type="text" 
-              placeholder="Ej: Circuito Xtreme Karts" 
-              value={name} 
-              onChange={e => setName(e.target.value)} 
-              required 
-            />
-          </div>
-
-          <div className="form-row grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="form-group">
-              <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Ubicación / Ciudad</label>
-              <Input 
-                type="text" 
-                placeholder="Ej: Bogotá" 
-                value={location} 
-                onChange={e => setLocation(e.target.value)} 
-                required 
-              />
+          {errorMsg && (
+            <div className="p-4 bg-error/10 border border-error/30 rounded-sm">
+              <p className="text-error font-label text-sm uppercase tracking-wider">{errorMsg}</p>
             </div>
-            <div className="form-group">
-              <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Costo por Heat (Aprox)</label>
-              <Input 
-                type="text" 
-                placeholder="Ej: $50.000" 
-                value={costInfo} 
-                onChange={e => setCostInfo(e.target.value)} 
-              />
-            </div>
-          </div>
+          )}
 
-          <div className="form-group mb-4">
-            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Horarios de Atención</label>
-            <Input 
-              type="text" 
-              placeholder="Ej: Mar-Dom: 10am - 10pm" 
-              value={schedule} 
-              onChange={e => setSchedule(e.target.value)} 
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <FormSection maxWidth="full">
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">Nombre del Circuito</label>
+                <Input
+                  type="text"
+                  placeholder="Ej: Circuito Xtreme Karts"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                />
+              </div>
 
-          <div className="form-group mb-4">
-            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">URL de Imagen de Portada (Opcional)</label>
-            <Input 
-              type="url" 
-              placeholder="Ej: https://images.unsplash.com/..." 
-              value={coverImage} 
-              onChange={e => setCoverImage(e.target.value)} 
-            />
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={fieldClass}>
+                  <label className="text-on-surface-variant font-label uppercase text-xs">Ubicación / Ciudad</label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: Bogotá"
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <label className="text-on-surface-variant font-label uppercase text-xs">Costo por Heat (Aprox)</label>
+                  <Input
+                    type="text"
+                    placeholder="Ej: $50.000"
+                    value={costInfo}
+                    onChange={e => setCostInfo(e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <div className="form-group mb-6">
-            <label className="block mb-2 text-on-surface-variant font-label uppercase text-xs">Descripción y Detalles</label>
-            <Textarea 
-              rows="4" 
-              placeholder="Detalles sobre el trazado, asfalto, exigencia..." 
-              value={description} 
-              onChange={e => setDescription(e.target.value)} 
-            />
-          </div>
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">Horarios de Atención</label>
+                <Input
+                  type="text"
+                  placeholder="Ej: Mar-Dom: 10am - 10pm"
+                  value={schedule}
+                  onChange={e => setSchedule(e.target.value)}
+                />
+              </div>
 
-          <KineticButton type="submit" variant="contained" color="primary" className="w-full mt-4" disabled={isSubmitting}>
-            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Registrar Circuito'}
-          </KineticButton>
-        </form>
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">URL de Imagen de Portada (Opcional)</label>
+                <Input
+                  type="url"
+                  placeholder="Ej: https://images.unsplash.com/..."
+                  value={coverImage}
+                  onChange={e => setCoverImage(e.target.value)}
+                />
+              </div>
+
+              <div className={fieldClass}>
+                <label className="text-on-surface-variant font-label uppercase text-xs">Descripción y Detalles</label>
+                <Textarea
+                  rows={4}
+                  placeholder="Detalles sobre el trazado, asfalto, exigencia..."
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                />
+              </div>
+            </FormSection>
+
+            <KineticButton type="submit" variant="contained" color="primary" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Registrar Circuito'}
+            </KineticButton>
+          </form>
+        </ContentSection>
       </GlassCard>
-    </div>
+    </PageContainer>
   );
 }

@@ -9,8 +9,18 @@ import { cn } from '../../lib/utils';
  * - variant: 'glass' | 'low' | 'high' | 'highest' | 'primary-border'
  * - padding: string (e.g., 'p-6', 'p-4', 'p-8')
  */
-export default function GlassCard({ children, variant = 'low', padding = 'p-6', className = '', ...props }) {
-  let baseClasses = `${padding} relative overflow-hidden rounded-lg `;
+export default function GlassCard({
+  children,
+  variant = 'low',
+  padding = 'p-6',
+  stacked = true,
+  className = '',
+  ...props
+}) {
+  let baseClasses = `${padding} relative overflow-hidden rounded-sm `;
+  if (stacked) {
+    baseClasses += 'flex flex-col gap-4 ';
+  }
 
   switch (variant) {
     case 'glass':
