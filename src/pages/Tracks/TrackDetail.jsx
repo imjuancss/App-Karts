@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview } from '../../services/api';
 import { supabase } from '../../lib/supabase';
+import { formatTimeInput } from '../Profile/Profile';
+import { useToast } from '../../components/ui/toast';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -65,6 +67,7 @@ function InfoRow({ icon, label, children }) {
 export default function TrackDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('info');
   const [track, setTrack] = useState(null);
   const [recentTimes, setRecentTimes] = useState([]);
@@ -137,7 +140,11 @@ export default function TrackDetail() {
       const times = await getRecentTrackLapTimes(id);
       setRecentTimes(times || []);
       window.dispatchEvent(new Event('lap-times-updated'));
-      alert('¡Tiempo registrado con éxito!');
+      toast({
+        title: '¡Tiempo guardado exitosamente!',
+        description: 'Tu récord se ha guardado en el circuito.',
+        variant: 'success'
+      });
     } catch (err) {
       console.error(err);
       setTimeError(err.message || 'Ocurrió un error al registrar el tiempo.');
@@ -174,9 +181,14 @@ export default function TrackDetail() {
               {track.name}
             </h1>
           </div>
-          <button type="button" className="active:scale-95 duration-150">
-            <span className="material-symbols-outlined text-primary-fixed">share</span>
-          </button>
+          <div className="flex items-center gap-4">
+            <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} className="active:scale-95 duration-150">
+              <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
+            </button>
+            <button type="button" className="active:scale-95 duration-150">
+              <span className="material-symbols-outlined text-primary-fixed">share</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -430,7 +442,7 @@ export default function TrackDetail() {
                     type="text"
                     placeholder="Ej: 00:44.520 o 44.520"
                     value={timeInput}
-                    onChange={e => setTimeInput(e.target.value)}
+                    onChange={e => setTimeInput(formatTimeInput(e.target.value))}
                     required
                     className="w-full font-mono"
                   />

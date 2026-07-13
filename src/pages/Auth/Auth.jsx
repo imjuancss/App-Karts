@@ -103,12 +103,12 @@ export default function Auth() {
   return (
     <PageContainer className="fade-in items-center justify-center min-h-[calc(100dvh-72px)] md:min-h-[calc(100dvh-4rem)]">
       <div className="w-full max-w-md mx-auto flex flex-col gap-6 md:gap-8">
-        <ContentSection className="w-full">
+        <ContentSection className="w-full flex flex-col items-center md:items-start">
           <KineticButton
             variant="text"
             color="secondary"
             onClick={() => navigate('/')}
-            className="self-start"
+            className="self-center md:self-start"
           >
             <ArrowLeft size={20} aria-hidden="true" />
             Volver al inicio

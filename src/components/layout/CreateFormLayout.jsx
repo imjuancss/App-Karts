@@ -53,12 +53,12 @@ export default function CreateFormLayout({
   return (
     <PageContainer className="fade-in items-center justify-center min-h-[calc(100dvh-72px)] md:min-h-[calc(100dvh-4rem)]">
       <div className={cn('w-full mx-auto flex flex-col gap-6 md:gap-8 items-center', MAX_WIDTH[maxWidth] ?? MAX_WIDTH['3xl'])}>
-        <ContentSection className="w-full">
+        <ContentSection className="w-full flex flex-col items-center md:items-start">
           <KineticButton
             variant="text"
             color="secondary"
             onClick={onBack}
-            className="self-start"
+            className="self-center md:self-start"
           >
             <ArrowLeft size={20} aria-hidden="true" />
             {backLabel}

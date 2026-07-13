@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship } from '../../services/api';
+import { formatTimeInput } from '../Profile/Profile';
+import { useToast } from '../../components/ui/toast';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import KineticButton from '../../components/ui/KineticButton';
@@ -38,6 +40,7 @@ const parseTimeToMs = (timeStr) => {
 export default function ChampionshipDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('ranking');
   const [champ, setChamp] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,7 +137,11 @@ export default function ChampionshipDetail() {
       
       const times = await getRoundTimes(round.id);
       setRoundTimes(times || []);
-      alert('¡Tiempo enviado exitosamente para la ronda!');
+      toast({
+        title: '¡Tiempo guardado exitosamente!',
+        description: '¡Tiempo enviado exitosamente para la ronda!',
+        variant: 'success'
+      });
     } catch (err) {
       console.error(err);
       setTimeError(err.message || 'Error al subir el tiempo.');
@@ -206,45 +213,47 @@ export default function ChampionshipDetail() {
   return (
     <div className="bg-background text-on-surface font-body selection:bg-primary-dim/30 min-h-screen pb-24">
       {/* TopAppBar */}
-      <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl h-20 flex justify-between items-center px-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate('/championships')}
-            className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-sm"
-          >
-            <span className="material-symbols-outlined text-on-surface">arrow_back</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary-dim">sports_motorsports</span>
-            <h1 className="font-headline text-headline-sm font-bold text-on-surface uppercase tracking-widest hidden md:block">
-              {champ.name}
-            </h1>
-          </div>
-        </div>
-        <div className="hidden md:flex items-center gap-6">
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-primary-dim font-headline font-bold text-lg leading-none">
-              Inscribirme - ${champ.entry_fee ? Number(champ.entry_fee).toLocaleString() : '0'} COP
-            </span>
-            <span className="text-[11px] text-on-surface-variant uppercase tracking-tighter">
-              Sujeto a términos de Race Pass
-            </span>
-          </div>
-          {!isParticipant ? (
-            <KineticButton 
-              variant="contained"
-              color="primary"
-              onClick={handleJoin}
-              disabled={isJoining}
-              className="px-6 py-2 font-headline font-bold uppercase tracking-wider text-sm rounded-sm hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+      <header className="fixed top-[72px] md:top-0 left-0 md:left-72 right-0 z-40 bg-background/80 backdrop-blur-xl h-20 border-b border-outline-variant/10 shadow-sm">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex justify-between items-center h-full">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/championships')}
+              className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-sm"
             >
-              {isJoining ? 'Procesando...' : 'Pagar Ahora'}
-            </KineticButton>
-          ) : (
-            <div className="bg-tertiary-fixed/10 text-tertiary-fixed px-4 py-2 rounded-sm border border-tertiary-fixed/30 font-headline font-bold text-sm tracking-widest uppercase flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">check_circle</span> Inscrito
+              <span className="material-symbols-outlined text-on-surface">arrow_back</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary-dim">sports_motorsports</span>
+              <h1 className="font-headline text-headline-sm font-bold text-on-surface uppercase tracking-widest hidden md:block">
+                {champ.name}
+              </h1>
             </div>
-          )}
+          </div>
+          <div className="hidden md:flex items-center gap-6">
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-primary-dim font-headline font-bold text-lg leading-none">
+                Inscribirme - ${champ.entry_fee ? Number(champ.entry_fee).toLocaleString() : '0'} COP
+              </span>
+              <span className="text-[11px] text-on-surface-variant uppercase tracking-tighter">
+                Sujeto a términos de Race Pass
+              </span>
+            </div>
+            {!isParticipant ? (
+              <KineticButton 
+                variant="contained"
+                color="primary"
+                onClick={handleJoin}
+                disabled={isJoining}
+                className="px-6 py-2 font-headline font-bold uppercase tracking-wider text-sm rounded-sm hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isJoining ? 'Procesando...' : 'Pagar Ahora'}
+              </KineticButton>
+            ) : (
+              <div className="bg-tertiary-fixed/10 text-tertiary-fixed px-4 py-2 rounded-sm border border-tertiary-fixed/30 font-headline font-bold text-sm tracking-widest uppercase flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">check_circle</span> Inscrito
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -602,9 +611,9 @@ export default function ChampionshipDetail() {
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">timer</span>
                     <Input 
                       type="text" 
-                      placeholder="Ej: 00:44.520 o 44.520" 
+                      placeholder="Ej: 0:44.520" 
                       value={timeInput}
-                      onChange={e => setTimeInput(e.target.value)}
+                      onChange={e => setTimeInput(formatTimeInput(e.target.value))}
                       required 
                       className="w-full font-mono pl-12 py-4" 
                     />

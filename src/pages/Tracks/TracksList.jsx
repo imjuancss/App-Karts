@@ -122,17 +122,7 @@ export default function TracksList() {
                     <span className="font-body text-[11px] tracking-wide uppercase">{track.location}</span>
                   </div>
                 }
-                footer={
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/tracks/${track.id}`)}
-                    className="w-full relative overflow-hidden group/btn py-3 flex justify-between items-center px-6 active:scale-[0.98] transition-transform rounded-sm border-none cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-dim via-primary-fixed to-primary-dim opacity-100 group-hover/btn:animate-pulse" />
-                    <span className="font-headline font-bold text-xs tracking-[0.15em] uppercase text-black relative z-10">VER DETALLES</span>
-                    <span className="material-symbols-outlined text-black group-hover/btn:translate-x-1 transition-transform relative z-10" style={{ fontSize: '16px' }}>arrow_forward</span>
-                  </button>
-                }
+                onClick={() => navigate(`/tracks/${track.id}`)}
               >
                 <div className="bg-surface-container-high/50 p-4 border-l-2 border-primary-dim rounded-r-sm">
                   <p className="font-body text-xs text-on-surface leading-relaxed tracking-wide line-clamp-2">

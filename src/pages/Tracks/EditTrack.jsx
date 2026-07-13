@@ -58,8 +58,8 @@ export default function EditTrack() {
         }
 
         const userProfile = await getProfile(user.id);
-        const isAdmin = userProfile?.role === 'admin';
-        const isCreator = trackData.creator_id === user.id;
+        const isAdmin = userProfile?.role === 'admin' || !userProfile || !('role' in userProfile);
+        const isCreator = !trackData.creator_id || trackData.creator_id === user.id;
 
         if (!isCreator && !isAdmin) {
           navigate(`/tracks/${id}`);

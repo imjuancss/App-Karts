@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import { Loader2 } from 'lucide-react';
-
+import { ToastProvider } from './components/ui/toast';
 // Lazy loading de páginas para optimizar la carga inicial
 const HomeLeaderboard = lazy(() => import('./pages/HomeLeaderboard/HomeLeaderboard'));
 const ChampionshipsList = lazy(() => import('./pages/Championships/ChampionshipsList'));
@@ -29,29 +29,32 @@ function RouteLoader() {
 
 function App() {
   return (
-    <Router>
-      <Layout>
-        <Suspense fallback={<RouteLoader />}>
-          <Routes>
-            <Route path="/" element={<HomeLeaderboard />} />
-            
-            <Route path="/championships" element={<ChampionshipsList />} />
-            <Route path="/championships/new" element={<CreateChampionship />} />
-            <Route path="/championships/:id" element={<ChampionshipDetail />} />
-            
-            <Route path="/tracks" element={<TracksList />} />
-            <Route path="/tracks/new" element={<CreateTrack />} />
-            <Route path="/tracks/:id" element={<TrackDetail />} />
+    <ToastProvider>
+      <Router>
+        <Layout>
+          <Suspense fallback={<RouteLoader />}>
+            <Routes>
+              <Route path="/" element={<HomeLeaderboard />} />
+              
+              <Route path="/championships" element={<ChampionshipsList />} />
+              <Route path="/championships/new" element={<CreateChampionship />} />
+              <Route path="/championships/:id" element={<ChampionshipDetail />} />
+              
+              <Route path="/tracks" element={<TracksList />} />
+              <Route path="/tracks/new" element={<CreateTrack />} />
+              <Route path="/tracks/edit/:id" element={<EditTrack />} />
+              <Route path="/tracks/:id" element={<TrackDetail />} />
 
-            <Route path="/live" element={<Live />} />
+              <Route path="/live" element={<Live />} />
 
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/design-system" element={<DesignSystem />} />
-          </Routes>
-        </Suspense>
-      </Layout>
-    </Router>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/login" element={<Auth />} />
+              <Route path="/design-system" element={<DesignSystem />} />
+            </Routes>
+          </Suspense>
+        </Layout>
+      </Router>
+    </ToastProvider>
   );
 }
 

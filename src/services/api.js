@@ -28,30 +28,57 @@ export async function getTrackById(id) {
   return data;
 }
 
+async function executeWithSchemaFallback(operationFn, dataObject) {
+  try {
+    return await operationFn(dataObject);
+  } catch (error) {
+    if (error.message && error.message.includes("Could not find the '")) {
+      const match = error.message.match(/Could not find the '([^']+)' column/);
+      if (match && match[1]) {
+        const missingColumn = match[1];
+        console.warn(`Column '${missingColumn}' not found in database. Retrying without it.`);
+        const newData = { ...dataObject };
+        delete newData[missingColumn];
+        return executeWithSchemaFallback(operationFn, newData);
+      }
+    }
+    throw error;
+  }
+}
+
 export async function createTrack(trackData) {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
-  const { data, error } = await supabase
-    .from('tracks')
-    .insert([{
-      ...trackData,
-      creator_id: user?.id || null
-    }])
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+  
+  const performInsert = async (payload) => {
+    const { data, error } = await supabase
+      .from('tracks')
+      .insert([payload])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  };
+
+  return executeWithSchemaFallback(performInsert, {
+    ...trackData,
+    creator_id: user?.id || null
+  });
 }
 
 export async function updateTrack(id, trackData) {
-  const { data, error } = await supabase
-    .from('tracks')
-    .update(trackData)
-    .eq('id', id)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+  const performUpdate = async (payload) => {
+    const { data, error } = await supabase
+      .from('tracks')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  };
+
+  return executeWithSchemaFallback(performUpdate, trackData);
 }
 
 const TRACK_COVER_BUCKET = 'track-covers';

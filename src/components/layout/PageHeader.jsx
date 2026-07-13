@@ -17,18 +17,18 @@ export default function PageHeader({
   return (
     <header
       className={cn(
-        'flex gap-6',
+        'flex gap-6 items-center text-center md:items-start md:text-left w-full',
         layout === 'row'
           ? 'flex-col md:flex-row md:items-end md:justify-between'
           : 'flex-col',
         className
       )}
     >
-      <div className="flex flex-col gap-3 max-w-2xl">
+      <div className="flex flex-col gap-3 max-w-2xl items-center md:items-start w-full">
         {title && (
           <h1
             className={cn(
-              'text-3xl md:text-4xl font-bold text-on-surface font-headline flex items-center gap-3',
+              'text-3xl md:text-4xl font-bold text-on-surface font-headline flex items-center justify-center md:justify-start gap-3 w-full',
               titleClassName
             )}
           >

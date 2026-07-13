@@ -10,6 +10,7 @@ import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
 import Auth from '../Auth/Auth';
+import { useToast } from '../../components/ui/toast';
 
 const formatMsToTime = (ms) => {
   if (!ms || ms === Infinity) return "00:00.000";
@@ -17,6 +18,34 @@ const formatMsToTime = (ms) => {
   const seconds = Math.floor((ms % 60000) / 1000);
   const milliseconds = ms % 1000;
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+};
+
+export const formatTimeInput = (value) => {
+  let digits = value.replace(/\D/g, '');
+  if (digits.length > 7) digits = digits.slice(0, 7);
+  if (!digits) return '';
+
+  if (digits.length >= 5) {
+    let ssVal = 0;
+    if (digits.length === 5) ssVal = parseInt(digits.slice(0, 2), 10);
+    else if (digits.length === 6) ssVal = parseInt(digits.slice(1, 3), 10);
+    else if (digits.length === 7) ssVal = parseInt(digits.slice(2, 4), 10);
+
+    if (ssVal > 59) {
+      if (digits.length === 5) digits = '59' + digits.slice(2);
+      else if (digits.length === 6) digits = digits[0] + '59' + digits.slice(3);
+      else if (digits.length === 7) digits = digits.slice(0, 2) + '59' + digits.slice(4);
+    }
+  }
+
+  const len = digits.length;
+  if (len === 1) return `0.00${digits}`;
+  if (len === 2) return `0.0${digits}`;
+  if (len === 3) return `0.${digits}`;
+  if (len === 4) return `${digits[0]}.${digits.slice(1)}`;
+  if (len === 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (len === 6) return `${digits[0]}:${digits.slice(1, 3)}.${digits.slice(3)}`;
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}.${digits.slice(4)}`;
 };
 
 const parseTimeToMs = (timeStr) => {
@@ -72,6 +101,7 @@ function ListRow({ icon, title, subtitle, trailing, onClick }) {
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('campeonatos');
   const [sessionUser, setSessionUser] = useState(null);
@@ -219,7 +249,11 @@ export default function Profile() {
         setUserTimes(times || []);
       }
       window.dispatchEvent(new Event('lap-times-updated'));
-      alert('¡Tiempo guardado exitosamente!');
+      toast({
+        title: '¡Tiempo guardado exitosamente!',
+        description: `Tu tiempo ha sido registrado en el circuito seleccionado.`,
+        variant: 'success'
+      });
     } catch (err) {
       console.error(err);
       setTimeError(err.message || 'Error al guardar el tiempo.');
@@ -439,9 +473,9 @@ export default function Profile() {
                   <label className="text-on-surface-variant font-label text-xs uppercase tracking-widest">TIEMPO (MM:SS.SSS O SS.SSS)</label>
                   <Input 
                     type="text" 
-                    placeholder="00:44.520" 
+                    placeholder="Ej: 0:44.520" 
                     value={timeInput} 
-                    onChange={e => setTimeInput(e.target.value)} 
+                    onChange={e => setTimeInput(formatTimeInput(e.target.value))} 
                     required 
                     className="w-full text-tertiary-fixed font-display font-bold tracking-widest text-xl placeholder:text-outline-variant" 
                   />

@@ -169,7 +169,7 @@ export default function HomeLeaderboard() {
 
 
   return (
-    <div className="fade-in w-full h-[calc(100dvh-70px)] md:h-[calc(100dvh-4rem)] flex flex-col items-center font-sans">
+    <div className="fade-in w-full h-[calc(100dvh-136px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] flex flex-col items-center font-sans">
       <div className="w-full h-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 relative flex flex-col">
 
         {/* Zona Superior Fija */}
@@ -249,7 +249,7 @@ export default function HomeLeaderboard() {
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto px-4 pb-24 w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex-1 overflow-y-auto px-4 pb-32 w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
 
           <div className="self-stretch flex-1 inline-flex justify-center items-start gap-2.5 w-full">
@@ -363,7 +363,7 @@ export default function HomeLeaderboard() {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-50 flex flex-col justify-center items-center p-4">
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-40 flex flex-col justify-center items-center p-4">
           <KineticButton 
             variant="contained" 
             color="primary" 

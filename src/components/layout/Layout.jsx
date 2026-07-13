@@ -93,7 +93,6 @@ function SidebarLapPanel({ isLoading, sessionUser, userFastestMs, leaderMs }) {
 }
 
 export default function Layout({ children }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const [userFastestMs, setUserFastestMs] = useState(null);
   const [leaderMs, setLeaderMs] = useState(null);
@@ -101,14 +100,14 @@ export default function Layout({ children }) {
 
   const navLinks = [
     { to: "/", icon: "home", label: "Home" },
-    { to: "/championships", icon: "trophy", label: "Campeonatos" },
+    { to: "/championships", icon: "trophy", label: "Campos." },
     { to: "/tracks", icon: "map", label: "Pistas" },
     { to: "/live", icon: "sensors", label: "En Vivo" },
     { to: "/profile", icon: "person", label: "Perfil" }
   ];
 
   if (import.meta.env.DEV) {
-    navLinks.push({ to: "/design-system", icon: "palette", label: "Design System" });
+    navLinks.push({ to: "/design-system", icon: "palette", label: "DS" });
   }
 
   useEffect(() => {
@@ -204,7 +203,7 @@ export default function Layout({ children }) {
                     {item.icon}
                   </span>
                   <span className={`font-headline tracking-wide ${isActive ? 'uppercase text-sm font-bold' : 'font-medium'}`}>
-                    {item.label}
+                    {item.label === 'Campos.' ? 'Campeonatos' : item.label === 'DS' ? 'Design System' : item.label}
                   </span>
                   {item.label === 'En Vivo' && (
                     <span className="ml-auto flex h-2 w-2 rounded-full bg-error animate-pulse"></span>
@@ -227,83 +226,54 @@ export default function Layout({ children }) {
       </nav>
 
       {/* Mobile Topbar */}
-      <header className="mobile-header glass-panel bg-background/80 border-b border-outline-variant/10">
+      <header className="mobile-header glass-panel bg-background/80 backdrop-blur-md border-b border-outline-variant/10 md:hidden">
         <div className="logo flex items-center gap-2">
           <span className="material-symbols-outlined text-[#FF3100] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>flag</span>
           <h2 className="text-white font-bold italic">KartSocial</h2>
         </div>
-        <button 
-          onClick={() => setMobileMenuOpen(true)} 
-          className="text-on-surface flex items-center justify-center p-2 rounded hover:bg-surface-variant/30 transition-colors"
-        >
-          <span className="material-symbols-outlined text-2xl">menu</span>
-        </button>
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)}>
-          <nav className="flex flex-col gap-12 w-72 h-full p-6 relative bg-background/95 border-l border-outline-variant/10 glass-panel" onClick={e => e.stopPropagation()}>
-            <button 
-              onClick={() => setMobileMenuOpen(false)} 
-              className="absolute top-4 right-4 text-on-surface flex items-center justify-center p-2 rounded hover:bg-surface-variant/30 transition-colors"
+      {/* Mobile Bottom Navigation */}
+      <nav className="mobile-bottom-nav">
+        <div className="flex items-center justify-around h-16 px-2 w-full">
+          {navLinks.map((item) => (
+            <NavLink 
+              key={item.to} 
+              to={item.to} 
+              className={({ isActive }) => 
+                isActive 
+                  ? "flex flex-col items-center justify-center gap-1 w-full h-full text-primary-dim transition-all duration-300 relative"
+                  : "flex flex-col items-center justify-center gap-1 w-full h-full text-on-surface-variant hover:text-on-surface transition-all duration-300 relative"
+              }
             >
-              <span className="material-symbols-outlined text-2xl">close</span>
-            </button>
-            <div className="flex items-center gap-4 px-2">
-              <div className="w-10 h-10 kinetic-gradient rounded-sm flex items-center justify-center transform -skew-x-12">
-                <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>flag</span>
-              </div>
-              <h1 className="font-headline text-2xl font-bold tracking-tight italic text-white">
-                Kart<span className="text-primary-dim">Social</span>
-              </h1>
-            </div>
-            <div className="flex flex-col gap-3">
-              {navLinks.map((item) => (
-                <NavLink 
-                  key={item.to} 
-                  to={item.to} 
-                  className={({ isActive }) => 
-                    isActive 
-                      ? "bg-surface-container-highest text-on-surface font-bold rounded-lg px-4 py-4 flex items-center gap-4 active-glow border-l-4 border-primary-dim transition-all duration-300"
-                      : "group text-on-surface-variant hover:text-on-surface px-4 py-4 flex items-center gap-4 transition-all duration-300 rounded-lg hover:bg-surface-variant/30"
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <span 
-                        className={`material-symbols-outlined text-2xl ${isActive ? 'text-primary-dim' : 'group-hover:text-primary-dim transition-colors'}`}
-                        style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
-                        data-icon={item.icon}
-                      >
-                        {item.icon}
-                      </span>
-                      <span className={`font-headline tracking-wide ${isActive ? 'uppercase text-sm font-bold' : 'font-medium'}`}>
-                        {item.label}
-                      </span>
-                      {item.label === 'En Vivo' && (
-                        <span className="ml-auto flex h-2 w-2 rounded-full bg-error animate-pulse"></span>
-                      )}
-                    </>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-8 h-[2px] bg-primary-dim rounded-b-sm shadow-[0_0_8px_rgba(255,49,0,0.6)]"></div>
                   )}
-                </NavLink>
-              ))}
-            </div>
-            <div className="mt-auto pt-6 border-t border-outline-variant/10">
-              <SidebarLapPanel
-                isLoading={isLoadingLap}
-                sessionUser={sessionUser}
-                userFastestMs={userFastestMs}
-                leaderMs={leaderMs}
-              />
-            </div>
-          </nav>
+                  <div className="relative flex items-center justify-center h-7 mt-1">
+                    <span 
+                      className="material-symbols-outlined text-2xl"
+                      style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                    >
+                      {item.icon}
+                    </span>
+                    {item.label === 'En Vivo' && (
+                      <span className="absolute top-0 -right-2 flex h-2 w-2 rounded-full bg-error animate-pulse"></span>
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-headline tracking-wide uppercase ${isActive ? 'font-bold' : 'font-medium'}`}>
+                    {item.label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          ))}
         </div>
-      )}
+      </nav>
 
       {/* Main Content */}
-      <main className="main-content flex-1 min-h-screen pt-[72px] md:pt-0 relative z-10">
+      <main className="main-content flex-1 min-h-screen pt-[72px] pb-[calc(4rem+env(safe-area-inset-bottom))] md:pt-0 md:pb-0 relative z-10">
         {/* Visual Background Element: Kinetic Mesh Overlay */}
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] opacity-20 overflow-hidden">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary-dim blur-[120px] mix-blend-screen animate-pulse"></div>
@@ -314,3 +284,4 @@ export default function Layout({ children }) {
     </div>
   );
 }
+
