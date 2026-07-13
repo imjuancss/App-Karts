@@ -8,7 +8,7 @@ import { SelectNative } from '../../components/ui/select-native';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
-import FormSection from '../../components/layout/FormSection';
+import RegisterTimeModal from '../../components/modals/RegisterTimeModal';
 import Auth from '../Auth/Auth';
 import { useToast } from '../../components/ui/toast';
 
@@ -114,10 +114,6 @@ export default function Profile() {
   const [allTracks, setAllTracks] = useState([]);
   
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
-  const [selectedTrackId, setSelectedTrackId] = useState('');
-  const [timeInput, setTimeInput] = useState('');
-  const [isSubmittingTime, setIsSubmittingTime] = useState(false);
-  const [timeError, setTimeError] = useState('');
 
   const loadData = async (user) => {
     try {
@@ -159,9 +155,6 @@ export default function Profile() {
 
       const tracks = await getTracks();
       setAllTracks(tracks || []);
-      if (tracks && tracks.length > 0) {
-        setSelectedTrackId(tracks[0].id);
-      }
     } catch (error) {
       console.error("Error loading profile data:", error);
     } finally {
@@ -225,41 +218,12 @@ export default function Profile() {
     }
   }, [isLoading, sessionUser, searchParams, setSearchParams]);
 
-  const handleRegisterLapTime = async (e) => {
-    e.preventDefault();
-    setIsSubmittingTime(true);
-    setTimeError('');
-
-    try {
-      const ms = parseTimeToMs(timeInput);
-      if (ms <= 0) {
-        throw new Error("Ingresa un tiempo válido (mm:ss.SSS o ss.SSS)");
-      }
-      if (!selectedTrackId) {
-        throw new Error("Por favor selecciona una pista");
-      }
-
-      await registerLapTime(selectedTrackId, ms);
-      
-      setTimeInput('');
-      setIsTimeModalOpen(false);
-
-      if (sessionUser) {
-        const times = await getUserLapTimes(sessionUser.id);
-        setUserTimes(times || []);
-      }
-      window.dispatchEvent(new Event('lap-times-updated'));
-      toast({
-        title: '¡Tiempo guardado exitosamente!',
-        description: `Tu tiempo ha sido registrado en el circuito seleccionado.`,
-        variant: 'success'
-      });
-    } catch (err) {
-      console.error(err);
-      setTimeError(err.message || 'Error al guardar el tiempo.');
-    } finally {
-      setIsSubmittingTime(false);
+  const handleTimeRegistered = async () => {
+    if (sessionUser) {
+      const times = await getUserLapTimes(sessionUser.id);
+      setUserTimes(times || []);
     }
+    window.dispatchEvent(new Event('lap-times-updated'));
   };
 
   const handleAcceptInvite = async (inviteId, champId, name) => {
@@ -437,71 +401,11 @@ export default function Profile() {
         </ContentSection>
       </PageContainer>
 
-      {isTimeModalOpen && (
-        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface-container-high p-6 w-full max-w-md rounded-sm border border-outline-variant/30 fade-in shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-              <h3 className="font-headline font-bold text-xl uppercase tracking-widest text-white">REGISTRAR TIEMPO</h3>
-              <button type="button" onClick={() => setIsTimeModalOpen(false)} className="text-on-surface-variant hover:text-white">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            {timeError && (
-              <div className="bg-error/10 border border-error/50 p-3 rounded-sm">
-                <p className="text-error font-label text-xs uppercase tracking-wider">{timeError}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleRegisterLapTime} className="flex flex-col gap-6">
-              <FormSection maxWidth="full">
-                <div className="flex flex-col gap-2">
-                  <label className="text-on-surface-variant font-label text-xs uppercase tracking-widest">CIRCUITO</label>
-                  <SelectNative 
-                    value={selectedTrackId} 
-                    onChange={e => setSelectedTrackId(e.target.value)} 
-                    required
-                    className="w-full"
-                  >
-                    <option value="" disabled>SELECCIONA UNA PISTA...</option>
-                    {allTracks.map(t => (
-                      <option key={t.id} value={t.id}>{t.name} ({t.location})</option>
-                    ))}
-                  </SelectNative>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-on-surface-variant font-label text-xs uppercase tracking-widest">TIEMPO (MM:SS.SSS O SS.SSS)</label>
-                  <Input 
-                    type="text" 
-                    placeholder="Ej: 0:44.520" 
-                    value={timeInput} 
-                    onChange={e => setTimeInput(formatTimeInput(e.target.value))} 
-                    required 
-                    className="w-full text-tertiary-fixed font-display font-bold tracking-widest text-xl placeholder:text-outline-variant" 
-                  />
-                </div>
-              </FormSection>
-              <div className="flex justify-end gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setIsTimeModalOpen(false)} 
-                  disabled={isSubmittingTime}
-                  className="px-6 py-3 font-headline font-bold uppercase tracking-widest text-sm text-on-surface hover:bg-surface-variant transition-colors rounded-sm"
-                >
-                  CANCELAR
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isSubmittingTime}
-                  className="px-6 py-3 bg-primary text-on-primary font-headline font-bold uppercase tracking-widest text-sm rounded-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 min-w-[140px]"
-                >
-                  {isSubmittingTime ? <Loader2 className="animate-spin" size={16} /> : 'REGISTRAR'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <RegisterTimeModal 
+        isOpen={isTimeModalOpen}
+        onClose={() => setIsTimeModalOpen(false)}
+        onSuccess={handleTimeRegistered}
+      />
     </div>
   );
 }

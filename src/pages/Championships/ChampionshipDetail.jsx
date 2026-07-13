@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship } from '../../services/api';
+import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship, getProfile } from '../../services/api';
 import { formatTimeInput } from '../Profile/Profile';
 import { useToast } from '../../components/ui/toast';
 import { Input } from '../../components/ui/input';
@@ -45,7 +45,7 @@ export default function ChampionshipDetail() {
   const [champ, setChamp] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
-
+  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedRoundIdx, setSelectedRoundIdx] = useState(0);
   const [roundTimes, setRoundTimes] = useState([]);
   const [isLoadingTimes, setIsLoadingTimes] = useState(false);
@@ -67,7 +67,12 @@ export default function ChampionshipDetail() {
     setChamp(data);
     
     const { data: { session } } = await supabase.auth.getSession();
-    setSessionUser(session?.user || null);
+    const user = session?.user || null;
+    setSessionUser(user);
+    if (user) {
+      const profile = await getProfile(user.id);
+      setIsAdmin(profile?.role === 'admin');
+    }
 
     if (data && data.rounds && data.rounds.length > 0) {
       setIsLoadingTimes(true);
@@ -199,6 +204,7 @@ export default function ChampionshipDetail() {
   }
 
   const isCreator = sessionUser && sessionUser.id === champ.creator_id;
+  const canEdit = isCreator || isAdmin;
   const isParticipant = sessionUser && champ.participants.some(p => p.user_id === sessionUser.id);
   const activeRound = champ.rounds[selectedRoundIdx] || null;
 
@@ -230,6 +236,15 @@ export default function ChampionshipDetail() {
             </div>
           </div>
           <div className="hidden md:flex items-center gap-6">
+            {canEdit && (
+              <button 
+                onClick={() => navigate(`/championships/edit/${champ.id}`)}
+                className="flex items-center gap-2 text-on-surface-variant hover:text-primary-dim transition-colors mr-4"
+              >
+                <span className="material-symbols-outlined text-sm">edit</span>
+                <span className="font-headline font-bold uppercase text-xs tracking-widest">Editar</span>
+              </button>
+            )}
             <div className="flex flex-col items-end gap-1">
               <span className="text-primary-dim font-headline font-bold text-lg leading-none">
                 Inscribirme - ${champ.entry_fee ? Number(champ.entry_fee).toLocaleString() : '0'} COP
@@ -565,12 +580,6 @@ export default function ChampionshipDetail() {
             </div>
 
             <div className="flex flex-col gap-4 pt-8">
-              <p className="text-center font-label text-[11px] uppercase tracking-[0.3em] text-on-surface-variant/40">Powered by Velocity Engine</p>
-              <div className="flex justify-center gap-8 opacity-30 grayscale contrast-125">
-                <span className="material-symbols-outlined text-4xl">dynamic_form</span>
-                <span className="material-symbols-outlined text-4xl">precision_manufacturing</span>
-                <span className="material-symbols-outlined text-4xl">speed</span>
-              </div>
             </div>
           </div>
         </section>

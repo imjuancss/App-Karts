@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview } from '../../services/api';
+import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview, getProfile } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import { formatTimeInput } from '../Profile/Profile';
 import { useToast } from '../../components/ui/toast';
@@ -82,6 +82,7 @@ export default function TrackDetail() {
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleAddReview = async (e) => {
     e.preventDefault();
@@ -104,7 +105,21 @@ export default function TrackDetail() {
   const loadTrackData = async () => {
     setIsLoading(true);
     const { data: { session } } = await supabase.auth.getSession();
-    setSessionUser(session?.user || null);
+    const user = session?.user || null;
+    setSessionUser(user);
+
+    if (user) {
+      try {
+        const userProfile = await getProfile(user.id);
+        setIsAdmin(userProfile?.role === 'admin');
+      } catch (err) {
+        console.error("Error checking admin status:", err);
+        setIsAdmin(false);
+      }
+    } else {
+      setIsAdmin(false);
+    }
+
     const data = await getTrackById(id);
     setTrack(data);
     if (data) {
@@ -182,9 +197,11 @@ export default function TrackDetail() {
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} className="active:scale-95 duration-150">
-              <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
-            </button>
+            {isAdmin && (
+              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} className="active:scale-95 duration-150">
+                <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
+              </button>
+            )}
             <button type="button" className="active:scale-95 duration-150">
               <span className="material-symbols-outlined text-primary-fixed">share</span>
             </button>

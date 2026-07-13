@@ -81,6 +81,15 @@ export async function updateTrack(id, trackData) {
   return executeWithSchemaFallback(performUpdate, trackData);
 }
 
+export async function deleteTrack(id) {
+  const { error } = await supabase
+    .from('tracks')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
 const TRACK_COVER_BUCKET = 'track-covers';
 const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -272,6 +281,29 @@ export async function getChampionshipById(id) {
   }
   champ.participants = participants || [];
 
+  return champ;
+}
+
+export async function updateChampionship(id, champData) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const { data: champ, error: champError } = await supabase
+    .from('championships')
+    .update({
+      name: champData.name,
+      description: champData.description || '',
+      prize_label: champData.prize_label || '',
+      start_date: champData.start_date || null,
+      end_date: champData.end_date || null,
+      entry_fee: champData.entry_fee ? Number(champData.entry_fee) : 0,
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (champError) throw champError;
   return champ;
 }
 

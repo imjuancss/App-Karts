@@ -11,6 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import KineticButton from '@/components/ui/KineticButton';
 import { FilterGroup, FilterItem } from '@/components/ui/filter-group';
+import RegisterTimeModal from '@/components/modals/RegisterTimeModal';
+import { useToast } from '@/components/ui/toast';
 const formatMsToTime = (ms) => {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
@@ -41,6 +43,8 @@ export default function HomeLeaderboard() {
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('historical');
   const [isLoading, setIsLoading] = useState(false);
   const [filteredLeaderboard, setFilteredLeaderboard] = useState([]);
+  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // Fetch tracks list on mount
   useEffect(() => {
@@ -166,9 +170,19 @@ export default function HomeLeaderboard() {
     el.style.marginBottom = '8px';
   }, []);
 
-
-
-  return (
+  const handleOpenTimeModal = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: 'Atención',
+        description: 'Debes iniciar sesión para registrar tu tiempo.',
+        variant: 'destructive',
+      });
+      navigate('/login');
+      return;
+    }
+    setIsTimeModalOpen(true);
+  };  return (
     <div className="fade-in w-full h-[calc(100dvh-136px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] flex flex-col items-center font-sans">
       <div className="w-full h-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 relative flex flex-col">
 
@@ -367,7 +381,7 @@ export default function HomeLeaderboard() {
           <KineticButton 
             variant="contained" 
             color="primary" 
-            onClick={() => navigate('/profile')} 
+            onClick={handleOpenTimeModal} 
             className="cursor-pointer pointer-events-auto h-12 px-8 shadow-[0_0_40px_rgba(225,42,0,0.4)]"
           >
             <div data-svg-wrapper className="relative text-black">
@@ -391,6 +405,16 @@ export default function HomeLeaderboard() {
           </KineticButton>
         </div>
       </div>
+      
+      <RegisterTimeModal 
+        isOpen={isTimeModalOpen} 
+        onClose={() => setIsTimeModalOpen(false)} 
+        initialTrackId={selectedTrackId}
+        onSuccess={() => {
+          // You could optionally trigger a reload of the leaderboard here
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

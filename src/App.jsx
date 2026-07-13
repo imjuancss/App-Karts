@@ -7,6 +7,7 @@ import { ToastProvider } from './components/ui/toast';
 const HomeLeaderboard = lazy(() => import('./pages/HomeLeaderboard/HomeLeaderboard'));
 const ChampionshipsList = lazy(() => import('./pages/Championships/ChampionshipsList'));
 const CreateChampionship = lazy(() => import('./pages/Championships/CreateChampionship'));
+const EditChampionship = lazy(() => import('./pages/Championships/EditChampionship'));
 const ChampionshipDetail = lazy(() => import('./pages/Championships/ChampionshipDetail'));
 const TracksList = lazy(() => import('./pages/Tracks/TracksList'));
 const CreateTrack = lazy(() => import('./pages/Tracks/CreateTrack'));
@@ -38,6 +39,7 @@ function App() {
               
               <Route path="/championships" element={<ChampionshipsList />} />
               <Route path="/championships/new" element={<CreateChampionship />} />
+              <Route path="/championships/edit/:id" element={<EditChampionship />} />
               <Route path="/championships/:id" element={<ChampionshipDetail />} />
               
               <Route path="/tracks" element={<TracksList />} />

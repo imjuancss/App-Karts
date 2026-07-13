@@ -118,6 +118,25 @@ export default function Layout({ children }) {
         const user = session?.user ?? null;
         setSessionUser(user);
 
+        if (user && user.email === 'iamjuancss@gmail.com') {
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', user.id)
+              .single();
+            if (profile && profile.role !== 'admin') {
+              await supabase
+                .from('profiles')
+                .update({ role: 'admin' })
+                .eq('id', user.id);
+              console.log('Rol de administrador asignado automáticamente al iniciar sesión para:', user.email);
+            }
+          } catch (err) {
+            console.error('Error al auto-asignar rol admin:', err);
+          }
+        }
+
         if (!user) {
           setUserFastestMs(null);
           setLeaderMs(null);

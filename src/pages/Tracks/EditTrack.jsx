@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { getTrackById, updateTrack, getProfile, uploadTrackCover } from '../../services/api';
+import { getTrackById, updateTrack, getProfile, uploadTrackCover, deleteTrack } from '../../services/api';
 import { supabase } from '../../lib/supabase';
 import KineticButton from '../../components/ui/KineticButton';
 import GlassCard from '../../components/ui/GlassCard';
@@ -33,6 +33,7 @@ export default function EditTrack() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -58,10 +59,9 @@ export default function EditTrack() {
         }
 
         const userProfile = await getProfile(user.id);
-        const isAdmin = userProfile?.role === 'admin' || !userProfile || !('role' in userProfile);
-        const isCreator = !trackData.creator_id || trackData.creator_id === user.id;
+        const isAdmin = userProfile?.role === 'admin';
 
-        if (!isCreator && !isAdmin) {
+        if (!isAdmin) {
           navigate(`/tracks/${id}`);
           return;
         }
@@ -107,6 +107,24 @@ export default function EditTrack() {
       setErrorMsg(error.message || 'No se pudo subir la imagen.');
     } finally {
       setIsUploadingCover(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este circuito? Esta acción no se puede deshacer y eliminará todos los tiempos de vuelta y campeonatos asociados.')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setErrorMsg('');
+
+    try {
+      await deleteTrack(id);
+      navigate('/tracks');
+    } catch (error) {
+      console.error('Error al eliminar la pista:', error);
+      setErrorMsg(error.message || 'Error al eliminar el circuito.');
+      setIsDeleting(false);
     }
   };
 
@@ -226,12 +244,13 @@ export default function EditTrack() {
             disabled={isSubmitting}
           />
 
-          <FormField label="URL de imagen del trazado (opcional)" hint="Imagen del layout del circuito.">
+          <FormField label="URL de imagen del trazado" hint="Imagen del layout del circuito.">
             <Input
               type="url"
               placeholder="Ej: https://..."
               value={trazado}
               onChange={(e) => setTrazado(e.target.value)}
+              required
             />
           </FormField>
 
@@ -245,15 +264,28 @@ export default function EditTrack() {
           </FormField>
         </FormSection>
 
-        <KineticButton
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={isSubmitting || isUploadingCover}
-          className="w-full min-h-12 md:min-h-14 font-headline font-bold uppercase tracking-widest"
-        >
-          {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Guardar cambios'}
-        </KineticButton>
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
+          <KineticButton
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isSubmitting || isUploadingCover || isDeleting}
+            className="flex-1 min-h-12 md:min-h-14 font-headline font-bold uppercase tracking-widest"
+          >
+            {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Guardar cambios'}
+          </KineticButton>
+
+          <KineticButton
+            type="button"
+            variant="contained"
+            color="error"
+            disabled={isSubmitting || isUploadingCover || isDeleting}
+            onClick={handleDelete}
+            className="flex-1 min-h-12 md:min-h-14 font-headline font-bold uppercase tracking-widest"
+          >
+            {isDeleting ? <Loader2 className="animate-spin" size={24} /> : 'Eliminar circuito'}
+          </KineticButton>
+        </div>
       </form>
     </CreateFormLayout>
   );

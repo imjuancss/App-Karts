@@ -22,6 +22,7 @@ export default function CreateTrack() {
   const [description, setDescription] = useState('');
   const [circuitType, setCircuitType] = useState('kart');
   const [coverImage, setCoverImage] = useState('');
+  const [trazado, setTrazado] = useState('');
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -64,6 +65,7 @@ export default function CreateTrack() {
         description,
         circuit_type: circuitType,
         cover_image: coverImage || DEFAULT_COVER,
+        trazado: trazado || null,
       });
 
       navigate('/tracks');
@@ -142,6 +144,16 @@ export default function CreateTrack() {
             isUploading={isUploadingCover}
             disabled={isSubmitting}
           />
+
+          <FormField label="URL de imagen del trazado" hint="Imagen del layout del circuito.">
+            <Input
+              type="url"
+              placeholder="Ej: https://..."
+              value={trazado}
+              onChange={(e) => setTrazado(e.target.value)}
+              required
+            />
+          </FormField>
 
           <FormField label="Descripción y detalles">
             <Textarea
