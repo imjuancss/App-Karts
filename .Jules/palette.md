@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing ARIA Labels on Material Symbols Buttons
+**Learning:** In this application's design system, icon-only buttons are frequently created using Google's Material Symbols font within a nested `<span>` element (e.g., `<span className="material-symbols-outlined">arrow_back</span>`). Since the visual icon is rendered via text ligatures inside the span, screen readers often read the literal text (like "arrow underscore back") instead of understanding the button's action, creating a confusing experience.
+**Action:** Always inspect `<button>` elements that only contain Material Symbols spans to ensure they have an appropriate, descriptive `aria-label` attribute on the parent button element.

@@ -85,7 +85,7 @@ export default function RegisterTimeModal({ isOpen, onClose, onSuccess, initialT
       <div className="bg-surface-container-high p-6 w-full max-w-md rounded-sm border border-outline-variant/30 fade-in shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h3 className="font-headline font-bold text-xl uppercase tracking-widest text-white">REGISTRAR TIEMPO</h3>
-          <button type="button" onClick={onClose} className="text-on-surface-variant hover:text-white">
+          <button type="button" aria-label="Cerrar modal" onClick={onClose} className="text-on-surface-variant hover:text-white">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>

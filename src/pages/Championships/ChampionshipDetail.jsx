@@ -223,6 +223,7 @@ export default function ChampionshipDetail() {
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex justify-between items-center h-full">
           <div className="flex items-center gap-4">
             <button 
+              aria-label="Volver a campeonatos"
               onClick={() => navigate('/championships')}
               className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-sm"
             >
@@ -592,6 +593,7 @@ export default function ChampionshipDetail() {
           <div className="bg-surface-container-high border-none p-6 w-full max-w-md rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] relative fade-in flex flex-col gap-6">
             <button 
               type="button"
+              aria-label="Cerrar modal"
               onClick={() => setIsTimeModalOpen(false)}
               className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface"
             >

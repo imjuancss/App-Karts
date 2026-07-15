@@ -189,7 +189,7 @@ export default function TrackDetail() {
       <header className="sticky top-0 z-50 bg-surface-container-highest/40 backdrop-blur-[12px] border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
         <div className="flex items-center justify-between px-4 py-4 w-full max-w-5xl mx-auto">
           <div className="flex items-center gap-4">
-            <button type="button" onClick={() => navigate('/tracks')} className="active:scale-90 transition-transform flex items-center">
+            <button type="button" aria-label="Volver a pistas" onClick={() => navigate('/tracks')} className="active:scale-90 transition-transform flex items-center">
               <span className="material-symbols-outlined text-on-surface">arrow_back</span>
             </button>
             <h1 className="font-headline uppercase tracking-widest text-sm font-bold text-on-surface truncate max-w-[200px] md:max-w-xs">
@@ -198,11 +198,11 @@ export default function TrackDetail() {
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (
-              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} className="active:scale-95 duration-150">
+              <button type="button" aria-label="Editar pista" onClick={() => navigate(`/tracks/edit/${track.id}`)} className="active:scale-95 duration-150">
                 <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
               </button>
             )}
-            <button type="button" className="active:scale-95 duration-150">
+            <button type="button" aria-label="Compartir pista" className="active:scale-95 duration-150">
               <span className="material-symbols-outlined text-primary-fixed">share</span>
             </button>
           </div>
@@ -413,7 +413,7 @@ export default function TrackDetail() {
                       <span className="text-sm text-on-surface-variant uppercase tracking-widest">Calificación:</span>
                       <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map(star => (
-                          <button key={star} type="button" onClick={() => setNewReviewRating(star)} className="hover:scale-110 transition-transform">
+                          <button key={star} type="button" aria-label={`Calificar con ${star} estrellas`} onClick={() => setNewReviewRating(star)} className="hover:scale-110 transition-transform">
                             <span className={`material-symbols-outlined ${star <= newReviewRating ? 'text-primary' : 'text-on-surface-variant/30'}`} style={{ fontVariationSettings: star <= newReviewRating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                           </button>
                         ))}
