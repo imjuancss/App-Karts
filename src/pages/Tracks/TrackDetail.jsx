@@ -189,7 +189,7 @@ export default function TrackDetail() {
       <header className="sticky top-0 z-50 bg-surface-container-highest/40 backdrop-blur-[12px] border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
         <div className="flex items-center justify-between px-4 py-4 w-full max-w-5xl mx-auto">
           <div className="flex items-center gap-4">
-            <button type="button" onClick={() => navigate('/tracks')} className="active:scale-90 transition-transform flex items-center">
+            <button type="button" onClick={() => navigate('/tracks')} aria-label="Volver a pistas" className="active:scale-90 transition-transform flex items-center">
               <span className="material-symbols-outlined text-on-surface">arrow_back</span>
             </button>
             <h1 className="font-headline uppercase tracking-widest text-sm font-bold text-on-surface truncate max-w-[200px] md:max-w-xs">
@@ -198,11 +198,11 @@ export default function TrackDetail() {
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (
-              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} className="active:scale-95 duration-150">
+              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} aria-label="Editar pista" className="active:scale-95 duration-150">
                 <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
               </button>
             )}
-            <button type="button" className="active:scale-95 duration-150">
+            <button type="button" aria-label="Compartir pista" className="active:scale-95 duration-150">
               <span className="material-symbols-outlined text-primary-fixed">share</span>
             </button>
           </div>
