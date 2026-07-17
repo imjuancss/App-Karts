@@ -413,7 +413,7 @@ export default function TrackDetail() {
                       <span className="text-sm text-on-surface-variant uppercase tracking-widest">Calificación:</span>
                       <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map(star => (
-                          <button key={star} type="button" onClick={() => setNewReviewRating(star)} className="hover:scale-110 transition-transform">
+                          <button key={star} type="button" onClick={() => setNewReviewRating(star)} aria-label={`Calificar con ${star} estrellas`} className="hover:scale-110 transition-transform">
                             <span className={`material-symbols-outlined ${star <= newReviewRating ? 'text-primary' : 'text-on-surface-variant/30'}`} style={{ fontVariationSettings: star <= newReviewRating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                           </button>
                         ))}
