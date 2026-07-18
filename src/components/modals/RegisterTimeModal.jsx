@@ -4,7 +4,7 @@ import { Input } from '../ui/input';
 import { SelectNative } from '../ui/select-native';
 import FormSection from '../layout/FormSection';
 import { registerLapTime, getTracks } from '../../services/api';
-import { formatTimeInput } from '../../pages/Profile/Profile';
+import { formatTimeInput } from '../../lib/formatters';
 import { useToast } from '../ui/toast';
 import { supabase } from '../../lib/supabase';
 
