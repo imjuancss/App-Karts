@@ -248,6 +248,8 @@ export default function ChampionshipDetail() {
             {isCreator && (
               <button
                 type="button"
+                aria-label="Eliminar campeonato"
+                title="Eliminar campeonato"
                 onClick={async () => {
                   if (!window.confirm('¿Eliminar este campeonato? Esta acción no se puede deshacer.')) return;
                   try {
