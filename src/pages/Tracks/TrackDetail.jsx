@@ -180,6 +180,7 @@ export default function TrackDetail() {
             <button
               type="button"
               aria-label="Compartir pista"
+              title="Compartir pista"
               onClick={async () => {
                 const url = window.location.href;
                 try {
@@ -196,6 +197,8 @@ export default function TrackDetail() {
             {sessionUser && (sessionUser.id === track.creator_id) && (
               <button
                 type="button"
+                aria-label="Eliminar pista"
+                title="Eliminar pista"
                 onClick={async () => {
                   if (!window.confirm('¿Eliminar esta pista? Esta acción no se puede deshacer.')) return;
                   try {

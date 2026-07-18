@@ -56,6 +56,7 @@ export const ToastProvider = ({ children }) => {
               onClick={() => removeToast(t.id)}
               className="text-on-surface-variant hover:text-white transition-colors shrink-0 cursor-pointer"
               title="Cerrar"
+              aria-label="Cerrar"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
