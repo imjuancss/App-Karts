@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview, getProfile } from '../../services/api';
+import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview, deleteTrack, getProfile } from '../../services/api';
 import { supabase } from '../../lib/supabase';
-import { formatTimeInput } from '../Profile/Profile';
+import { formatMsToTime, formatTimeInput, parseTimeToMs } from '../../lib/formatters';
 import { useToast } from '../../components/ui/toast';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
@@ -12,31 +12,6 @@ import GlassCard from '../../components/ui/GlassCard';
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
-
-const formatMsToTime = (ms) => {
-  if (!ms) return "00:00.000";
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  const milliseconds = ms % 1000;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
-};
-
-const parseTimeToMs = (timeStr) => {
-  const parts = timeStr.trim().split(':');
-  if (parts.length === 2) {
-    const mins = parseInt(parts[0], 10);
-    const secsParts = parts[1].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (mins * 60000) + (secs * 1000) + ms;
-  } else if (parts.length === 1) {
-    const secsParts = parts[0].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (secs * 1000) + ms;
-  }
-  return 0;
-};
 
 const formatSchedule = (sched) => {
   if (!sched) return 'Horario no definido';
@@ -94,9 +69,9 @@ export default function TrackDetail() {
       setReviews(loadedReviews || []);
       setNewReviewText('');
       setNewReviewRating(5);
-      alert('Reseña publicada!');
+      toast({ title: 'Reseña publicada', description: 'Tu reseña ha sido guardada', variant: 'success' });
     } catch {
-      alert('Error al publicar reseña');
+      toast({ title: 'Error', description: 'Error al publicar reseña', variant: 'error' });
     } finally {
       setIsSubmittingReview(false);
     }
@@ -202,9 +177,40 @@ export default function TrackDetail() {
                 <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
               </button>
             )}
-            <button type="button" aria-label="Compartir pista" className="active:scale-95 duration-150">
+            <button
+              type="button"
+              aria-label="Compartir pista"
+              onClick={async () => {
+                const url = window.location.href;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast({ title: 'Link copiado', description: 'Se copió el enlace al portapapeles', variant: 'success' });
+                } catch {
+                  toast({ title: 'Error', description: 'No se pudo copiar el enlace', variant: 'error' });
+                }
+              }}
+              className="active:scale-95 duration-150"
+            >
               <span className="material-symbols-outlined text-primary-fixed">share</span>
             </button>
+            {sessionUser && (sessionUser.id === track.creator_id) && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!window.confirm('¿Eliminar esta pista? Esta acción no se puede deshacer.')) return;
+                  try {
+                    await deleteTrack(track.id);
+                    toast({ title: 'Pista eliminada', description: 'La pista fue eliminada correctamente', variant: 'success' });
+                    navigate('/tracks');
+                  } catch (err) {
+                    toast({ title: 'Error', description: err.message || 'No se pudo eliminar la pista', variant: 'error' });
+                  }
+                }}
+                className="active:scale-95 duration-150"
+              >
+                <span className="material-symbols-outlined text-error">delete</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -291,7 +297,12 @@ export default function TrackDetail() {
               </div>
               <button
                 type="button"
-                onClick={() => setActiveTab('info')}
+                onClick={() => {
+                  const infoTab = document.querySelector('[data-value="info"]');
+                  if (infoTab) infoTab.click();
+                  setActiveTab('info');
+                  window.scrollTo({ top: document.querySelector('.grid.grid-cols-12')?.offsetTop - 100, behavior: 'smooth' });
+                }}
                 className="w-full py-2 text-xs font-headline font-bold tracking-widest uppercase text-tertiary-fixed hover:text-white transition-colors"
               >
                 Ver Tabla Completa

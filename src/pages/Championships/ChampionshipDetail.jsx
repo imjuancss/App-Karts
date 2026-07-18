@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship, getProfile } from '../../services/api';
-import { formatTimeInput } from '../Profile/Profile';
+import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship, deleteChampionship, getProfile } from '../../services/api';
+import { formatMsToTime, formatTimeInput, parseTimeToMs } from '../../lib/formatters';
 import { useToast } from '../../components/ui/toast';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -11,31 +11,6 @@ import HeroHeader from '../../components/ui/HeroHeader';
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
-
-const formatMsToTime = (ms) => {
-  if (!ms) return "00:00.000";
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  const milliseconds = ms % 1000;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
-};
-
-const parseTimeToMs = (timeStr) => {
-  const parts = timeStr.trim().split(':');
-  if (parts.length === 2) {
-    const mins = parseInt(parts[0], 10);
-    const secsParts = parts[1].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (mins * 60000) + (secs * 1000) + ms;
-  } else if (parts.length === 1) {
-    const secsParts = parts[0].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (secs * 1000) + ms;
-  }
-  return 0;
-};
 
 export default function ChampionshipDetail() {
   const { id } = useParams();
@@ -102,18 +77,18 @@ export default function ChampionshipDetail() {
 
   const handleJoin = async () => {
     if (!sessionUser) {
-      alert("Debes iniciar sesión para inscribirte.");
+      toast({ title: 'Sesión requerida', description: 'Debes iniciar sesión para inscribirte', variant: 'error' });
       navigate('/login');
       return;
     }
     setIsJoining(true);
     try {
       await joinChampionship(champ.id);
-      alert("¡Te has inscrito exitosamente en el campeonato!");
+      toast({ title: '¡Inscrito!', description: 'Te has inscrito exitosamente en el campeonato', variant: 'success' });
       await loadChampionshipData();
     } catch (err) {
       console.error(err);
-      alert("Ocurrió un error al inscribirte.");
+      toast({ title: 'Error', description: 'Ocurrió un error al inscribirte', variant: 'error' });
     } finally {
       setIsJoining(false);
     }
@@ -161,11 +136,11 @@ export default function ChampionshipDetail() {
     setIsSubmittingInvite(true);
     try {
       await inviteToChampionship(champ.id, inviteEmail);
-      alert(`Invitación simulada enviada con éxito a: ${inviteEmail}. Al registrarse podrá unirse.`);
+      toast({ title: 'Invitación enviada', description: `Se guardó la invitación para ${inviteEmail}`, variant: 'success' });
       setInviteEmail('');
     } catch (err) {
       console.error(err);
-      alert(err.message || "Error al enviar la invitación.");
+      toast({ title: 'Error', description: err.message || 'Error al enviar la invitación', variant: 'error' });
     } finally {
       setIsSubmittingInvite(false);
     }
@@ -178,11 +153,11 @@ export default function ChampionshipDetail() {
     setIsCompletingRound(true);
     try {
       await completeRound(champ.id, roundId);
-      alert("¡Ronda finalizada correctamente y leaderboard general actualizado!");
+      toast({ title: '¡Ronda finalizada!', description: 'Leaderboard general actualizado', variant: 'success' });
       await loadChampionshipData();
     } catch (err) {
       console.error(err);
-      alert("Error al finalizar la ronda.");
+      toast({ title: 'Error', description: 'Error al finalizar la ronda', variant: 'error' });
     } finally {
       setIsCompletingRound(false);
     }
@@ -269,6 +244,24 @@ export default function ChampionshipDetail() {
               <div className="bg-tertiary-fixed/10 text-tertiary-fixed px-4 py-2 rounded-sm border border-tertiary-fixed/30 font-headline font-bold text-sm tracking-widest uppercase flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">check_circle</span> Inscrito
               </div>
+            )}
+            {isCreator && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!window.confirm('¿Eliminar este campeonato? Esta acción no se puede deshacer.')) return;
+                  try {
+                    await deleteChampionship(champ.id);
+                    toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
+                    navigate('/championships');
+                  } catch (err) {
+                    toast({ title: 'Error', description: err.message || 'No se pudo eliminar', variant: 'error' });
+                  }
+                }}
+                className="text-error hover:text-error/80 transition-colors"
+              >
+                <span className="material-symbols-outlined">delete</span>
+              </button>
             )}
           </div>
         </div>

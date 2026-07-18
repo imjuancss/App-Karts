@@ -32,12 +32,12 @@ export const ToastProvider = ({ children }) => {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start gap-3 p-4 bg-surface-container-low/95 backdrop-blur-md rounded-sm border-l-4 shadow-[0_4px_30px_rgba(0,0,0,0.4)] transition-all duration-300 animate-in fade-in slide-in-from-right-5 ${
+            className={`pointer-events-auto flex items-start gap-3 p-4 backdrop-blur-xl rounded-sm shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 fade-in ${
               t.variant === 'success'
-                ? 'border-tertiary-fixed'
+                ? 'bg-gradient-to-r from-[rgba(202,253,0,0.08)] to-[rgba(18,18,18,0.95)] border-l-[3px] border-l-tertiary-fixed'
                 : t.variant === 'error'
-                ? 'border-error'
-                : 'border-primary-dim'
+                ? 'bg-gradient-to-r from-[rgba(255,110,132,0.08)] to-[rgba(18,18,18,0.95)] border-l-[3px] border-l-error'
+                : 'bg-gradient-to-r from-[rgba(255,49,0,0.08)] to-[rgba(18,18,18,0.95)] border-l-[3px] border-l-primary-dim'
             }`}
           >
             <div className="flex-1 flex flex-col gap-1 mt-0.5">

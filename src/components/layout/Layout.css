@@ -140,7 +140,7 @@
 
 @media (min-width: 768px) {
   .main-content {
-    margin-left: 18rem; /* Offset for desktop sidebar (w-72 = 288px) */
+    margin-left: 18rem;
   }
 }
 

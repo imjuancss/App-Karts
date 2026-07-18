@@ -49,7 +49,8 @@ async function executeWithSchemaFallback(operationFn, dataObject) {
 export async function createTrack(trackData) {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
-  
+  if (!user) throw new Error("No autenticado");
+
   const performInsert = async (payload) => {
     const { data, error } = await supabase
       .from('tracks')
@@ -62,11 +63,22 @@ export async function createTrack(trackData) {
 
   return executeWithSchemaFallback(performInsert, {
     ...trackData,
-    creator_id: user?.id || null
+    creator_id: user.id
   });
 }
 
 export async function updateTrack(id, trackData) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const track = await getTrackById(id);
+  if (!track) throw new Error("Pista no encontrada");
+  const userProfile = await getProfile(user.id);
+  const isAdmin = userProfile?.role === 'admin';
+  const isCreator = track.creator_id === user.id;
+  if (!isCreator && !isAdmin) throw new Error("No tienes permiso para editar esta pista");
+
   const performUpdate = async (payload) => {
     const { data, error } = await supabase
       .from('tracks')
@@ -82,10 +94,18 @@ export async function updateTrack(id, trackData) {
 }
 
 export async function deleteTrack(id) {
-  const { error } = await supabase
-    .from('tracks')
-    .delete()
-    .eq('id', id);
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const track = await getTrackById(id);
+  if (!track) throw new Error("Pista no encontrada");
+  const userProfile = await getProfile(user.id);
+  const isAdmin = userProfile?.role === 'admin';
+  const isCreator = track.creator_id === user.id;
+  if (!isCreator && !isAdmin) throw new Error("No tienes permiso para eliminar esta pista");
+
+  const { error } = await supabase.from('tracks').delete().eq('id', id);
   if (error) throw error;
   return true;
 }
@@ -168,6 +188,7 @@ export async function registerLapTime(trackId, lapTimeMs) {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
   if (!user) throw new Error("No autenticado");
+  if (!lapTimeMs || lapTimeMs <= 0 || lapTimeMs > 600000) throw new Error("Tiempo inválido (máximo 10 minutos)");
   const { data, error } = await supabase
     .from('lap_times')
     .insert([{
@@ -375,6 +396,27 @@ export async function joinChampionship(championshipId) {
   return data;
 }
 
+export async function deleteChampionship(championshipId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const champ = await getChampionshipById(championshipId);
+  if (!champ) throw new Error("Campeonato no encontrado");
+  if (champ.creator_id !== user.id) throw new Error("No tienes permiso para eliminar este campeonato");
+
+  await supabase.from('championship_round_times').delete().in('round_id',
+    champ.rounds.map(r => r.id)
+  );
+  await supabase.from('championship_rounds').delete().eq('championship_id', championshipId);
+  await supabase.from('championship_participants').delete().eq('championship_id', championshipId);
+  await supabase.from('championship_invitations').delete().eq('championship_id', championshipId);
+
+  const { error } = await supabase.from('championships').delete().eq('id', championshipId);
+  if (error) throw error;
+  return true;
+}
+
 // ========================================
 // ROUND TIMES (Tiempos por Ronda)
 // ========================================
@@ -415,6 +457,14 @@ export async function getRoundTimes(roundId) {
 }
 
 export async function completeRound(championshipId, roundId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const champ = await getChampionshipById(championshipId);
+  if (!champ) throw new Error("Campeonato no encontrado");
+  if (champ.creator_id !== user.id) throw new Error("No tienes permiso para finalizar rondas de este campeonato");
+
   // 1. Obtener tiempos ordenados ascendentemente (menor tiempo es mejor)
   const { data: times, error: timesError } = await supabase
     .from('championship_round_times')

@@ -32,7 +32,7 @@ export function Tabs({ defaultValue, value, onValueChange, className, children }
 
 export function TabsList({ className, children }) {
   return (
-    <div className={cn("p-1 bg-surface-container inline-flex justify-start items-center gap-2 rounded-sm", className)}>
+    <div className={cn("p-1 bg-surface-container inline-flex justify-start items-center gap-2 rounded-sm shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]", className)}>
       {children}
     </div>
   )
@@ -49,8 +49,10 @@ export function TabsTrigger({ value, className, children }) {
       type="button"
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "flex-1 md:flex-none h-8 px-4 flex justify-center items-center gap-2.5 cursor-pointer transition-colors rounded-sm text-xs md:text-sm font-normal font-sans tracking-widest uppercase",
-        isActive ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5",
+        "flex-1 md:flex-none h-8 px-4 flex justify-center items-center gap-2.5 cursor-pointer transition-all duration-300 rounded-sm text-xs md:text-sm font-normal font-sans tracking-widest uppercase",
+        isActive 
+          ? "bg-white/[0.1] text-white shadow-[0_0_12px_rgba(255,255,255,0.04)]" 
+          : "text-white/60 hover:bg-white/[0.04] hover:text-white/80",
         className
       )}
     >
@@ -66,7 +68,7 @@ export function TabsContent({ value, className, children }) {
   if (context.value !== value) return null
 
   return (
-    <div className={cn("outline-none", className)}>
+    <div className={cn("outline-none fade-in", className)}>
       {children}
     </div>
   )
