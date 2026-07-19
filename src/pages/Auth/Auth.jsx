@@ -76,7 +76,8 @@ export default function Auth() {
     }
 
     if (error) {
-      setErrorDesc(error.message);
+      console.error("Auth error:", error);
+      setErrorDesc(isLogin ? "Credenciales incorrectas o ocurrió un error." : "Ocurrió un error en el registro. Intenta nuevamente.");
       setIsLoading(false);
     } else {
       navigate('/profile');
@@ -95,7 +96,8 @@ export default function Auth() {
     });
 
     if (error) {
-      setErrorDesc(error.message);
+      console.error("OAuth error:", error);
+      setErrorDesc("Ocurrió un error en la autenticación.");
       setIsLoading(false);
     }
   };
