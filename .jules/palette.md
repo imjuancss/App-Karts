@@ -1,3 +1,6 @@
 ## 2024-07-16 - Missing ARIA Labels on Icon-Only Buttons
 **Learning:** The app makes heavy use of Material Symbols via nested `<span>` elements inside `<button>` elements for icon-only actions (like "back", "edit", "share", and "close"). These buttons consistently lack `aria-label` attributes, which makes them inaccessible to screen reader users as there is no visible text.
 **Action:** Always ensure that icon-only buttons include an appropriate, descriptive `aria-label` attribute on the parent `<button>` element to provide context for assistive technologies.
+## 2023-10-27 - Custom Cards as Buttons Keyboard Accessibility
+**Learning:** React components (like `KineticCard`) acting as primary touch targets (`onClick`) frequently omit base HTML semantics when built with generic `div` containers. This breaks keyboard navigation for screen readers and power users because standard button events (Enter, Space) don't trigger by default, and focus outlines are missing.
+**Action:** Always verify that components with `onClick` props either render as native `<button>` tags or manually apply `role="button"`, `tabIndex={0}`, keyboard event handlers (`onKeyDown` for Space/Enter), and clear `focus-visible` styles.
