@@ -137,7 +137,7 @@ export default function TrackDetail() {
       });
     } catch (err) {
       console.error(err);
-      setTimeError(err.message || 'Ocurrió un error al registrar el tiempo.');
+      setTimeError('Ocurrió un error al registrar el tiempo.');
     } finally {
       setIsSubmittingTime(false);
     }
@@ -206,7 +206,7 @@ export default function TrackDetail() {
                     toast({ title: 'Pista eliminada', description: 'La pista fue eliminada correctamente', variant: 'success' });
                     navigate('/tracks');
                   } catch (err) {
-                    toast({ title: 'Error', description: err.message || 'No se pudo eliminar la pista', variant: 'error' });
+                    toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
                   }
                 }}
                 className="active:scale-95 duration-150"

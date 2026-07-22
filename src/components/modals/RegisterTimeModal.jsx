@@ -74,7 +74,7 @@ export default function RegisterTimeModal({ isOpen, onClose, onSuccess, initialT
       onClose();
     } catch (err) {
       console.error(err);
-      setTimeError(err.message || 'Error al guardar el tiempo. Asegúrate de estar autenticado.');
+      setTimeError('Error al guardar el tiempo. Asegúrate de estar autenticado.');
     } finally {
       setIsSubmittingTime(false);
     }
