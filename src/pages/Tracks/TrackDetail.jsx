@@ -459,7 +459,7 @@ export default function TrackDetail() {
       </PageContainer>
 
       {isTimeModalOpen && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 pb-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:pb-4">
           <div className="bg-surface-container rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md p-6 flex flex-col gap-6">
             <h3 className="font-headline font-bold text-xl uppercase tracking-widest">Registrar Mi Tiempo</h3>
             {timeError && (
