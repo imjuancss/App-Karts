@@ -124,7 +124,7 @@ export default function ChampionshipDetail() {
       });
     } catch (err) {
       console.error(err);
-      setTimeError(err.message || 'Error al subir el tiempo.');
+      setTimeError('Error al subir el tiempo.');
     } finally {
       setIsSubmittingTime(false);
     }
@@ -140,7 +140,7 @@ export default function ChampionshipDetail() {
       setInviteEmail('');
     } catch (err) {
       console.error(err);
-      toast({ title: 'Error', description: err.message || 'Error al enviar la invitación', variant: 'error' });
+      toast({ title: 'Error', description: 'Error al enviar la invitación', variant: 'error' });
     } finally {
       setIsSubmittingInvite(false);
     }
@@ -257,7 +257,7 @@ export default function ChampionshipDetail() {
                     toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
                     navigate('/championships');
                   } catch (err) {
-                    toast({ title: 'Error', description: err.message || 'No se pudo eliminar', variant: 'error' });
+                    toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'error' });
                   }
                 }}
                 className="text-error hover:text-error/80 transition-colors"
