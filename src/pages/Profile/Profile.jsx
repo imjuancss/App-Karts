@@ -326,7 +326,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={() => setIsTimeModalOpen(true)}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <div className="relative z-10 flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
@@ -338,7 +338,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={async () => await supabase.auth.signOut()}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error"
           >
             <div className="flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>
