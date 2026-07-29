@@ -173,8 +173,8 @@ export default function TrackDetail() {
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (
-              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} aria-label="Editar pista" className="active:scale-95 duration-150">
-                <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
+              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} aria-label="Editar pista" title="Editar pista" className="active:scale-95 duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
+                <span aria-hidden="true" className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
               </button>
             )}
             <button
@@ -190,9 +190,9 @@ export default function TrackDetail() {
                   toast({ title: 'Error', description: 'No se pudo copiar el enlace', variant: 'error' });
                 }
               }}
-              className="active:scale-95 duration-150"
+              className="active:scale-95 duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
             >
-              <span className="material-symbols-outlined text-primary-fixed">share</span>
+              <span aria-hidden="true" className="material-symbols-outlined text-primary-fixed">share</span>
             </button>
             {sessionUser && (sessionUser.id === track.creator_id) && (
               <button
@@ -209,9 +209,9 @@ export default function TrackDetail() {
                     toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
                   }
                 }}
-                className="active:scale-95 duration-150"
+                className="active:scale-95 duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-sm"
               >
-                <span className="material-symbols-outlined text-error">delete</span>
+                <span aria-hidden="true" className="material-symbols-outlined text-error">delete</span>
               </button>
             )}
           </div>
