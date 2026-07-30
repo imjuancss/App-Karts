@@ -11,12 +11,7 @@
 **Vulnerability:** The `handle_new_user` Supabase trigger could assign the `admin` role based on `v_username` matching 'iamjuancss'. Since `v_username` is initially derived from user-controlled metadata (`new.raw_user_meta_data->>'preferred_username'`), a malicious user could sign up with this preferred username to escalate privileges.
 **Learning:** Security Definier functions that assign roles must strictly rely on trusted data (like the verified `new.email`), not user-provided metadata (`raw_user_meta_data`), even when constructing intermediate variables like usernames.
 **Prevention:** Always validate against trusted auth fields for role assignment and ensure derived variables used for authorization do not stem from untrusted input.
-## 2024-05-18 - Missing Security Headers in Vercel Deployment
-**Vulnerability:** The application was deployed via Vercel without configuring essential HTTP security headers (like HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy).
-**Learning:** Default deployments often lack defense-in-depth mechanisms, leaving the app vulnerable to Clickjacking, MIME-sniffing, and XSS attacks if other mitigations fail.
-**Prevention:** Always configure `vercel.json` (or equivalent deployment config) to include standard HTTP security headers for all routes.
-
-## 2024-07-29 - [Missing RLS Delete Policies]
-**Vulnerability:** Found missing DELETE policies in Supabase migrations for championships, rounds, participants, invitations, and round times tables. Because Supabase RLS policies implicitly deny operations without explicit policies, users were blocked from deleting their own championships.
-**Learning:** This existed because initial schemas failed to include DELETE actions even though `api.js` explicitly supports users deleting their created data.
-**Prevention:** When setting up RLS, review all CRUD functions exposed in standard API interfaces and ensure they have matching DB RLS policies for each specific action, including cascaded or explicit multi-table deletes.
+## 2026-07-22 - RPC Privilege Escalation
+**Vulnerability:** The `upsert_motorsport_news` function was created as `SECURITY DEFINER` and could be executed by any authenticated user. Because it blindly iterated over a JSON payload to upsert rows in `motorsport_news`, any standard user could bypass the intended RSS feed mechanism and inject arbitrary or malicious news content into the application.
+**Learning:** `SECURITY DEFINER` functions in Supabase bypass Row Level Security (RLS). Therefore, they must implement strict authorization checks natively within the function block, especially if the execute permission is granted to `authenticated` or `anon` roles.
+**Prevention:** Always validate the user's privilege level (e.g., checking for an `admin` role) at the very beginning of any `SECURITY DEFINER` function that performs sensitive write operations.

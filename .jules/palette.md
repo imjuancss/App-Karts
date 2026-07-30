@@ -4,3 +4,6 @@
 ## 2023-10-27 - Custom Cards as Buttons Keyboard Accessibility
 **Learning:** React components (like `KineticCard`) acting as primary touch targets (`onClick`) frequently omit base HTML semantics when built with generic `div` containers. This breaks keyboard navigation for screen readers and power users because standard button events (Enter, Space) don't trigger by default, and focus outlines are missing.
 **Action:** Always verify that components with `onClick` props either render as native `<button>` tags or manually apply `role="button"`, `tabIndex={0}`, keyboard event handlers (`onKeyDown` for Space/Enter), and clear `focus-visible` styles.
+## 2025-02-28 - Making Non-Semantic Elements Interactive
+**Learning:** When using non-semantic elements like `<div>` for interactive components (e.g., clickable list rows), they lack built-in keyboard accessibility. Screen reader users and keyboard navigators cannot interact with them using standard keys (Enter/Space) or see focus states.
+**Action:** Always add `role="button"`, `tabIndex={0}`, an `onKeyDown` handler for 'Enter' and 'Space' keys, and visible focus styles (like `focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary`) when turning non-semantic elements into interactive ones.
