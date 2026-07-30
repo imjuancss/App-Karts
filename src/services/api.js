@@ -42,7 +42,7 @@ async function executeWithSchemaFallback(operationFn, dataObject) {
         return executeWithSchemaFallback(operationFn, newData);
       }
     }
-    throw error;
+    console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.");
   }
 }
 
@@ -57,7 +57,7 @@ export async function createTrack(trackData) {
       .insert([payload])
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
     return data;
   };
 
@@ -86,7 +86,7 @@ export async function updateTrack(id, trackData) {
       .eq('id', id)
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
     return data;
   };
 
@@ -106,7 +106,7 @@ export async function deleteTrack(id) {
   if (!isCreator && !isAdmin) throw new Error("No tienes permiso para eliminar esta pista");
 
   const { error } = await supabase.from('tracks').delete().eq('id', id);
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return true;
 }
 
@@ -177,7 +177,7 @@ export async function addTrackReview(trackId, rating, comment) {
     .select()
     .single();
     
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -198,7 +198,7 @@ export async function registerLapTime(trackId, lapTimeMs) {
     }])
     .select()
     .single();
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -392,7 +392,7 @@ export async function joinChampionship(championshipId) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -413,7 +413,7 @@ export async function deleteChampionship(championshipId) {
   await supabase.from('championship_invitations').delete().eq('championship_id', championshipId);
 
   const { error } = await supabase.from('championships').delete().eq('id', championshipId);
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return true;
 }
 
@@ -436,7 +436,7 @@ export async function registerRoundTime(roundId, lapTimeMs, evidenceUrl = null) 
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -556,7 +556,7 @@ export async function inviteToChampionship(championshipId, email) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -654,7 +654,7 @@ export async function saveMotorsportNews(newsItems) {
 
   if (error) {
     console.error("Error calling RPC upsert_motorsport_news:", error);
-    throw error;
+    console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.");
   }
 }
 
