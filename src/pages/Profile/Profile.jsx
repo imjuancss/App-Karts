@@ -59,7 +59,7 @@ export default function Profile() {
   const [userTimes, setUserTimes] = useState([]);
   const [userChampionships, setUserChampionships] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
-  const [, setAllTracks] = useState([]); // eslint-disable-line no-unused-vars
+  const [allTracks, setAllTracks] = useState([]);
   
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
 
@@ -153,9 +153,7 @@ export default function Profile() {
     const tab = searchParams.get('tab');
     const shouldUpload = searchParams.get('subir-tiempo') === '1';
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (tab === 'tiempos' || shouldUpload) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab('tiempos');
     }
 
