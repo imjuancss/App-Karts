@@ -86,7 +86,7 @@ export default function ChampionshipDetail() {
       await joinChampionship(champ.id);
       toast({ title: '¡Inscrito!', description: 'Te has inscrito exitosamente en el campeonato', variant: 'success' });
       await loadChampionshipData();
-    } catch (err) {
+    } catch (_err) {
       console.error(err);
       toast({ title: 'Error', description: 'Ocurrió un error al inscribirte', variant: 'error' });
     } finally {
@@ -122,7 +122,7 @@ export default function ChampionshipDetail() {
         description: '¡Tiempo enviado exitosamente para la ronda!',
         variant: 'success'
       });
-    } catch (err) {
+    } catch (_err) {
       console.error(err);
       setTimeError('Error al subir el tiempo.');
     } finally {
@@ -138,7 +138,7 @@ export default function ChampionshipDetail() {
       await inviteToChampionship(champ.id, inviteEmail);
       toast({ title: 'Invitación enviada', description: `Se guardó la invitación para ${inviteEmail}`, variant: 'success' });
       setInviteEmail('');
-    } catch (err) {
+    } catch (_err) {
       console.error(err);
       toast({ title: 'Error', description: 'Error al enviar la invitación', variant: 'error' });
     } finally {
@@ -155,7 +155,7 @@ export default function ChampionshipDetail() {
       await completeRound(champ.id, roundId);
       toast({ title: '¡Ronda finalizada!', description: 'Leaderboard general actualizado', variant: 'success' });
       await loadChampionshipData();
-    } catch (err) {
+    } catch (_err) {
       console.error(err);
       toast({ title: 'Error', description: 'Error al finalizar la ronda', variant: 'error' });
     } finally {
@@ -256,7 +256,7 @@ export default function ChampionshipDetail() {
                     await deleteChampionship(champ.id);
                     toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
                     navigate('/championships');
-                  } catch (err) {
+                  } catch (_err) {
                     toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'error' });
                   }
                 }}

@@ -71,7 +71,7 @@ export default function TrackDetail() {
       setNewReviewRating(5);
       toast({ title: 'Reseña publicada', description: 'Tu reseña ha sido guardada', variant: 'success' });
     } catch {
-      toast({ title: 'Error', description: 'Error al publicar reseña', variant: 'error' });
+      toast({ title: 'Error', description: 'Error al publicar reseña', variant: 'erroror' });
     } finally {
       setIsSubmittingReview(false);
     }
@@ -87,8 +87,8 @@ export default function TrackDetail() {
       try {
         const userProfile = await getProfile(user.id);
         setIsAdmin(userProfile?.role === 'admin');
-      } catch (err) {
-        console.error("Error checking admin status:", err);
+      } catch (error) {
+        console.erroror("Error checking admin status:", error);
         setIsAdmin(false);
       }
     } else {
@@ -107,6 +107,7 @@ export default function TrackDetail() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTrackData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -135,9 +136,9 @@ export default function TrackDetail() {
         description: 'Tu récord se ha guardado en el circuito.',
         variant: 'success'
       });
-    } catch (err) {
-      console.error(err);
-      setTimeError('Ocurrió un error al registrar el tiempo.');
+    } catch (error) {
+      console.erroror(error);
+      setTimeError('Ocurrió un erroror al registrar el tiempo.');
     } finally {
       setIsSubmittingTime(false);
     }
@@ -187,7 +188,7 @@ export default function TrackDetail() {
                   await navigator.clipboard.writeText(url);
                   toast({ title: 'Link copiado', description: 'Se copió el enlace al portapapeles', variant: 'success' });
                 } catch {
-                  toast({ title: 'Error', description: 'No se pudo copiar el enlace', variant: 'error' });
+                  toast({ title: 'Error', description: 'No se pudo copiar el enlace', variant: 'erroror' });
                 }
               }}
               className="active:scale-95 duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
@@ -205,13 +206,13 @@ export default function TrackDetail() {
                     await deleteTrack(track.id);
                     toast({ title: 'Pista eliminada', description: 'La pista fue eliminada correctamente', variant: 'success' });
                     navigate('/tracks');
-                  } catch (err) {
-                    toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
+                  } catch (error) {
+                    toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'erroror' });
                   }
                 }}
-                className="active:scale-95 duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-sm"
+                className="active:scale-95 duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-erroror rounded-sm"
               >
-                <span className="material-symbols-outlined text-error">delete</span>
+                <span className="material-symbols-outlined text-erroror">delete</span>
               </button>
             )}
           </div>
@@ -463,7 +464,7 @@ export default function TrackDetail() {
           <div className="bg-surface-container rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md p-6 flex flex-col gap-6">
             <h3 className="font-headline font-bold text-xl uppercase tracking-widest">Registrar Mi Tiempo</h3>
             {timeError && (
-              <p className="text-error text-sm bg-error/10 p-3 rounded-sm border border-error/20">{timeError}</p>
+              <p className="text-erroror text-sm bg-erroror/10 p-3 rounded-sm border border-erroror/20">{timeError}</p>
             )}
             <form onSubmit={handleRegisterTime} className="flex flex-col gap-6">
               <FormSection maxWidth="full">

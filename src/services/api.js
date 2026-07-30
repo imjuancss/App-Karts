@@ -936,7 +936,7 @@ export async function fetchMotorsportCalendars() {
         }
         // Los otros proxies devuelven texto directo
         if (text.includes('BEGIN:VCALENDAR')) return text;
-      } catch (_) { /* intentar siguiente proxy */ }
+      } catch (_err) { /* intentar siguiente proxy */ }
     }
     return null;
   }
