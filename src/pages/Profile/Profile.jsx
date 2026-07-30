@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
-import { formatMsToTime, formatTimeInput, parseTimeToMs } from '../../lib/formatters';
+import { getProfile, getUserLapTimes, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
+import { formatMsToTime } from '../../lib/formatters';
 import { Input } from '../../components/ui/input';
 import { SelectNative } from '../../components/ui/select-native';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -59,7 +59,7 @@ export default function Profile() {
   const [userTimes, setUserTimes] = useState([]);
   const [userChampionships, setUserChampionships] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
-  const [allTracks, setAllTracks] = useState([]);
+  const [, setAllTracks] = useState([]);
   
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
 
@@ -154,11 +154,11 @@ export default function Profile() {
     const shouldUpload = searchParams.get('subir-tiempo') === '1';
 
     if (tab === 'tiempos' || shouldUpload) {
-      setActiveTab('tiempos');
+      setTimeout(() => setActiveTab('tiempos'), 0);
     }
 
     if (shouldUpload) {
-      setIsTimeModalOpen(true);
+      setTimeout(() => setIsTimeModalOpen(true), 0);
     }
 
     if (tab || shouldUpload) {

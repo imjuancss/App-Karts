@@ -102,17 +102,19 @@ export default function Live() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    loadData();
+    setTimeout(() => loadData(), 0);
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (selectedCategory === 'Todos') {
-      setFilteredNews(news);
-      setFilteredCalendar(calendarEvents);
+      setTimeout(() => { setFilteredNews(news);  }, 0);
+
     } else {
-      setFilteredNews(news.filter(item => item.category?.toLowerCase() === selectedCategory.toLowerCase()));
-      setFilteredCalendar(calendarEvents.filter(item => item.series?.toLowerCase() === selectedCategory.toLowerCase()));
+      setTimeout(() => { setFilteredNews(news.filter(item => item.category?.toLowerCase() === selectedCategory.toLowerCase()));  }, 0);
+
     }
   }, [selectedCategory, news, calendarEvents]);
 

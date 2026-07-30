@@ -4,3 +4,6 @@
 ## 2023-10-27 - Custom Cards as Buttons Keyboard Accessibility
 **Learning:** React components (like `KineticCard`) acting as primary touch targets (`onClick`) frequently omit base HTML semantics when built with generic `div` containers. This breaks keyboard navigation for screen readers and power users because standard button events (Enter, Space) don't trigger by default, and focus outlines are missing.
 **Action:** Always verify that components with `onClick` props either render as native `<button>` tags or manually apply `role="button"`, `tabIndex={0}`, keyboard event handlers (`onKeyDown` for Space/Enter), and clear `focus-visible` styles.
+## 2024-05-24 - Explicit Focus for Icon-Only Buttons
+**Learning:** By default, Tailwind CSS's reset can make `<button>` elements without explicit inner text (like those containing just a `<span className="material-symbols-outlined">`) difficult to spot when navigating via keyboard, since default browser focus outlines might be obscured or removed. Relying only on `aria-label` is not enough for fully accessible mouse/keyboard experiences.
+**Action:** Always add explicit keyboard focus states (e.g. `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm`) and matching `title` / `aria-label` attributes for icon-only buttons so users receive clear visual feedback and tooltips.
