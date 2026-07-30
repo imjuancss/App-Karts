@@ -762,10 +762,12 @@ export async function fetchExternalMotorsportNews() {
         const description = cleanDescription(rawDesc);
 
         // Obtener URL de imagen
-        const image_url = item.thumbnail ||
+        let image_url = item.thumbnail ||
                            item.enclosure?.link ||
                            extractImageFromHtml(rawDesc) ||
                            'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
+
+        image_url = image_url?.startsWith('http') ? image_url : 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
 
         // Formatear fecha a ISO String
         let pub_date;
@@ -777,7 +779,7 @@ export async function fetchExternalMotorsportNews() {
 
         allNews.push({
           title,
-          link,
+          link: link?.startsWith('http') ? link : '#',
           description: description.substring(0, 300) + (description.length > 300 ? '...' : ''),
           pub_date,
           source: feed.source,
