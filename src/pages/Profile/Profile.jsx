@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
+import { getProfile, getUserLapTimes, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
+import { formatMsToTime } from '../../lib/formatters';
 import { Input } from '../../components/ui/input';
 import { SelectNative } from '../../components/ui/select-native';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -11,59 +12,6 @@ import ContentSection from '../../components/layout/ContentSection';
 import RegisterTimeModal from '../../components/modals/RegisterTimeModal';
 import Auth from '../Auth/Auth';
 import { useToast } from '../../components/ui/toast';
-
-const formatMsToTime = (ms) => {
-  if (!ms || ms === Infinity) return "00:00.000";
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  const milliseconds = ms % 1000;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
-};
-
-export const formatTimeInput = (value) => {
-  let digits = value.replace(/\D/g, '');
-  if (digits.length > 7) digits = digits.slice(0, 7);
-  if (!digits) return '';
-
-  if (digits.length >= 5) {
-    let ssVal = 0;
-    if (digits.length === 5) ssVal = parseInt(digits.slice(0, 2), 10);
-    else if (digits.length === 6) ssVal = parseInt(digits.slice(1, 3), 10);
-    else if (digits.length === 7) ssVal = parseInt(digits.slice(2, 4), 10);
-
-    if (ssVal > 59) {
-      if (digits.length === 5) digits = '59' + digits.slice(2);
-      else if (digits.length === 6) digits = digits[0] + '59' + digits.slice(3);
-      else if (digits.length === 7) digits = digits.slice(0, 2) + '59' + digits.slice(4);
-    }
-  }
-
-  const len = digits.length;
-  if (len === 1) return `0.00${digits}`;
-  if (len === 2) return `0.0${digits}`;
-  if (len === 3) return `0.${digits}`;
-  if (len === 4) return `${digits[0]}.${digits.slice(1)}`;
-  if (len === 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
-  if (len === 6) return `${digits[0]}:${digits.slice(1, 3)}.${digits.slice(3)}`;
-  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}.${digits.slice(4)}`;
-};
-
-const parseTimeToMs = (timeStr) => {
-  const parts = timeStr.trim().split(':');
-  if (parts.length === 2) {
-    const mins = parseInt(parts[0], 10);
-    const secsParts = parts[1].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (mins * 60000) + (secs * 1000) + ms;
-  } else if (parts.length === 1) {
-    const secsParts = parts[0].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (secs * 1000) + ms;
-  }
-  return 0;
-};
 
 function StatCard({ label, icon, iconClassName, children, accent }) {
   return (
@@ -78,10 +26,22 @@ function StatCard({ label, icon, iconClassName, children, accent }) {
 }
 
 function ListRow({ icon, title, subtitle, trailing, onClick }) {
+  const interactiveProps = onClick ? {
+    role: "button",
+    tabIndex: 0,
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick(e);
+      }
+    }
+  } : {};
+
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-between py-3 group ${onClick ? 'cursor-pointer' : ''}`}
+      {...interactiveProps}
+      className={`flex items-center justify-between py-3 group ${onClick ? 'cursor-pointer focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm' : ''}`}
     >
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
@@ -111,7 +71,7 @@ export default function Profile() {
   const [userTimes, setUserTimes] = useState([]);
   const [userChampionships, setUserChampionships] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
-  const [allTracks, setAllTracks] = useState([]);
+  const [, setAllTracks] = useState([]);
   
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
 
@@ -206,11 +166,11 @@ export default function Profile() {
     const shouldUpload = searchParams.get('subir-tiempo') === '1';
 
     if (tab === 'tiempos' || shouldUpload) {
-      setActiveTab('tiempos');
+      setTimeout(() => setActiveTab('tiempos'), 0);
     }
 
     if (shouldUpload) {
-      setIsTimeModalOpen(true);
+      setTimeout(() => setIsTimeModalOpen(true), 0);
     }
 
     if (tab || shouldUpload) {
@@ -229,14 +189,14 @@ export default function Profile() {
   const handleAcceptInvite = async (inviteId, champId, name) => {
     try {
       await acceptChampionshipInvitation(inviteId, champId);
-      alert(`Te has unido exitosamente al campeonato: ${name}`);
-      
+      toast({ title: '¡Te uniste!', description: `Te has unido al campeonato: ${name}`, variant: 'success' });
+
       if (sessionUser) {
         await loadData(sessionUser);
       }
     } catch (error) {
       console.error("Error al aceptar invitación:", error);
-      alert("Hubo un problema al aceptar la invitación.");
+      toast({ title: 'Error', description: 'Hubo un problema al aceptar la invitación', variant: 'error' });
     }
   };
 
@@ -294,7 +254,7 @@ export default function Profile() {
                 <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-4 rounded-sm">
                   <span className="font-label text-sm uppercase">Campeonato: <strong className="text-white">{invite.championships?.name}</strong></span>
                   <button 
-                    className="bg-tertiary-fixed text-on-tertiary-fixed px-4 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
+                    className="bg-tertiary-fixed text-on-tertiary-fixed px-4 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-transform focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
                     onClick={() => handleAcceptInvite(invite.id, invite.championship_id, invite.championships?.name)}
                   >
                     Aceptar y Unirme
@@ -378,7 +338,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={() => setIsTimeModalOpen(true)}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
           >
             <div className="relative z-10 flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
@@ -390,7 +350,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={async () => await supabase.auth.signOut()}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
           >
             <div className="flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>

@@ -13,20 +13,7 @@ import KineticButton from '@/components/ui/KineticButton';
 import { FilterGroup, FilterItem } from '@/components/ui/filter-group';
 import RegisterTimeModal from '@/components/modals/RegisterTimeModal';
 import { useToast } from '@/components/ui/toast';
-const formatMsToTime = (ms) => {
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  const milliseconds = ms % 1000;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
-};
-
-const formatGap = (leaderMs, currentMs) => {
-  if (leaderMs === currentMs) return "Leader";
-  const diff = currentMs - leaderMs;
-  const seconds = Math.floor(diff / 1000);
-  const milliseconds = diff % 1000;
-  return `+${seconds}.${milliseconds.toString().padStart(3, '0')}s`;
-};
+import { formatMsToTime, formatGap } from '@/lib/formatters';
 
 
 
@@ -54,7 +41,7 @@ export default function HomeLeaderboard() {
           .from('tracks')
           .select('id, name, cover_image')
           .order('name', { ascending: true });
-        if (error) throw error;
+        if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
         setTracks(data || []);
         if (data && data.length > 0) {
           setSelectedTrackId(data[0].id);
@@ -69,7 +56,7 @@ export default function HomeLeaderboard() {
   // Fetch realtime leaderboard data from Supabase
   useEffect(() => {
     if (!selectedTrackId || selectedTrackId.length < 30) return;
-    setIsLoading(true);
+    setTimeout(() => setIsLoading(true), 0);
     const fetchLeaderboard = async () => {
       try {
         const { data, error } = await supabase
@@ -82,7 +69,7 @@ export default function HomeLeaderboard() {
           )
           .eq('track_id', selectedTrackId)
           .order('lap_time_ms', { ascending: true });
-        if (error) throw error;
+        if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
 
         // Apply time filters
         const now = Date.now();
@@ -186,8 +173,8 @@ export default function HomeLeaderboard() {
     <div className="fade-in w-full h-[calc(100dvh-136px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] flex flex-col items-center font-sans">
       <div className="w-full h-full max-w-5xl mx-auto px-4 md:px-6 lg:px-8 relative flex flex-col">
 
-        {/* Zona Superior Fija */}
-        <div className="flex-shrink-0 z-40 bg-transparent backdrop-blur-md pb-2 pt-4 px-4 w-full flex flex-col gap-4">
+        {/* Zona Superior Fija — Premium */}
+        <div className="flex-shrink-0 z-40 bg-gradient-to-b from-[rgba(10,10,10,0.95)] to-transparent backdrop-blur-xl pb-2 pt-4 px-4 w-full flex flex-col gap-4 border-b border-white/[0.03]">
           
 
 
@@ -221,22 +208,25 @@ export default function HomeLeaderboard() {
               className="w-full rounded-none overflow-hidden shrink-0 mb-2 md:h-[140px] md:opacity-100 md:mb-4"
               style={{ willChange: 'height, opacity' }}
             >
-              <div className="w-full h-full relative rounded-none flex items-center justify-center border-none bg-transparent" style={{ minHeight: '100%' }}>
-                <img 
-                  className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity" 
+              <div className="w-full h-full relative rounded-none flex items-center justify-center border-none bg-transparent scanline-overlay" style={{ minHeight: '100%' }}>
+                <img
+                  className="w-full h-full object-cover absolute inset-0 opacity-30 mix-blend-luminosity"
                   src={selectedTrackCover}
                   alt={selectedTrack?.name ? `Portada de ${selectedTrack.name}` : 'Portada del circuito'}
                   fetchpriority="high"
                   decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/30"></div>
 
                 <div className="z-10 flex flex-col items-center justify-center pointer-events-none">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-2 drop-shadow-md text-on-surface-variant">
-                    <path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8Z" strokeDasharray="4 4" />
-                    <path d="M12 8v4l3 3" />
-                  </svg>
-                  <span className="text-white/50 text-[11px] font-mono tracking-widest uppercase">Mapa del Circuito</span>
+                  <div className="w-16 h-16 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(255,49,0,0.08)]">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-on-surface-variant">
+                      <path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8Z" strokeDasharray="4 4" />
+                      <path d="M12 8v4l3 3" />
+                    </svg>
+                  </div>
+                  <span className="text-white/40 text-[10px] font-mono tracking-[0.2em] uppercase">Mapa del Circuito</span>
                 </div>
               </div>
             </div>
@@ -249,13 +239,13 @@ export default function HomeLeaderboard() {
             </FilterGroup>
           </div>
 
-          {/* Títulos de Columnas */}
-          <div className="flex justify-between items-center w-full px-2 mt-2">
+          {/* Títulos de Columnas — Premium Telemetry */}
+          <div className="flex justify-between items-center w-full px-2 mt-2 py-2 bg-white/[0.02] rounded-sm border border-white/[0.03]">
             <div className="flex items-center gap-4">
-              <div className="text-white/40 text-[11px] font-bold font-sans tracking-widest w-[32px] text-center">POS</div>
-              <div className="text-white/40 text-[11px] font-bold font-sans tracking-widest text-left">DRIVER</div>
+              <div className="text-white/30 text-[11px] font-bold font-mono tracking-[0.2em] w-[32px] text-center">POS</div>
+              <div className="text-white/30 text-[11px] font-bold font-mono tracking-[0.2em] text-left">DRIVER</div>
             </div>
-            <div className="text-white/40 text-[11px] font-bold font-sans tracking-widest text-right">LAP</div>
+            <div className="text-white/30 text-[11px] font-bold font-mono tracking-[0.2em] text-right">LAP</div>
           </div>
         </div>
 
@@ -276,7 +266,7 @@ export default function HomeLeaderboard() {
               ) : filteredLeaderboard.map((driver) => {
                 if (driver.hasPole) {
                   return (
-                    <div key={driver.id} data-pole="Yes" className={`self-stretch h-[52px] pl-[4px] pr-[8px] bg-surface-container border-l-2 ${driver.teamColor} inline-flex justify-between items-center overflow-visible`}>
+                    <div key={driver.id} data-pole="Yes" className={`self-stretch h-[52px] pl-[4px] pr-[8px] bg-gradient-to-r from-surface-container to-surface-container-high border-l-2 ${driver.teamColor} inline-flex justify-between items-center overflow-visible transition-all duration-300 hover:bg-white/[0.03]`}>
                       <div className="flex-1 flex justify-start items-center gap-1">
                         <div className="flex-1 flex justify-start items-center gap-1">
                           <div data-position={driver.position} data-type="Number" className="w-[42px] inline-flex flex-col justify-start items-center">
@@ -335,7 +325,7 @@ export default function HomeLeaderboard() {
 
                 // Normal positions 4-10
                 return (
-                  <div key={driver.id} data-pole="No" className="self-stretch h-[52px] pl-1 pr-2 bg-surface-container inline-flex justify-between items-center overflow-visible">
+                  <div key={driver.id} data-pole="No" className="self-stretch h-[52px] pl-1 pr-2 bg-surface-container inline-flex justify-between items-center overflow-visible transition-all duration-300 hover:bg-white/[0.03]">
                     <div className="flex-1 flex justify-start items-center gap-1">
                       <div className="flex-1 flex justify-start items-center gap-1">
                         <div data-position={driver.position} data-type="Number" className="w-[42px] inline-flex flex-col justify-center items-center">
@@ -377,11 +367,11 @@ export default function HomeLeaderboard() {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-40 flex flex-col justify-center items-center p-4">
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-[95] flex flex-col justify-center items-center p-4">
           <KineticButton 
             variant="contained" 
             color="primary" 
-            onClick={handleOpenTimeModal} 
+            onClick={handleOpenTimeModal}
             className="cursor-pointer pointer-events-auto h-12 px-8 shadow-[0_0_40px_rgba(225,42,0,0.4)]"
           >
             <div data-svg-wrapper className="relative text-black">

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview, getProfile } from '../../services/api';
+import { getTrackById, getRecentTrackLapTimes, registerLapTime, getTrackReviews, addTrackReview, deleteTrack, getProfile } from '../../services/api';
 import { supabase } from '../../lib/supabase';
-import { formatTimeInput } from '../Profile/Profile';
+import { formatMsToTime, formatTimeInput, parseTimeToMs } from '../../lib/formatters';
 import { useToast } from '../../components/ui/toast';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
@@ -12,31 +12,6 @@ import GlassCard from '../../components/ui/GlassCard';
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
-
-const formatMsToTime = (ms) => {
-  if (!ms) return "00:00.000";
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  const milliseconds = ms % 1000;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
-};
-
-const parseTimeToMs = (timeStr) => {
-  const parts = timeStr.trim().split(':');
-  if (parts.length === 2) {
-    const mins = parseInt(parts[0], 10);
-    const secsParts = parts[1].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (mins * 60000) + (secs * 1000) + ms;
-  } else if (parts.length === 1) {
-    const secsParts = parts[0].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (secs * 1000) + ms;
-  }
-  return 0;
-};
 
 const formatSchedule = (sched) => {
   if (!sched) return 'Horario no definido';
@@ -94,9 +69,9 @@ export default function TrackDetail() {
       setReviews(loadedReviews || []);
       setNewReviewText('');
       setNewReviewRating(5);
-      alert('Reseña publicada!');
+      toast({ title: 'Reseña publicada', description: 'Tu reseña ha sido guardada', variant: 'success' });
     } catch {
-      alert('Error al publicar reseña');
+      toast({ title: 'Error', description: 'Error al publicar reseña', variant: 'error' });
     } finally {
       setIsSubmittingReview(false);
     }
@@ -132,7 +107,7 @@ export default function TrackDetail() {
   };
 
   useEffect(() => {
-    loadTrackData();
+    setTimeout(() => loadTrackData(), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -162,7 +137,7 @@ export default function TrackDetail() {
       });
     } catch (err) {
       console.error(err);
-      setTimeError(err.message || 'Ocurrió un error al registrar el tiempo.');
+      setTimeError('Ocurrió un error al registrar el tiempo.');
     } finally {
       setIsSubmittingTime(false);
     }
@@ -189,8 +164,8 @@ export default function TrackDetail() {
       <header className="sticky top-0 z-50 bg-surface-container-highest/40 backdrop-blur-[12px] border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
         <div className="flex items-center justify-between px-4 py-4 w-full max-w-5xl mx-auto">
           <div className="flex items-center gap-4">
-            <button type="button" onClick={() => navigate('/tracks')} className="active:scale-90 transition-transform flex items-center">
-              <span className="material-symbols-outlined text-on-surface">arrow_back</span>
+            <button type="button" onClick={() => navigate('/tracks')} aria-label="Volver a pistas" title="Volver a pistas" className="active:scale-90 transition-transform flex items-center focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm">
+              <span className="material-symbols-outlined text-on-surface" aria-hidden="true">arrow_back</span>
             </button>
             <h1 className="font-headline uppercase tracking-widest text-sm font-bold text-on-surface truncate max-w-[200px] md:max-w-xs">
               {track.name}
@@ -198,13 +173,47 @@ export default function TrackDetail() {
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (
-              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} className="active:scale-95 duration-150">
-                <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">edit</span>
+              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} aria-label="Editar pista" title="Editar pista" className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm">
+                <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors" aria-hidden="true">edit</span>
               </button>
             )}
-            <button type="button" className="active:scale-95 duration-150">
-              <span className="material-symbols-outlined text-primary-fixed">share</span>
+            <button
+              type="button"
+              aria-label="Compartir pista"
+              title="Compartir pista"
+              onClick={async () => {
+                const url = window.location.href;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast({ title: 'Link copiado', description: 'Se copió el enlace al portapapeles', variant: 'success' });
+                } catch {
+                  toast({ title: 'Error', description: 'No se pudo copiar el enlace', variant: 'error' });
+                }
+              }}
+              className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm"
+            >
+              <span className="material-symbols-outlined text-primary-fixed" aria-hidden="true">share</span>
             </button>
+            {sessionUser && (sessionUser.id === track.creator_id) && (
+              <button
+                type="button"
+                aria-label="Eliminar pista"
+                title="Eliminar pista"
+                onClick={async () => {
+                  if (!window.confirm('¿Eliminar esta pista? Esta acción no se puede deshacer.')) return;
+                  try {
+                    await deleteTrack(track.id);
+                    toast({ title: 'Pista eliminada', description: 'La pista fue eliminada correctamente', variant: 'success' });
+                    navigate('/tracks');
+                  } catch {
+                    toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
+                  }
+                }}
+                className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm"
+              >
+                <span className="material-symbols-outlined text-error" aria-hidden="true">delete</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -291,7 +300,12 @@ export default function TrackDetail() {
               </div>
               <button
                 type="button"
-                onClick={() => setActiveTab('info')}
+                onClick={() => {
+                  const infoTab = document.querySelector('[data-value="info"]');
+                  if (infoTab) infoTab.click();
+                  setActiveTab('info');
+                  window.scrollTo({ top: document.querySelector('.grid.grid-cols-12')?.offsetTop - 100, behavior: 'smooth' });
+                }}
                 className="w-full py-2 text-xs font-headline font-bold tracking-widest uppercase text-tertiary-fixed hover:text-white transition-colors"
               >
                 Ver Tabla Completa
@@ -413,8 +427,8 @@ export default function TrackDetail() {
                       <span className="text-sm text-on-surface-variant uppercase tracking-widest">Calificación:</span>
                       <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map(star => (
-                          <button key={star} type="button" onClick={() => setNewReviewRating(star)} className="hover:scale-110 transition-transform">
-                            <span className={`material-symbols-outlined ${star <= newReviewRating ? 'text-primary' : 'text-on-surface-variant/30'}`} style={{ fontVariationSettings: star <= newReviewRating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                          <button key={star} type="button" onClick={() => setNewReviewRating(star)} aria-label={`Calificar con ${star} estrellas`} title={`Calificar con ${star} estrellas`} className="hover:scale-110 transition-transform focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm">
+                            <span className={`material-symbols-outlined ${star <= newReviewRating ? 'text-primary' : 'text-on-surface-variant/30'}`} style={{ fontVariationSettings: star <= newReviewRating ? "'FILL' 1" : "'FILL' 0" }} aria-hidden="true">star</span>
                           </button>
                         ))}
                       </div>
@@ -445,7 +459,7 @@ export default function TrackDetail() {
       </PageContainer>
 
       {isTimeModalOpen && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 pb-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:pb-4">
           <div className="bg-surface-container rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md p-6 flex flex-col gap-6">
             <h3 className="font-headline font-bold text-xl uppercase tracking-widest">Registrar Mi Tiempo</h3>
             {timeError && (

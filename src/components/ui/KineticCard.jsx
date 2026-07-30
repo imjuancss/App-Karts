@@ -1,21 +1,3 @@
-import React from 'react';
-
-/**
- * KineticCard
- * Reusable Velocity Noir card component built exclusively with Tailwind CSS.
- * 
- * Props:
- * - image: string (optional URL for card image)
- * - imageAlt: string (optional description of image)
- * - badge: ReactNode (optional badge placed over image or top of card)
- * - title: ReactNode/string (optional card title)
- * - subtitle: ReactNode/string (optional card subtitle)
- * - metadata: ReactNode (optional metadata row displayed at the top of content)
- * - description: string (optional body text with line-clamp)
- * - footer: ReactNode (optional footer section separated by a top border)
- * - onClick: function (optional click handler, turns on cursor-pointer)
- * - className: string (optional additional Tailwind classes for outer container)
- */
 export default function KineticCard({
   children,
   image,
@@ -30,87 +12,56 @@ export default function KineticCard({
   className = '',
   ...props
 }) {
-  // Detect if className already specifies a custom height or min/max height
-  const hasHeightClass = className.split(' ').some(c => 
+  const hasHeightClass = className.split(' ').some(c =>
     c.startsWith('h-') || c.startsWith('min-h-') || c.startsWith('max-h-')
   );
   const heightClass = hasHeightClass ? '' : 'h-auto';
 
+  const handleKeyDown = (e) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick(e);
+    }
+  };
+
+  const interactiveProps = onClick ? {
+    role: "button",
+    tabIndex: 0,
+    onKeyDown: handleKeyDown
+  } : {};
+
   return (
-    <div
-      onClick={onClick}
-      className={`bg-surface-container rounded-sm flex flex-col ${heightClass} overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:bg-surface-container-highest ${
-        onClick ? 'cursor-pointer select-none' : ''
-      } ${className}`}
+    <div onClick={onClick}
+      {...interactiveProps}
       {...props}
-    >
-      {/* Card Image Area */}
+      className={`bg-surface-container rounded-sm flex flex-col ${heightClass} overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1.5 hover:bg-surface-container-highest hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] border border-transparent hover:border-white/[0.06] ${
+        onClick ? 'cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary' : ''
+      } ${className}`}>
       {image && (
         <div className="relative w-full h-48 overflow-hidden shrink-0">
-          <img
-            src={image}
-            alt={imageAlt || (typeof title === 'string' ? title : 'Card cover')}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop';
-            }}
-          />
-          {badge && (
-            <div className="absolute top-3 left-3 z-10">
-              {badge}
-            </div>
-          )}
+          <img src={image} alt={imageAlt || title || ''} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" loading="lazy" />
+          <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent opacity-60"></div>
+          {badge && <div className="absolute top-3 left-3 z-10">{badge}</div>}
         </div>
       )}
-
-      {/* Card Body content */}
       <div className="p-5 flex flex-col gap-3 flex-grow">
-        {/* If no image but badge exists, render it here */}
-        {!image && badge && (
-          <div className="flex justify-between items-center mb-1">
-            {badge}
-          </div>
-        )}
-
-        {/* Metadata row */}
         {metadata && (
-          <div className="flex justify-between items-center text-xs text-on-surface-variant/70">
-            {metadata}
-          </div>
+          <div className="text-xs text-on-surface-variant/70 font-label uppercase tracking-wider">{metadata}</div>
         )}
-
-        {/* Title and Subtitle */}
-        {(title || subtitle) && (
-          <div className="flex flex-col gap-1.5">
-            {title && (
-              <h4 className="text-xl font-bold text-on-surface leading-tight font-headline">
-                {title}
-              </h4>
-            )}
-            {subtitle && (
-              <div className="text-xs text-on-surface-variant/70">
-                {subtitle}
-              </div>
-            )}
-          </div>
+        {title && (
+          <h3 className="text-xl font-bold text-on-surface font-headline leading-tight">{title}</h3>
         )}
-
-        {/* Description paragraph */}
+        {subtitle && (
+          <div className="text-xs text-on-surface-variant/70">{subtitle}</div>
+        )}
         {description && (
-          <p className="text-sm text-on-surface-variant line-clamp-3 leading-relaxed">
-            {description}
-          </p>
+          <p className="text-sm text-on-surface-variant line-clamp-3 leading-relaxed">{description}</p>
         )}
-
-        {/* Custom children */}
-        {children}
-
-        {/* Footer Area */}
         {footer && (
-          <div className="mt-auto pt-4 border-t border-surface-container-high flex justify-end">
-            {footer}
-          </div>
+          <div className="mt-auto pt-4 border-t border-white/[0.04]">{footer}</div>
         )}
+        {!footer && children}
+        {!footer && !children && <div className="mt-auto"></div>}
       </div>
     </div>
   );

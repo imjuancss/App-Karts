@@ -42,31 +42,43 @@ async function executeWithSchemaFallback(operationFn, dataObject) {
         return executeWithSchemaFallback(operationFn, newData);
       }
     }
-    throw error;
+    console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.");
   }
 }
 
 export async function createTrack(trackData) {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
-  
+  if (!user) throw new Error("No autenticado");
+
   const performInsert = async (payload) => {
     const { data, error } = await supabase
       .from('tracks')
       .insert([payload])
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
     return data;
   };
 
   return executeWithSchemaFallback(performInsert, {
     ...trackData,
-    creator_id: user?.id || null
+    creator_id: user.id
   });
 }
 
 export async function updateTrack(id, trackData) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const track = await getTrackById(id);
+  if (!track) throw new Error("Pista no encontrada");
+  const userProfile = await getProfile(user.id);
+  const isAdmin = userProfile?.role === 'admin';
+  const isCreator = track.creator_id === user.id;
+  if (!isCreator && !isAdmin) throw new Error("No tienes permiso para editar esta pista");
+
   const performUpdate = async (payload) => {
     const { data, error } = await supabase
       .from('tracks')
@@ -74,7 +86,7 @@ export async function updateTrack(id, trackData) {
       .eq('id', id)
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
     return data;
   };
 
@@ -82,11 +94,19 @@ export async function updateTrack(id, trackData) {
 }
 
 export async function deleteTrack(id) {
-  const { error } = await supabase
-    .from('tracks')
-    .delete()
-    .eq('id', id);
-  if (error) throw error;
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const track = await getTrackById(id);
+  if (!track) throw new Error("Pista no encontrada");
+  const userProfile = await getProfile(user.id);
+  const isAdmin = userProfile?.role === 'admin';
+  const isCreator = track.creator_id === user.id;
+  if (!isCreator && !isAdmin) throw new Error("No tienes permiso para eliminar esta pista");
+
+  const { error } = await supabase.from('tracks').delete().eq('id', id);
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return true;
 }
 
@@ -157,7 +177,7 @@ export async function addTrackReview(trackId, rating, comment) {
     .select()
     .single();
     
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -168,6 +188,7 @@ export async function registerLapTime(trackId, lapTimeMs) {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
   if (!user) throw new Error("No autenticado");
+  if (!lapTimeMs || lapTimeMs <= 0 || lapTimeMs > 600000) throw new Error("Tiempo inválido (máximo 10 minutos)");
   const { data, error } = await supabase
     .from('lap_times')
     .insert([{
@@ -177,7 +198,7 @@ export async function registerLapTime(trackId, lapTimeMs) {
     }])
     .select()
     .single();
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -371,8 +392,29 @@ export async function joinChampionship(championshipId) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
+}
+
+export async function deleteChampionship(championshipId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const champ = await getChampionshipById(championshipId);
+  if (!champ) throw new Error("Campeonato no encontrado");
+  if (champ.creator_id !== user.id) throw new Error("No tienes permiso para eliminar este campeonato");
+
+  await supabase.from('championship_round_times').delete().in('round_id',
+    champ.rounds.map(r => r.id)
+  );
+  await supabase.from('championship_rounds').delete().eq('championship_id', championshipId);
+  await supabase.from('championship_participants').delete().eq('championship_id', championshipId);
+  await supabase.from('championship_invitations').delete().eq('championship_id', championshipId);
+
+  const { error } = await supabase.from('championships').delete().eq('id', championshipId);
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
+  return true;
 }
 
 // ========================================
@@ -394,7 +436,7 @@ export async function registerRoundTime(roundId, lapTimeMs, evidenceUrl = null) 
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -415,6 +457,14 @@ export async function getRoundTimes(roundId) {
 }
 
 export async function completeRound(championshipId, roundId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const champ = await getChampionshipById(championshipId);
+  if (!champ) throw new Error("Campeonato no encontrado");
+  if (champ.creator_id !== user.id) throw new Error("No tienes permiso para finalizar rondas de este campeonato");
+
   // 1. Obtener tiempos ordenados ascendentemente (menor tiempo es mejor)
   const { data: times, error: timesError } = await supabase
     .from('championship_round_times')
@@ -428,13 +478,16 @@ export async function completeRound(championshipId, roundId) {
   const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 
   // 2. Asignar puntos y actualizar cada registro en la ronda
-  for (let i = 0; i < times.length; i++) {
-    const pts = i < pointsSystem.length ? pointsSystem[i] : 0;
-    await supabase
-      .from('championship_round_times')
-      .update({ points: pts })
-      .eq('id', times[i].id);
-  }
+  const timeUpdates = times.map((t, i) => ({
+    ...t,
+    points: i < pointsSystem.length ? pointsSystem[i] : 0
+  }));
+
+  const { error: updateError } = await supabase
+    .from('championship_round_times')
+    .upsert(timeUpdates);
+
+  if (updateError) throw updateError;
 
   // 3. Marcar la ronda como completada
   const { error: roundUpdateError } = await supabase
@@ -467,23 +520,18 @@ export async function completeRound(championshipId, roundId) {
   });
 
   // Guardar puntajes consolidados en championship_participants
-  for (const userId of Object.keys(userPoints)) {
-    const pts = userPoints[userId];
-    const { error: partUpdateError } = await supabase
+  const upsertData = Object.keys(userPoints).map(userId => ({
+    championship_id: championshipId,
+    user_id: userId,
+    points: userPoints[userId]
+  }));
+
+  if (upsertData.length > 0) {
+    const { error: upsertError } = await supabase
       .from('championship_participants')
-      .update({ points: pts })
-      .eq('championship_id', championshipId)
-      .eq('user_id', userId);
+      .upsert(upsertData, { onConflict: 'championship_id,user_id' });
     
-    if (partUpdateError) {
-      await supabase
-        .from('championship_participants')
-        .upsert({
-          championship_id: championshipId,
-          user_id: userId,
-          points: pts
-        }, { onConflict: 'championship_id,user_id' });
-    }
+    if (upsertError) throw upsertError;
   }
 
   return true;
@@ -508,7 +556,7 @@ export async function inviteToChampionship(championshipId, email) {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
   return data;
 }
 
@@ -606,7 +654,7 @@ export async function saveMotorsportNews(newsItems) {
 
   if (error) {
     console.error("Error calling RPC upsert_motorsport_news:", error);
-    throw error;
+    console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo.");
   }
 }
 
@@ -685,7 +733,7 @@ export async function fetchExternalMotorsportNews() {
   // se conserva solo la primera versión (la del feed más específico).
   const seenLinks = new Map();
 
-  for (const feed of feeds) {
+  const fetchPromises = feeds.map(async (feed) => {
     try {
       const response = await fetch(
         `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`
@@ -693,11 +741,11 @@ export async function fetchExternalMotorsportNews() {
 
       if (!response.ok) {
         console.warn(`No se pudo obtener el feed de ${feed.source} (${feed.category})`);
-        continue;
+        return [];
       }
 
       const data = await response.json();
-      if (data.status !== 'ok' || !data.items) continue;
+      if (data.status !== 'ok' || !data.items) return [];
 
       for (const item of data.items) {
         const title = item.title;
@@ -712,10 +760,12 @@ export async function fetchExternalMotorsportNews() {
         const description = cleanDescription(rawDesc);
 
         // Obtener URL de imagen
-        const image_url = item.thumbnail ||
+        let image_url = item.thumbnail ||
                            item.enclosure?.link ||
                            extractImageFromHtml(rawDesc) ||
                            'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
+
+        image_url = image_url?.startsWith('http') ? image_url : 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
 
         // Formatear fecha a ISO String
         let pub_date;
@@ -727,7 +777,7 @@ export async function fetchExternalMotorsportNews() {
 
         allNews.push({
           title,
-          link,
+          link: link?.startsWith('http') ? link : '#',
           description: description.substring(0, 300) + (description.length > 300 ? '...' : ''),
           pub_date,
           source: feed.source,
@@ -737,6 +787,48 @@ export async function fetchExternalMotorsportNews() {
       }
     } catch (err) {
       console.error(`Error procesando feed ${feed.url}:`, err);
+      return [];
+    }
+  });
+
+  const results = await Promise.all(fetchPromises);
+
+  for (const feedItems of results) {
+    for (const { item, feed } of feedItems) {
+      const title = item.title;
+      const link = item.link;
+
+      // Saltar si este artículo ya fue añadido desde otro feed
+      if (seenLinks.has(link)) continue;
+      seenLinks.set(link, true);
+
+      // Limpiar la descripción de etiquetas HTML
+      const rawDesc = item.description || item.content || '';
+      const description = cleanDescription(rawDesc);
+
+      // Obtener URL de imagen
+      const image_url = item.thumbnail ||
+                         item.enclosure?.link ||
+                         extractImageFromHtml(rawDesc) ||
+                         'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
+
+      // Formatear fecha a ISO String
+      let pub_date;
+      try {
+        pub_date = new Date(item.pubDate).toISOString();
+      } catch {
+        pub_date = new Date().toISOString();
+      }
+
+      allNews.push({
+        title,
+        link,
+        description: description.substring(0, 300) + (description.length > 300 ? '...' : ''),
+        pub_date,
+        source: feed.source,
+        image_url,
+        category: feed.category
+      });
     }
   }
 
@@ -886,7 +978,7 @@ export async function fetchMotorsportCalendars() {
         }
         // Los otros proxies devuelven texto directo
         if (text.includes('BEGIN:VCALENDAR')) return text;
-      } catch (_) { /* intentar siguiente proxy */ }
+      } catch { /* intentar siguiente proxy */ }
     }
     return null;
   }

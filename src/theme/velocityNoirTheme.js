@@ -4,37 +4,37 @@ const velocityNoirTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#FF3100', // Velocity Red
+      main: '#FF3100',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#cafd00', // Tertiary / Neon Yellow
+      main: '#cafd00',
       contrastText: '#000000',
     },
     background: {
-      default: '#0e0e0e', // Base
-      paper: 'rgba(26, 30, 36, 0.6)', // Glassmorphism base
+      default: '#0A0A0A',
+      paper: 'rgba(18, 18, 18, 0.6)',
     },
     text: {
-      primary: '#e2e8f0',
-      secondary: '#94a3b8',
+      primary: '#FFFFFF',
+      secondary: '#8C8C8C',
     },
-    divider: 'rgba(255, 255, 255, 0.05)',
+    divider: 'rgba(255, 255, 255, 0.04)',
   },
   shape: {
-    borderRadius: 2, // 2px = 0.125rem for "sm"
+    borderRadius: 2,
   },
   typography: {
-    fontFamily: '"Outfit", "Inter", sans-serif',
-    h1: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600 },
-    h2: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600 },
-    h3: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600 },
-    h4: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600 },
-    h5: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600 },
-    h6: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600 },
+    fontFamily: '"Space Grotesk", sans-serif',
+    h1: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' },
+    h2: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' },
+    h3: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' },
+    h4: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' },
+    h5: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' },
+    h6: { fontFamily: '"Space Grotesk", sans-serif', fontWeight: 600, letterSpacing: '-0.02em' },
     button: {
       fontFamily: '"Space Grotesk", sans-serif',
-      textTransform: 'none', // Modern, non-all-caps buttons
+      textTransform: 'none',
       fontWeight: 600,
     },
   },
@@ -42,33 +42,32 @@ const velocityNoirTheme = createTheme({
     MuiCssBaseline: {
       styleOverrides: `
         body {
-          background-color: #0e0e0e;
-          /* Background decorative blur from index.css translated if needed, 
-             but we keep index.css as well, so this just ensures base is dark */
+          background-color: #0A0A0A;
         }
       `,
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '8px', // Match current rounded-md usually, but user asked for rounded: sm (0.125rem). Wait, the prompt says "Avoid rounded pills unless floating; prefer rounded: sm (0.125rem)." Let's do 2px.
-          border: 'none', // No 1px solid borders
-          transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+          borderRadius: '2px',
+          border: 'none',
+          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         },
         contained: {
-          boxShadow: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
           '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 12px rgba(255, 49, 0, 0.3)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 20px rgba(255, 49, 0, 0.3)',
           },
         },
         outlined: {
-          border: 'none', // No 1px borders per DS, using tonal backgrounds
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          border: 'none',
+          backgroundColor: 'rgba(255, 255, 255, 0.04)',
           '&:hover': {
             border: 'none',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            transform: 'translateY(-2px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 0 20px rgba(255, 49, 0, 0.1)',
           },
         },
       },
@@ -76,23 +75,28 @@ const velocityNoirTheme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(26, 30, 36, 0.6)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255, 255, 255, 0.05)', // Glass border
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-          borderRadius: '12px', // Cards look better slightly more rounded than buttons, but if strict, we can use 8px or 2px. Let's stick to 12px for cards as in the original glass-panel css, or 2px. The prompt said "prefer rounded: sm (0.125rem)" for components. I'll change it to 2px.
+          backgroundColor: 'rgba(18, 18, 18, 0.6)',
+          backgroundImage: 'none',
+          backdropFilter: 'blur(20px) saturate(1.2)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04)',
+          borderRadius: '2px',
+          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          '&:hover': {
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 8px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+          },
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(26, 30, 36, 0.6)',
-          backgroundImage: 'none', // Remove default MUI dark mode overlay
-          backdropFilter: 'blur(12px)',
-          borderRadius: '2px', // strict DS
-          border: '1px solid rgba(255, 255, 255, 0.05)',
+          backgroundColor: 'rgba(18, 18, 18, 0.6)',
+          backgroundImage: 'none',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '2px',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
         },
       },
     },
@@ -101,20 +105,21 @@ const velocityNoirTheme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: '2px',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
             '& fieldset': {
-              borderColor: 'transparent', // No 1px solid borders
+              borderColor: 'rgba(255, 255, 255, 0.04)',
+              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
             },
             '&:hover fieldset': {
-              borderColor: 'transparent',
+              borderColor: 'rgba(255, 255, 255, 0.08)',
             },
             '&.Mui-focused fieldset': {
               borderColor: 'transparent',
             },
             '&.Mui-focused': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 0 0 2px rgba(255, 49, 0, 0.2)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 0 0 2px rgba(255, 49, 0, 0.12), 0 0 20px rgba(255, 49, 0, 0.04)',
             },
           },
         },
@@ -122,8 +127,5 @@ const velocityNoirTheme = createTheme({
     },
   },
 });
-
-// Force 2px border radius for buttons explicitly to match DS
-velocityNoirTheme.components.MuiButton.styleOverrides.root.borderRadius = '2px';
 
 export default velocityNoirTheme;
