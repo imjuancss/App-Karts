@@ -25,12 +25,8 @@ BEGIN
     v_username := v_username || '_' || substring(new.id::text from 1 for 4);
   END IF;
 
-  -- Determinar rol de administrador en base al email o username de la solicitud
-  IF new.email = 'iamjuancss@gmail.com' OR v_username = 'iamjuancss' THEN
-    v_role := 'admin';
-  ELSE
-    v_role := 'user';
-  END IF;
+  -- El rol por defecto es usuario normal
+  v_role := 'user';
 
   INSERT INTO public.profiles (id, full_name, avatar_url, username, role, created_at)
   VALUES (
@@ -53,12 +49,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4. Actualizar perfiles existentes para iamjuancss/iamjuancss@gmail.com si ya están registrados
-UPDATE public.profiles
-SET role = 'admin'
-WHERE username = 'iamjuancss' OR id IN (
-  SELECT id FROM auth.users WHERE email = 'iamjuancss@gmail.com'
-);
 
 -- 5. Asignar las pistas actuales sin creador al administrador si ya se encuentra registrado
 UPDATE public.tracks

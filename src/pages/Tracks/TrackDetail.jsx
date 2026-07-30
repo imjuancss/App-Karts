@@ -164,7 +164,7 @@ export default function TrackDetail() {
       <header className="sticky top-0 z-50 bg-surface-container-highest/40 backdrop-blur-[12px] border-none shadow-[0_0_40px_rgba(255,255,255,0.02)]">
         <div className="flex items-center justify-between px-4 py-4 w-full max-w-5xl mx-auto">
           <div className="flex items-center gap-4">
-            <button type="button" onClick={() => navigate('/tracks')} aria-label="Volver a pistas" title="Volver a pistas" className="active:scale-90 transition-transform flex items-center focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm p-1">
+            <button type="button" onClick={() => navigate('/tracks')} aria-label="Volver a pistas" title="Volver a pistas" className="active:scale-90 transition-transform flex items-center focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm">
               <span className="material-symbols-outlined text-on-surface" aria-hidden="true">arrow_back</span>
             </button>
             <h1 className="font-headline uppercase tracking-widest text-sm font-bold text-on-surface truncate max-w-[200px] md:max-w-xs">
@@ -173,7 +173,7 @@ export default function TrackDetail() {
           </div>
           <div className="flex items-center gap-4">
             {isAdmin && (
-              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} aria-label="Editar pista" title="Editar pista" className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm p-1">
+              <button type="button" onClick={() => navigate(`/tracks/edit/${track.id}`)} aria-label="Editar pista" title="Editar pista" className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm">
                 <span className="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors" aria-hidden="true">edit</span>
               </button>
             )}
@@ -190,7 +190,7 @@ export default function TrackDetail() {
                   toast({ title: 'Error', description: 'No se pudo copiar el enlace', variant: 'error' });
                 }
               }}
-              className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm p-1"
+              className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm"
             >
               <span className="material-symbols-outlined text-primary-fixed" aria-hidden="true">share</span>
             </button>
@@ -209,7 +209,7 @@ export default function TrackDetail() {
                     toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
                   }
                 }}
-                className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm p-1"
+                className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm"
               >
                 <span className="material-symbols-outlined text-error" aria-hidden="true">delete</span>
               </button>
