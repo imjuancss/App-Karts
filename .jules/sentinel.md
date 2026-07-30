@@ -11,3 +11,8 @@
 **Vulnerability:** The `handle_new_user` Supabase trigger could assign the `admin` role based on `v_username` matching 'iamjuancss'. Since `v_username` is initially derived from user-controlled metadata (`new.raw_user_meta_data->>'preferred_username'`), a malicious user could sign up with this preferred username to escalate privileges.
 **Learning:** Security Definier functions that assign roles must strictly rely on trusted data (like the verified `new.email`), not user-provided metadata (`raw_user_meta_data`), even when constructing intermediate variables like usernames.
 **Prevention:** Always validate against trusted auth fields for role assignment and ensure derived variables used for authorization do not stem from untrusted input.
+
+## 2024-07-29 - [Missing RLS Delete Policies]
+**Vulnerability:** Found missing DELETE policies in Supabase migrations for championships, rounds, participants, invitations, and round times tables. Because Supabase RLS policies implicitly deny operations without explicit policies, users were blocked from deleting their own championships.
+**Learning:** This existed because initial schemas failed to include DELETE actions even though `api.js` explicitly supports users deleting their created data.
+**Prevention:** When setting up RLS, review all CRUD functions exposed in standard API interfaces and ensure they have matching DB RLS policies for each specific action, including cascaded or explicit multi-table deletes.
