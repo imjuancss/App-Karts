@@ -60,7 +60,7 @@ export default function ChampionshipDetail() {
   };
 
   useEffect(() => {
-    loadChampionshipData();
+    setTimeout(() => loadChampionshipData(), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -85,7 +85,7 @@ export default function ChampionshipDetail() {
     try {
       await joinChampionship(champ.id);
       toast({ title: '¡Inscrito!', description: 'Te has inscrito exitosamente en el campeonato', variant: 'success' });
-      await loadChampionshipData();
+      await setTimeout(() => loadChampionshipData(), 0);
     } catch (err) {
       console.error(err);
       toast({ title: 'Error', description: 'Ocurrió un error al inscribirte', variant: 'error' });
@@ -154,7 +154,7 @@ export default function ChampionshipDetail() {
     try {
       await completeRound(champ.id, roundId);
       toast({ title: '¡Ronda finalizada!', description: 'Leaderboard general actualizado', variant: 'success' });
-      await loadChampionshipData();
+      await setTimeout(() => loadChampionshipData(), 0);
     } catch (err) {
       console.error(err);
       toast({ title: 'Error', description: 'Error al finalizar la ronda', variant: 'error' });
@@ -199,8 +199,9 @@ export default function ChampionshipDetail() {
           <div className="flex items-center gap-4">
             <button 
               aria-label="Volver a campeonatos"
+              title="Volver a campeonatos"
               onClick={() => navigate('/championships')}
-              className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-sm"
+              className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <span className="material-symbols-outlined text-on-surface">arrow_back</span>
             </button>
@@ -215,8 +216,9 @@ export default function ChampionshipDetail() {
             {canEdit && (
               <button 
                 aria-label="Editar campeonato"
+                title="Editar campeonato"
                 onClick={() => navigate(`/championships/edit/${champ.id}`)}
-                className="flex items-center gap-2 text-on-surface-variant hover:text-primary-dim transition-colors mr-4"
+                className="flex items-center gap-2 text-on-surface-variant hover:text-primary-dim transition-colors mr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm p-1"
               >
                 <span className="material-symbols-outlined text-sm">edit</span>
                 <span className="font-headline font-bold uppercase text-xs tracking-widest">Editar</span>
@@ -256,11 +258,11 @@ export default function ChampionshipDetail() {
                     await deleteChampionship(champ.id);
                     toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
                     navigate('/championships');
-                  } catch (err) {
+                  } catch {
                     toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'error' });
                   }
                 }}
-                className="text-error hover:text-error/80 transition-colors"
+                className="text-error hover:text-error/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-sm p-1"
               >
                 <span className="material-symbols-outlined">delete</span>
               </button>
@@ -510,6 +512,7 @@ export default function ChampionshipDetail() {
                     <form onSubmit={handleInvite} className="flex flex-col gap-4">
                       <Input 
                         type="email" 
+                        aria-label="Correo electrónico para invitar"
                         placeholder="amigo@correo.com" 
                         value={inviteEmail}
                         onChange={e => setInviteEmail(e.target.value)}
@@ -589,9 +592,11 @@ export default function ChampionshipDetail() {
           <div className="bg-surface-container-high border-none p-6 w-full max-w-md rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] relative fade-in flex flex-col gap-6">
             <button 
               type="button"
+              title="Cerrar modal"
               aria-label="Cerrar modal"
+              title="Cerrar modal"
               onClick={() => setIsTimeModalOpen(false)}
-              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface"
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -611,12 +616,13 @@ export default function ChampionshipDetail() {
             <form onSubmit={handleRegisterTime} className="flex flex-col gap-6">
               <FormSection maxWidth="full">
                 <div className="flex flex-col gap-2">
-                  <label className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                  <label htmlFor="time-input" className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                     Tu mejor tiempo
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">timer</span>
                     <Input 
+                      id="time-input"
                       type="text" 
                       placeholder="Ej: 0:44.520" 
                       value={timeInput}
