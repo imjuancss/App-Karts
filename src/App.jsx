@@ -1,9 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import NotFound from './pages/NotFound/NotFound';
 import { Loader2 } from 'lucide-react';
 import { ToastProvider } from './components/ui/toast';
-// Lazy loading de páginas para optimizar la carga inicial
+
 const HomeLeaderboard = lazy(() => import('./pages/HomeLeaderboard/HomeLeaderboard'));
 const ChampionshipsList = lazy(() => import('./pages/Championships/ChampionshipsList'));
 const CreateChampionship = lazy(() => import('./pages/Championships/CreateChampionship'));
@@ -18,7 +20,6 @@ const Auth = lazy(() => import('./pages/Auth/Auth'));
 const Live = lazy(() => import('./pages/Live/Live'));
 const DesignSystem = lazy(() => import('./pages/DesignSystem/DesignSystem'));
 
-// Loader no intrusivo y moderno para transiciones de ruta
 function RouteLoader() {
   return (
     <div className="w-full min-h-[50vh] flex flex-col items-center justify-center gap-3 opacity-85">
@@ -36,22 +37,24 @@ function App() {
           <Suspense fallback={<RouteLoader />}>
             <Routes>
               <Route path="/" element={<HomeLeaderboard />} />
-              
+
               <Route path="/championships" element={<ChampionshipsList />} />
-              <Route path="/championships/new" element={<CreateChampionship />} />
-              <Route path="/championships/edit/:id" element={<EditChampionship />} />
+              <Route path="/championships/new" element={<ProtectedRoute><CreateChampionship /></ProtectedRoute>} />
+              <Route path="/championships/edit/:id" element={<ProtectedRoute><EditChampionship /></ProtectedRoute>} />
               <Route path="/championships/:id" element={<ChampionshipDetail />} />
-              
+
               <Route path="/tracks" element={<TracksList />} />
-              <Route path="/tracks/new" element={<CreateTrack />} />
-              <Route path="/tracks/edit/:id" element={<EditTrack />} />
+              <Route path="/tracks/new" element={<ProtectedRoute><CreateTrack /></ProtectedRoute>} />
+              <Route path="/tracks/edit/:id" element={<ProtectedRoute><EditTrack /></ProtectedRoute>} />
               <Route path="/tracks/:id" element={<TrackDetail />} />
 
               <Route path="/live" element={<Live />} />
 
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/login" element={<Auth />} />
               <Route path="/design-system" element={<DesignSystem />} />
+
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </Layout>

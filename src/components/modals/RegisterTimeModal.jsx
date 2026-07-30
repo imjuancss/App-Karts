@@ -4,9 +4,9 @@ import { Input } from '../ui/input';
 import { SelectNative } from '../ui/select-native';
 import FormSection from '../layout/FormSection';
 import { registerLapTime, getTracks } from '../../services/api';
-import { formatTimeInput } from '../../pages/Profile/Profile';
+import { formatTimeInput } from '../../lib/formatters';
 import { useToast } from '../ui/toast';
-import { supabase } from '../../lib/supabase';
+
 
 const parseTimeToMs = (timeStr) => {
   const parts = timeStr.trim().split(':');
@@ -41,8 +41,8 @@ export default function RegisterTimeModal({ isOpen, onClose, onSuccess, initialT
           setSelectedTrackId(tracks[0].id);
         }
       });
-      setTimeInput('');
-      setTimeError('');
+      setTimeout(() => setTimeInput(''), 0);
+      setTimeout(() => setTimeError(''), 0);
     }
   }, [isOpen, selectedTrackId]);
 
@@ -51,7 +51,7 @@ export default function RegisterTimeModal({ isOpen, onClose, onSuccess, initialT
   const handleRegisterLapTime = async (e) => {
     e.preventDefault();
     setIsSubmittingTime(true);
-    setTimeError('');
+    setTimeout(() => setTimeError(''), 0);
 
     try {
       const ms = parseTimeToMs(timeInput);
@@ -74,14 +74,14 @@ export default function RegisterTimeModal({ isOpen, onClose, onSuccess, initialT
       onClose();
     } catch (err) {
       console.error(err);
-      setTimeError(err.message || 'Error al guardar el tiempo. Asegúrate de estar autenticado.');
+      setTimeError('Error al guardar el tiempo. Asegúrate de estar autenticado.');
     } finally {
       setIsSubmittingTime(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 pb-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:pb-4">
       <div className="bg-surface-container-high p-6 w-full max-w-md rounded-sm border border-outline-variant/30 fade-in shadow-[0_0_40px_rgba(0,0,0,0.5)] flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h3 className="font-headline font-bold text-xl uppercase tracking-widest text-white">REGISTRAR TIEMPO</h3>

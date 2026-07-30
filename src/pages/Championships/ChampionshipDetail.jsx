@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship, getProfile } from '../../services/api';
-import { formatTimeInput } from '../Profile/Profile';
+import { getChampionshipById, getRoundTimes, registerRoundTime, completeRound, joinChampionship, inviteToChampionship, deleteChampionship, getProfile } from '../../services/api';
+import { formatMsToTime, formatTimeInput, parseTimeToMs } from '../../lib/formatters';
 import { useToast } from '../../components/ui/toast';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -11,31 +11,6 @@ import HeroHeader from '../../components/ui/HeroHeader';
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
-
-const formatMsToTime = (ms) => {
-  if (!ms) return "00:00.000";
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  const milliseconds = ms % 1000;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
-};
-
-const parseTimeToMs = (timeStr) => {
-  const parts = timeStr.trim().split(':');
-  if (parts.length === 2) {
-    const mins = parseInt(parts[0], 10);
-    const secsParts = parts[1].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (mins * 60000) + (secs * 1000) + ms;
-  } else if (parts.length === 1) {
-    const secsParts = parts[0].split('.');
-    const secs = parseInt(secsParts[0], 10);
-    const ms = secsParts[1] ? parseInt(secsParts[1].padEnd(3, '0').slice(0, 3), 10) : 0;
-    return (secs * 1000) + ms;
-  }
-  return 0;
-};
 
 export default function ChampionshipDetail() {
   const { id } = useParams();
@@ -85,7 +60,7 @@ export default function ChampionshipDetail() {
   };
 
   useEffect(() => {
-    loadChampionshipData();
+    setTimeout(() => loadChampionshipData(), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -102,18 +77,18 @@ export default function ChampionshipDetail() {
 
   const handleJoin = async () => {
     if (!sessionUser) {
-      alert("Debes iniciar sesión para inscribirte.");
+      toast({ title: 'Sesión requerida', description: 'Debes iniciar sesión para inscribirte', variant: 'error' });
       navigate('/login');
       return;
     }
     setIsJoining(true);
     try {
       await joinChampionship(champ.id);
-      alert("¡Te has inscrito exitosamente en el campeonato!");
-      await loadChampionshipData();
+      toast({ title: '¡Inscrito!', description: 'Te has inscrito exitosamente en el campeonato', variant: 'success' });
+      await setTimeout(() => loadChampionshipData(), 0);
     } catch (err) {
       console.error(err);
-      alert("Ocurrió un error al inscribirte.");
+      toast({ title: 'Error', description: 'Ocurrió un error al inscribirte', variant: 'error' });
     } finally {
       setIsJoining(false);
     }
@@ -149,7 +124,7 @@ export default function ChampionshipDetail() {
       });
     } catch (err) {
       console.error(err);
-      setTimeError(err.message || 'Error al subir el tiempo.');
+      setTimeError('Error al subir el tiempo.');
     } finally {
       setIsSubmittingTime(false);
     }
@@ -161,11 +136,11 @@ export default function ChampionshipDetail() {
     setIsSubmittingInvite(true);
     try {
       await inviteToChampionship(champ.id, inviteEmail);
-      alert(`Invitación simulada enviada con éxito a: ${inviteEmail}. Al registrarse podrá unirse.`);
+      toast({ title: 'Invitación enviada', description: `Se guardó la invitación para ${inviteEmail}`, variant: 'success' });
       setInviteEmail('');
     } catch (err) {
       console.error(err);
-      alert(err.message || "Error al enviar la invitación.");
+      toast({ title: 'Error', description: 'Error al enviar la invitación', variant: 'error' });
     } finally {
       setIsSubmittingInvite(false);
     }
@@ -178,11 +153,11 @@ export default function ChampionshipDetail() {
     setIsCompletingRound(true);
     try {
       await completeRound(champ.id, roundId);
-      alert("¡Ronda finalizada correctamente y leaderboard general actualizado!");
-      await loadChampionshipData();
+      toast({ title: '¡Ronda finalizada!', description: 'Leaderboard general actualizado', variant: 'success' });
+      await setTimeout(() => loadChampionshipData(), 0);
     } catch (err) {
       console.error(err);
-      alert("Error al finalizar la ronda.");
+      toast({ title: 'Error', description: 'Error al finalizar la ronda', variant: 'error' });
     } finally {
       setIsCompletingRound(false);
     }
@@ -224,8 +199,9 @@ export default function ChampionshipDetail() {
           <div className="flex items-center gap-4">
             <button 
               aria-label="Volver a campeonatos"
+              title="Volver a campeonatos"
               onClick={() => navigate('/championships')}
-              className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-sm"
+              className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-highest transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <span className="material-symbols-outlined text-on-surface">arrow_back</span>
             </button>
@@ -239,8 +215,10 @@ export default function ChampionshipDetail() {
           <div className="hidden md:flex items-center gap-6">
             {canEdit && (
               <button 
+                aria-label="Editar campeonato"
+                title="Editar campeonato"
                 onClick={() => navigate(`/championships/edit/${champ.id}`)}
-                className="flex items-center gap-2 text-on-surface-variant hover:text-primary-dim transition-colors mr-4"
+                className="flex items-center gap-2 text-on-surface-variant hover:text-primary-dim transition-colors mr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm p-1"
               >
                 <span className="material-symbols-outlined text-sm">edit</span>
                 <span className="font-headline font-bold uppercase text-xs tracking-widest">Editar</span>
@@ -268,6 +246,26 @@ export default function ChampionshipDetail() {
               <div className="bg-tertiary-fixed/10 text-tertiary-fixed px-4 py-2 rounded-sm border border-tertiary-fixed/30 font-headline font-bold text-sm tracking-widest uppercase flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">check_circle</span> Inscrito
               </div>
+            )}
+            {isCreator && (
+              <button
+                type="button"
+                aria-label="Eliminar campeonato"
+                title="Eliminar campeonato"
+                onClick={async () => {
+                  if (!window.confirm('¿Eliminar este campeonato? Esta acción no se puede deshacer.')) return;
+                  try {
+                    await deleteChampionship(champ.id);
+                    toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
+                    navigate('/championships');
+                  } catch {
+                    toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'error' });
+                  }
+                }}
+                className="text-error hover:text-error/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-sm p-1"
+              >
+                <span className="material-symbols-outlined">delete</span>
+              </button>
             )}
           </div>
         </div>
@@ -514,6 +512,7 @@ export default function ChampionshipDetail() {
                     <form onSubmit={handleInvite} className="flex flex-col gap-4">
                       <Input 
                         type="email" 
+                        aria-label="Correo electrónico para invitar"
                         placeholder="amigo@correo.com" 
                         value={inviteEmail}
                         onChange={e => setInviteEmail(e.target.value)}
@@ -589,13 +588,15 @@ export default function ChampionshipDetail() {
 
       {/* Time Entry Modal */}
       {isTimeModalOpen && activeRound && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 pb-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:pb-4">
           <div className="bg-surface-container-high border-none p-6 w-full max-w-md rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] relative fade-in flex flex-col gap-6">
             <button 
               type="button"
+              title="Cerrar modal"
               aria-label="Cerrar modal"
+              title="Cerrar modal"
               onClick={() => setIsTimeModalOpen(false)}
-              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface"
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -615,12 +616,13 @@ export default function ChampionshipDetail() {
             <form onSubmit={handleRegisterTime} className="flex flex-col gap-6">
               <FormSection maxWidth="full">
                 <div className="flex flex-col gap-2">
-                  <label className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                  <label htmlFor="time-input" className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                     Tu mejor tiempo
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">timer</span>
                     <Input 
+                      id="time-input"
                       type="text" 
                       placeholder="Ej: 0:44.520" 
                       value={timeInput}

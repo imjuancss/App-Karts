@@ -104,7 +104,7 @@ export default function CreateChampionship() {
       navigate('/championships');
     } catch (err) {
       console.error(err);
-      setErrorMsg(err.message || 'Error al crear el campeonato.');
+      setErrorMsg( 'Error al crear el campeonato.');
     } finally {
       setIsSubmitting(false);
     }

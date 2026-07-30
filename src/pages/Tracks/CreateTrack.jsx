@@ -36,7 +36,7 @@ export default function CreateTrack() {
     } catch (error) {
       console.error('Error al subir imagen:', error);
       setCoverImage('');
-      setErrorMsg(error.message || 'No se pudo subir la imagen.');
+      setErrorMsg('No se pudo subir la imagen.');
     } finally {
       setIsUploadingCover(false);
     }
@@ -71,7 +71,7 @@ export default function CreateTrack() {
       navigate('/tracks');
     } catch (error) {
       console.error('Error al crear la pista:', error);
-      setErrorMsg(error.message || 'Error al registrar el circuito.');
+      setErrorMsg('Error al registrar el circuito.');
     } finally {
       setIsSubmitting(false);
     }
