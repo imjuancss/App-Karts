@@ -733,7 +733,7 @@ export async function fetchExternalMotorsportNews() {
   // se conserva solo la primera versión (la del feed más específico).
   const seenLinks = new Map();
 
-  for (const feed of feeds) {
+  const fetchPromises = feeds.map(async (feed) => {
     try {
       const response = await fetch(
         `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`
@@ -741,7 +741,7 @@ export async function fetchExternalMotorsportNews() {
 
       if (!response.ok) {
         console.warn(`No se pudo obtener el feed de ${feed.source} (${feed.category})`);
-        continue;
+        return [];
       }
 
       const data = await response.json();
@@ -787,6 +787,48 @@ export async function fetchExternalMotorsportNews() {
       }
     } catch (err) {
       console.error(`Error procesando feed ${feed.url}:`, err);
+      return [];
+    }
+  });
+
+  const results = await Promise.all(fetchPromises);
+
+  for (const feedItems of results) {
+    for (const { item, feed } of feedItems) {
+      const title = item.title;
+      const link = item.link;
+
+      // Saltar si este artículo ya fue añadido desde otro feed
+      if (seenLinks.has(link)) continue;
+      seenLinks.set(link, true);
+
+      // Limpiar la descripción de etiquetas HTML
+      const rawDesc = item.description || item.content || '';
+      const description = cleanDescription(rawDesc);
+
+      // Obtener URL de imagen
+      const image_url = item.thumbnail ||
+                         item.enclosure?.link ||
+                         extractImageFromHtml(rawDesc) ||
+                         'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
+
+      // Formatear fecha a ISO String
+      let pub_date;
+      try {
+        pub_date = new Date(item.pubDate).toISOString();
+      } catch {
+        pub_date = new Date().toISOString();
+      }
+
+      allNews.push({
+        title,
+        link,
+        description: description.substring(0, 300) + (description.length > 300 ? '...' : ''),
+        pub_date,
+        source: feed.source,
+        image_url,
+        category: feed.category
+      });
     }
   }
 
