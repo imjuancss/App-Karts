@@ -87,8 +87,8 @@ export default function TrackDetail() {
       try {
         const userProfile = await getProfile(user.id);
         setIsAdmin(userProfile?.role === 'admin');
-      } catch (err) {
-        console.error("Error checking admin status:", err);
+      } catch (error) {
+        console.error("Error checking admin status:", error);
         setIsAdmin(false);
       }
     } else {
@@ -135,8 +135,8 @@ export default function TrackDetail() {
         description: 'Tu récord se ha guardado en el circuito.',
         variant: 'success'
       });
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       setTimeError('Ocurrió un error al registrar el tiempo.');
     } finally {
       setIsSubmittingTime(false);
