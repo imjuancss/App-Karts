@@ -203,7 +203,7 @@ export default function Live() {
                   description={item.description}
                   footer={
                     <a
-                      href={item.link}
+                      href={item.link?.startsWith('http') ? item.link : '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-tertiary transition-colors"

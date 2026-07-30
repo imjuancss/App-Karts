@@ -512,6 +512,7 @@ export default function ChampionshipDetail() {
                     <form onSubmit={handleInvite} className="flex flex-col gap-4">
                       <Input 
                         type="email" 
+                        aria-label="Correo electrónico para invitar"
                         placeholder="amigo@correo.com" 
                         value={inviteEmail}
                         onChange={e => setInviteEmail(e.target.value)}
@@ -593,8 +594,9 @@ export default function ChampionshipDetail() {
               type="button"
               title="Cerrar modal"
               aria-label="Cerrar modal"
+              title="Cerrar modal"
               onClick={() => setIsTimeModalOpen(false)}
-              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm p-1"
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -614,12 +616,13 @@ export default function ChampionshipDetail() {
             <form onSubmit={handleRegisterTime} className="flex flex-col gap-6">
               <FormSection maxWidth="full">
                 <div className="flex flex-col gap-2">
-                  <label className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                  <label htmlFor="time-input" className="font-headline text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                     Tu mejor tiempo
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">timer</span>
                     <Input 
+                      id="time-input"
                       type="text" 
                       placeholder="Ej: 0:44.520" 
                       value={timeInput}
