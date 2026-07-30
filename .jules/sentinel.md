@@ -11,3 +11,7 @@
 **Vulnerability:** The `handle_new_user` Supabase trigger could assign the `admin` role based on `v_username` matching 'iamjuancss'. Since `v_username` is initially derived from user-controlled metadata (`new.raw_user_meta_data->>'preferred_username'`), a malicious user could sign up with this preferred username to escalate privileges.
 **Learning:** Security Definier functions that assign roles must strictly rely on trusted data (like the verified `new.email`), not user-provided metadata (`raw_user_meta_data`), even when constructing intermediate variables like usernames.
 **Prevention:** Always validate against trusted auth fields for role assignment and ensure derived variables used for authorization do not stem from untrusted input.
+## 2024-05-18 - Missing Security Headers in Vercel Deployment
+**Vulnerability:** The application was deployed via Vercel without configuring essential HTTP security headers (like HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy).
+**Learning:** Default deployments often lack defense-in-depth mechanisms, leaving the app vulnerable to Clickjacking, MIME-sniffing, and XSS attacks if other mitigations fail.
+**Prevention:** Always configure `vercel.json` (or equivalent deployment config) to include standard HTTP security headers for all routes.
