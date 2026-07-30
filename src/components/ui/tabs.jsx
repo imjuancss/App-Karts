@@ -8,7 +8,7 @@ export function Tabs({ defaultValue, value, onValueChange, className, children }
 
   React.useEffect(() => {
     if (value !== undefined) {
-      setTab(value)
+      setTimeout(() => setTab(value), 0)
     }
   }, [value])
 

@@ -6,7 +6,7 @@ import FormSection from '../layout/FormSection';
 import { registerLapTime, getTracks } from '../../services/api';
 import { formatTimeInput } from '../../lib/formatters';
 import { useToast } from '../ui/toast';
-import { supabase } from '../../lib/supabase';
+
 
 const parseTimeToMs = (timeStr) => {
   const parts = timeStr.trim().split(':');
@@ -41,8 +41,8 @@ export default function RegisterTimeModal({ isOpen, onClose, onSuccess, initialT
           setSelectedTrackId(tracks[0].id);
         }
       });
-      setTimeInput('');
-      setTimeError('');
+      setTimeout(() => setTimeInput(''), 0);
+      setTimeout(() => setTimeError(''), 0);
     }
   }, [isOpen, selectedTrackId]);
 
@@ -51,7 +51,7 @@ export default function RegisterTimeModal({ isOpen, onClose, onSuccess, initialT
   const handleRegisterLapTime = async (e) => {
     e.preventDefault();
     setIsSubmittingTime(true);
-    setTimeError('');
+    setTimeout(() => setTimeError(''), 0);
 
     try {
       const ms = parseTimeToMs(timeInput);

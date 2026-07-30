@@ -46,7 +46,7 @@ export default function EditChampionship() {
         } else {
           setErrorMsg('Campeonato no encontrado.');
         }
-      } catch (err) {
+      } catch {
         setErrorMsg('Error al cargar campeonato.');
       } finally {
         setIsLoading(false);
@@ -73,8 +73,8 @@ export default function EditChampionship() {
       });
 
       navigate('/championships');
-    } catch (err) {
-      console.error(err);
+    } catch {
+      console.error("error");
       setErrorMsg( 'Error al editar el campeonato.');
     } finally {
       setIsSubmitting(false);
