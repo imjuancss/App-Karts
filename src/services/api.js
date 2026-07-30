@@ -517,23 +517,18 @@ export async function completeRound(championshipId, roundId) {
   });
 
   // Guardar puntajes consolidados en championship_participants
-  for (const userId of Object.keys(userPoints)) {
-    const pts = userPoints[userId];
-    const { error: partUpdateError } = await supabase
+  const upsertData = Object.keys(userPoints).map(userId => ({
+    championship_id: championshipId,
+    user_id: userId,
+    points: userPoints[userId]
+  }));
+
+  if (upsertData.length > 0) {
+    const { error: upsertError } = await supabase
       .from('championship_participants')
-      .update({ points: pts })
-      .eq('championship_id', championshipId)
-      .eq('user_id', userId);
+      .upsert(upsertData, { onConflict: 'championship_id,user_id' });
     
-    if (partUpdateError) {
-      await supabase
-        .from('championship_participants')
-        .upsert({
-          championship_id: championshipId,
-          user_id: userId,
-          points: pts
-        }, { onConflict: 'championship_id,user_id' });
-    }
+    if (upsertError) throw upsertError;
   }
 
   return true;
@@ -936,7 +931,7 @@ export async function fetchMotorsportCalendars() {
         }
         // Los otros proxies devuelven texto directo
         if (text.includes('BEGIN:VCALENDAR')) return text;
-      } catch (_) { /* intentar siguiente proxy */ }
+      } catch { /* intentar siguiente proxy */ }
     }
     return null;
   }
