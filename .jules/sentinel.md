@@ -15,3 +15,8 @@
 **Vulnerability:** The application was deployed via Vercel without configuring essential HTTP security headers (like HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy).
 **Learning:** Default deployments often lack defense-in-depth mechanisms, leaving the app vulnerable to Clickjacking, MIME-sniffing, and XSS attacks if other mitigations fail.
 **Prevention:** Always configure `vercel.json` (or equivalent deployment config) to include standard HTTP security headers for all routes.
+
+## 2024-07-29 - [Missing RLS Delete Policies]
+**Vulnerability:** Found missing DELETE policies in Supabase migrations for championships, rounds, participants, invitations, and round times tables. Because Supabase RLS policies implicitly deny operations without explicit policies, users were blocked from deleting their own championships.
+**Learning:** This existed because initial schemas failed to include DELETE actions even though `api.js` explicitly supports users deleting their created data.
+**Prevention:** When setting up RLS, review all CRUD functions exposed in standard API interfaces and ensure they have matching DB RLS policies for each specific action, including cascaded or explicit multi-table deletes.
