@@ -17,10 +17,21 @@ export default function KineticCard({
   );
   const heightClass = hasHeightClass ? '' : 'h-auto';
 
+  const handleKeyDown = (e) => {
+    if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick(e);
+    }
+  };
+
   return (
-    <div onClick={onClick}
+    <div
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={onClick ? 0 : undefined}
+      role={onClick ? "button" : undefined}
       className={`bg-surface-container rounded-sm flex flex-col ${heightClass} overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1.5 hover:bg-surface-container-highest hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] border border-transparent hover:border-white/[0.06] ${
-        onClick ? 'cursor-pointer select-none' : ''
+        onClick ? 'cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background' : ''
       } ${className}`}>
       {image && (
         <div className="relative w-full h-48 overflow-hidden shrink-0">
