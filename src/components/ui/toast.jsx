@@ -28,26 +28,26 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-md w-full pointer-events-none">
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:bottom-6 left-4 right-4 md:left-auto md:right-6 z-[200] flex flex-col gap-3 max-w-md w-auto md:w-full pointer-events-none">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start gap-3 p-4 backdrop-blur-xl rounded-sm shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 fade-in ${
+            className={`pointer-events-auto flex items-start gap-3 p-3 md:p-4 backdrop-blur-xl rounded-sm shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 fade-in ${
               t.variant === 'success'
                 ? 'bg-gradient-to-r from-[rgba(202,253,0,0.08)] to-[rgba(18,18,18,0.95)] border-l-[3px] border-l-tertiary-fixed'
-                : t.variant === 'error'
+                : t.variant === 'error' || t.variant === 'destructive'
                 ? 'bg-gradient-to-r from-[rgba(255,110,132,0.08)] to-[rgba(18,18,18,0.95)] border-l-[3px] border-l-error'
                 : 'bg-gradient-to-r from-[rgba(255,49,0,0.08)] to-[rgba(18,18,18,0.95)] border-l-[3px] border-l-primary-dim'
             }`}
           >
             <div className="flex-1 flex flex-col gap-1 mt-0.5">
               {t.title && (
-                <span className="font-headline font-bold text-sm tracking-wide text-white uppercase leading-tight">
+                <span className="font-headline font-bold text-xs md:text-sm tracking-wide text-white uppercase leading-tight">
                   {t.title}
                 </span>
               )}
               {t.description && (
-                <span className="font-body text-xs text-on-surface-variant leading-relaxed">
+                <span className="font-body text-[11px] md:text-xs text-on-surface-variant leading-relaxed">
                   {t.description}
                 </span>
               )}

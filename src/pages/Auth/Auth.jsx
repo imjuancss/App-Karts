@@ -76,7 +76,7 @@ export default function Auth() {
     }
 
     if (error) {
-      setErrorDesc(error.message);
+      setErrorDesc('Ocurrió un error de autenticación. Por favor, inténtalo de nuevo.');
       setIsLoading(false);
     } else {
       navigate('/profile');
@@ -95,7 +95,7 @@ export default function Auth() {
     });
 
     if (error) {
-      setErrorDesc(error.message);
+      setErrorDesc('Ocurrió un error de autenticación. Por favor, inténtalo de nuevo.');
       setIsLoading(false);
     }
   };

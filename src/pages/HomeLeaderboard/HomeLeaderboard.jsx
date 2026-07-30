@@ -367,7 +367,7 @@ export default function HomeLeaderboard() {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-40 flex flex-col justify-center items-center p-4">
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-[95] flex flex-col justify-center items-center p-4">
           <KineticButton 
             variant="contained" 
             color="primary" 

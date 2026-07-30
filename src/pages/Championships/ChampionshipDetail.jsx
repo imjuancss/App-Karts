@@ -124,7 +124,7 @@ export default function ChampionshipDetail() {
       });
     } catch (err) {
       console.error(err);
-      setTimeError(err.message || 'Error al subir el tiempo.');
+      setTimeError('Error al subir el tiempo.');
     } finally {
       setIsSubmittingTime(false);
     }
@@ -140,7 +140,7 @@ export default function ChampionshipDetail() {
       setInviteEmail('');
     } catch (err) {
       console.error(err);
-      toast({ title: 'Error', description: err.message || 'Error al enviar la invitación', variant: 'error' });
+      toast({ title: 'Error', description: 'Error al enviar la invitación', variant: 'error' });
     } finally {
       setIsSubmittingInvite(false);
     }
@@ -257,7 +257,7 @@ export default function ChampionshipDetail() {
                     toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
                     navigate('/championships');
                   } catch (err) {
-                    toast({ title: 'Error', description: err.message || 'No se pudo eliminar', variant: 'error' });
+                    toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'error' });
                   }
                 }}
                 className="text-error hover:text-error/80 transition-colors"
@@ -585,7 +585,7 @@ export default function ChampionshipDetail() {
 
       {/* Time Entry Modal */}
       {isTimeModalOpen && activeRound && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 pb-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:pb-4">
           <div className="bg-surface-container-high border-none p-6 w-full max-w-md rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] relative fade-in flex flex-col gap-6">
             <button 
               type="button"
