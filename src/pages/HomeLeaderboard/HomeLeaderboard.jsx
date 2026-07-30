@@ -56,7 +56,7 @@ export default function HomeLeaderboard() {
   // Fetch realtime leaderboard data from Supabase
   useEffect(() => {
     if (!selectedTrackId || selectedTrackId.length < 30) return;
-    setIsLoading(true);
+    setTimeout(() => setIsLoading(true), 0);
     const fetchLeaderboard = async () => {
       try {
         const { data, error } = await supabase
