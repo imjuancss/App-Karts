@@ -107,7 +107,7 @@ export default function TrackDetail() {
   };
 
   useEffect(() => {
-    loadTrackData();
+    setTimeout(() => loadTrackData(), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -205,7 +205,7 @@ export default function TrackDetail() {
                     await deleteTrack(track.id);
                     toast({ title: 'Pista eliminada', description: 'La pista fue eliminada correctamente', variant: 'success' });
                     navigate('/tracks');
-                  } catch (err) {
+                  } catch {
                     toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
                   }
                 }}

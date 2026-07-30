@@ -60,7 +60,7 @@ export default function ChampionshipDetail() {
   };
 
   useEffect(() => {
-    loadChampionshipData();
+    setTimeout(() => loadChampionshipData(), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -85,7 +85,7 @@ export default function ChampionshipDetail() {
     try {
       await joinChampionship(champ.id);
       toast({ title: '¡Inscrito!', description: 'Te has inscrito exitosamente en el campeonato', variant: 'success' });
-      await loadChampionshipData();
+      await setTimeout(() => loadChampionshipData(), 0);
     } catch (err) {
       console.error(err);
       toast({ title: 'Error', description: 'Ocurrió un error al inscribirte', variant: 'error' });
@@ -154,7 +154,7 @@ export default function ChampionshipDetail() {
     try {
       await completeRound(champ.id, roundId);
       toast({ title: '¡Ronda finalizada!', description: 'Leaderboard general actualizado', variant: 'success' });
-      await loadChampionshipData();
+      await setTimeout(() => loadChampionshipData(), 0);
     } catch (err) {
       console.error(err);
       toast({ title: 'Error', description: 'Error al finalizar la ronda', variant: 'error' });
@@ -216,8 +216,9 @@ export default function ChampionshipDetail() {
             {canEdit && (
               <button 
                 aria-label="Editar campeonato"
+                title="Editar campeonato"
                 onClick={() => navigate(`/championships/edit/${champ.id}`)}
-                className="flex items-center gap-2 text-on-surface-variant hover:text-primary-dim transition-colors mr-4"
+                className="flex items-center gap-2 text-on-surface-variant hover:text-primary-dim transition-colors mr-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm p-1"
               >
                 <span className="material-symbols-outlined text-sm">edit</span>
                 <span className="font-headline font-bold uppercase text-xs tracking-widest">Editar</span>
@@ -257,11 +258,11 @@ export default function ChampionshipDetail() {
                     await deleteChampionship(champ.id);
                     toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
                     navigate('/championships');
-                  } catch (err) {
+                  } catch {
                     toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'error' });
                   }
                 }}
-                className="text-error hover:text-error/80 transition-colors"
+                className="text-error hover:text-error/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-sm p-1"
               >
                 <span className="material-symbols-outlined">delete</span>
               </button>
@@ -591,6 +592,7 @@ export default function ChampionshipDetail() {
           <div className="bg-surface-container-high border-none p-6 w-full max-w-md rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] relative fade-in flex flex-col gap-6">
             <button 
               type="button"
+              title="Cerrar modal"
               aria-label="Cerrar modal"
               title="Cerrar modal"
               onClick={() => setIsTimeModalOpen(false)}
