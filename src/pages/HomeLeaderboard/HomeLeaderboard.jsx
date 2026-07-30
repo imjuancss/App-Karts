@@ -41,7 +41,7 @@ export default function HomeLeaderboard() {
           .from('tracks')
           .select('id, name, cover_image')
           .order('name', { ascending: true });
-        if (error) throw error;
+        if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
         setTracks(data || []);
         if (data && data.length > 0) {
           setSelectedTrackId(data[0].id);
@@ -56,7 +56,7 @@ export default function HomeLeaderboard() {
   // Fetch realtime leaderboard data from Supabase
   useEffect(() => {
     if (!selectedTrackId || selectedTrackId.length < 30) return;
-    setIsLoading(true);
+    setTimeout(() => setIsLoading(true), 0);
     const fetchLeaderboard = async () => {
       try {
         const { data, error } = await supabase
@@ -69,7 +69,7 @@ export default function HomeLeaderboard() {
           )
           .eq('track_id', selectedTrackId)
           .order('lap_time_ms', { ascending: true });
-        if (error) throw error;
+        if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
 
         // Apply time filters
         const now = Date.now();
@@ -367,7 +367,7 @@ export default function HomeLeaderboard() {
         </div>
 
         {/* FAB Subir tiempos */}
-        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-40 flex flex-col justify-center items-center p-4">
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl pointer-events-none z-[95] flex flex-col justify-center items-center p-4">
           <KineticButton 
             variant="contained" 
             color="primary" 

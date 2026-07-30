@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { getProfile, getUserLapTimes, registerLapTime, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
-import { formatMsToTime, formatTimeInput, parseTimeToMs } from '../../lib/formatters';
+import { getProfile, getUserLapTimes, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
+import { formatMsToTime } from '../../lib/formatters';
 import { Input } from '../../components/ui/input';
 import { SelectNative } from '../../components/ui/select-native';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -26,10 +26,22 @@ function StatCard({ label, icon, iconClassName, children, accent }) {
 }
 
 function ListRow({ icon, title, subtitle, trailing, onClick }) {
+  const interactiveProps = onClick ? {
+    role: "button",
+    tabIndex: 0,
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick(e);
+      }
+    }
+  } : {};
+
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-between py-3 group ${onClick ? 'cursor-pointer' : ''}`}
+      {...interactiveProps}
+      className={`flex items-center justify-between py-3 group ${onClick ? 'cursor-pointer focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm' : ''}`}
     >
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm group-hover:bg-primary/20 transition-colors">
@@ -59,7 +71,7 @@ export default function Profile() {
   const [userTimes, setUserTimes] = useState([]);
   const [userChampionships, setUserChampionships] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
-  const [allTracks, setAllTracks] = useState([]);
+  const [, setAllTracks] = useState([]);
   
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
 
@@ -154,11 +166,11 @@ export default function Profile() {
     const shouldUpload = searchParams.get('subir-tiempo') === '1';
 
     if (tab === 'tiempos' || shouldUpload) {
-      setActiveTab('tiempos');
+      setTimeout(() => setActiveTab('tiempos'), 0);
     }
 
     if (shouldUpload) {
-      setIsTimeModalOpen(true);
+      setTimeout(() => setIsTimeModalOpen(true), 0);
     }
 
     if (tab || shouldUpload) {
@@ -242,7 +254,7 @@ export default function Profile() {
                 <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-4 rounded-sm">
                   <span className="font-label text-sm uppercase">Campeonato: <strong className="text-white">{invite.championships?.name}</strong></span>
                   <button 
-                    className="bg-tertiary-fixed text-on-tertiary-fixed px-4 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
+                    className="bg-tertiary-fixed text-on-tertiary-fixed px-4 py-2 rounded-sm font-bold text-[10px] uppercase tracking-widest active:scale-95 transition-transform focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
                     onClick={() => handleAcceptInvite(invite.id, invite.championship_id, invite.championships?.name)}
                   >
                     Aceptar y Unirme
@@ -326,7 +338,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={() => setIsTimeModalOpen(true)}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
           >
             <div className="relative z-10 flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
@@ -338,7 +350,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={async () => await supabase.auth.signOut()}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
           >
             <div className="flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>

@@ -104,7 +104,7 @@ export default function EditTrack() {
       setCoverImage(url);
     } catch (error) {
       console.error('Error al subir imagen:', error);
-      setErrorMsg(error.message || 'No se pudo subir la imagen.');
+      setErrorMsg('No se pudo subir la imagen.');
     } finally {
       setIsUploadingCover(false);
     }
@@ -123,7 +123,7 @@ export default function EditTrack() {
       navigate('/tracks');
     } catch (error) {
       console.error('Error al eliminar la pista:', error);
-      setErrorMsg(error.message || 'Error al eliminar el circuito.');
+      setErrorMsg('Error al eliminar el circuito.');
       setIsDeleting(false);
     }
   };
@@ -155,7 +155,7 @@ export default function EditTrack() {
       navigate(`/tracks/${id}`);
     } catch (error) {
       console.error('Error al actualizar la pista:', error);
-      setErrorMsg(error.message || 'Error al actualizar el circuito.');
+      setErrorMsg('Error al actualizar el circuito.');
     } finally {
       setIsSubmitting(false);
     }
