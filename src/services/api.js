@@ -478,13 +478,16 @@ export async function completeRound(championshipId, roundId) {
   const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 
   // 2. Asignar puntos y actualizar cada registro en la ronda
-  for (let i = 0; i < times.length; i++) {
-    const pts = i < pointsSystem.length ? pointsSystem[i] : 0;
-    await supabase
-      .from('championship_round_times')
-      .update({ points: pts })
-      .eq('id', times[i].id);
-  }
+  const timeUpdates = times.map((t, i) => ({
+    ...t,
+    points: i < pointsSystem.length ? pointsSystem[i] : 0
+  }));
+
+  const { error: updateError } = await supabase
+    .from('championship_round_times')
+    .upsert(timeUpdates);
+
+  if (updateError) throw updateError;
 
   // 3. Marcar la ronda como completada
   const { error: roundUpdateError } = await supabase
