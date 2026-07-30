@@ -745,7 +745,7 @@ export async function fetchExternalMotorsportNews() {
       }
 
       const data = await response.json();
-      if (data.status !== 'ok' || !data.items) continue;
+      if (data.status !== 'ok' || !data.items) return [];
 
       for (const item of data.items) {
         const title = item.title;
