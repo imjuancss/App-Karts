@@ -41,7 +41,7 @@ export default function HomeLeaderboard() {
           .from('tracks')
           .select('id, name, cover_image')
           .order('name', { ascending: true });
-        if (error) throw error;
+        if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
         setTracks(data || []);
         if (data && data.length > 0) {
           setSelectedTrackId(data[0].id);
@@ -69,7 +69,7 @@ export default function HomeLeaderboard() {
           )
           .eq('track_id', selectedTrackId)
           .order('lap_time_ms', { ascending: true });
-        if (error) throw error;
+        if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
 
         // Apply time filters
         const now = Date.now();
