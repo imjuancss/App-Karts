@@ -1,5 +1,5 @@
 export default function KineticButton({ children, variant = 'contained', color = 'primary', className = '', ...props }) {
-  let baseClasses = 'font-headline font-bold uppercase tracking-widest text-sm rounded-sm transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 ';
+  let baseClasses = 'font-headline font-bold uppercase tracking-widest text-sm rounded-sm transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ';
 
   if (variant === 'contained') {
     if (color === 'primary') {
