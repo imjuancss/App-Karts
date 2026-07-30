@@ -478,13 +478,16 @@ export async function completeRound(championshipId, roundId) {
   const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 
   // 2. Asignar puntos y actualizar cada registro en la ronda
-  for (let i = 0; i < times.length; i++) {
-    const pts = i < pointsSystem.length ? pointsSystem[i] : 0;
-    await supabase
-      .from('championship_round_times')
-      .update({ points: pts })
-      .eq('id', times[i].id);
-  }
+  const timeUpdates = times.map((t, i) => ({
+    ...t,
+    points: i < pointsSystem.length ? pointsSystem[i] : 0
+  }));
+
+  const { error: updateError } = await supabase
+    .from('championship_round_times')
+    .upsert(timeUpdates);
+
+  if (updateError) throw updateError;
 
   // 3. Marcar la ronda como completada
   const { error: roundUpdateError } = await supabase
@@ -517,23 +520,18 @@ export async function completeRound(championshipId, roundId) {
   });
 
   // Guardar puntajes consolidados en championship_participants
-  for (const userId of Object.keys(userPoints)) {
-    const pts = userPoints[userId];
-    const { error: partUpdateError } = await supabase
+  const upsertData = Object.keys(userPoints).map(userId => ({
+    championship_id: championshipId,
+    user_id: userId,
+    points: userPoints[userId]
+  }));
+
+  if (upsertData.length > 0) {
+    const { error: upsertError } = await supabase
       .from('championship_participants')
-      .update({ points: pts })
-      .eq('championship_id', championshipId)
-      .eq('user_id', userId);
+      .upsert(upsertData, { onConflict: 'championship_id,user_id' });
     
-    if (partUpdateError) {
-      await supabase
-        .from('championship_participants')
-        .upsert({
-          championship_id: championshipId,
-          user_id: userId,
-          points: pts
-        }, { onConflict: 'championship_id,user_id' });
-    }
+    if (upsertError) throw upsertError;
   }
 
   return true;
@@ -762,10 +760,12 @@ export async function fetchExternalMotorsportNews() {
         const description = cleanDescription(rawDesc);
 
         // Obtener URL de imagen
-        const image_url = item.thumbnail ||
+        let image_url = item.thumbnail ||
                            item.enclosure?.link ||
                            extractImageFromHtml(rawDesc) ||
                            'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
+
+        image_url = image_url?.startsWith('http') ? image_url : 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=600&h=400&fit=crop';
 
         // Formatear fecha a ISO String
         let pub_date;
@@ -777,7 +777,7 @@ export async function fetchExternalMotorsportNews() {
 
         allNews.push({
           title,
-          link,
+          link: link?.startsWith('http') ? link : '#',
           description: description.substring(0, 300) + (description.length > 300 ? '...' : ''),
           pub_date,
           source: feed.source,
@@ -936,7 +936,7 @@ export async function fetchMotorsportCalendars() {
         }
         // Los otros proxies devuelven texto directo
         if (text.includes('BEGIN:VCALENDAR')) return text;
-      } catch (_) { /* intentar siguiente proxy */ }
+      } catch { /* intentar siguiente proxy */ }
     }
     return null;
   }
