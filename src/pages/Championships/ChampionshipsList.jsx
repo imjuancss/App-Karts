@@ -73,8 +73,8 @@ export default function ChampionshipsList() {
   });
 
   const handleMouseMove = (e) => {
-    const cards = document.querySelectorAll('.card-hover');
-    for (const card of cards) {
+    const card = e.target.closest ? e.target.closest('.card-hover') : null;
+    if (card) {
       const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -145,6 +145,7 @@ export default function ChampionshipsList() {
             return (
               <KineticCard
                 key={champ.id}
+                className="card-hover"
                 onClick={() => navigate(`/championships/${champ.id}`)}
                 badge={
                   <div className="flex justify-between items-center w-full">
