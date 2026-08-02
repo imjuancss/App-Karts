@@ -49,7 +49,7 @@ export function TabsTrigger({ value, className, children }) {
       type="button"
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "flex-1 md:flex-none h-8 px-4 flex justify-center items-center gap-2.5 cursor-pointer transition-all duration-300 rounded-sm text-xs md:text-sm font-normal font-sans tracking-widest uppercase",
+        "flex-1 md:flex-none h-8 px-4 flex justify-center items-center gap-2.5 cursor-pointer transition-all duration-300 rounded-sm text-xs md:text-sm font-normal font-sans tracking-widest uppercase whitespace-nowrap shrink-0",
         isActive 
           ? "bg-white/[0.1] text-white shadow-[0_0_12px_rgba(255,255,255,0.04)]" 
           : "text-white/60 hover:bg-white/[0.04] hover:text-white/80",

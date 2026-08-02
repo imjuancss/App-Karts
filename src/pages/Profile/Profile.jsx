@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2, FileCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { getProfile, getUserLapTimes, getTracks, getPendingInvitations, acceptChampionshipInvitation } from '../../services/api';
+import { getProfile, getUserLapTimes, getTracks, getPendingInvitations, acceptChampionshipInvitation, deleteLapTime } from '../../services/api';
 import { formatMsToTime } from '../../lib/formatters';
 import { Input } from '../../components/ui/input';
 import { SelectNative } from '../../components/ui/select-native';
@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/ta
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import RegisterTimeModal from '../../components/modals/RegisterTimeModal';
+import ProofReviewModal from '../../components/modals/ProofReviewModal';
 import Auth from '../Auth/Auth';
 import { useToast } from '../../components/ui/toast';
 
@@ -178,12 +179,27 @@ export default function Profile() {
     }
   }, [isLoading, sessionUser, searchParams, setSearchParams]);
 
+  const [selectedProofLog, setSelectedProofLog] = useState(null);
+  const [isProofModalOpen, setIsProofModalOpen] = useState(false);
+
   const handleTimeRegistered = async () => {
     if (sessionUser) {
       const times = await getUserLapTimes(sessionUser.id);
       setUserTimes(times || []);
     }
     window.dispatchEvent(new Event('lap-times-updated'));
+  };
+
+  const handleDeleteLapTime = async (timeId) => {
+    if (!window.confirm('¿Deseas eliminar este registro de tiempo?')) return;
+    try {
+      await deleteLapTime(timeId);
+      toast({ title: 'Tiempo eliminado', description: 'El tiempo fue eliminado de tu perfil.', variant: 'success' });
+      await handleTimeRegistered();
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: err.message || 'No se pudo eliminar el tiempo.', variant: 'destructive' });
+    }
   };
 
   const handleAcceptInvite = async (inviteId, champId, name) => {
@@ -315,18 +331,66 @@ export default function Profile() {
             </TabsContent>
 
             <TabsContent value="tiempos">
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {userTimes.length === 0 ? (
-                  <p className="text-on-surface-variant text-sm font-label uppercase">NO HAS REGISTRADO NINGÚN TIEMPO.</p>
+                  <p className="text-on-surface-variant text-sm font-label uppercase py-4">NO HAS REGISTRADO NINGÚN TIEMPO.</p>
                 ) : (
                   userTimes.map(time => (
-                    <ListRow
+                    <div
                       key={time.id}
-                      icon="timer"
-                      title={time.tracks?.name}
-                      subtitle={time.tracks?.location}
-                      trailing={<span className="font-display font-bold text-tertiary-fixed tracking-wider">{formatMsToTime(time.lap_time_ms)}</span>}
-                    />
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 sm:p-4 bg-surface-container-low hover:bg-surface-container-highest/60 rounded-sm border border-outline-variant/20 transition-colors gap-3 w-full"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                        <div className="w-9 h-9 rounded-sm bg-surface-container-highest flex items-center justify-center text-tertiary-fixed shrink-0">
+                          <span className="material-symbols-outlined text-lg">timer</span>
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-headline font-bold text-sm text-white uppercase truncate">
+                              {time.tracks?.name || 'Circuito'}
+                            </h4>
+                            {time.proof_image_url && (
+                              <span title="Ticket comprobado" className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-tertiary-fixed bg-tertiary-fixed/10 border border-tertiary-fixed/30 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
+                                <FileCheck size={11} />
+                                <span>Ticket</span>
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-on-surface-variant truncate">
+                            {time.tracks?.location || ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-outline-variant/15">
+                        <span className="font-mono font-bold text-base sm:text-lg text-tertiary-fixed tracking-wider">
+                          {formatMsToTime(time.lap_time_ms)}
+                        </span>
+                        
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedProofLog({ ...time, profiles: userProfile });
+                              setIsProofModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-surface-container-highest hover:bg-surface-variant text-xs font-bold uppercase tracking-wider text-white rounded-sm transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                          >
+                            Ver Ticket
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLapTime(time.id)}
+                            className="p-1.5 text-on-surface-variant hover:text-error transition-colors rounded-sm hover:bg-error/10 cursor-pointer shrink-0"
+                            title="Eliminar este tiempo"
+                            aria-label="Eliminar este tiempo"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   ))
                 )}
               </div>
@@ -338,11 +402,11 @@ export default function Profile() {
           <button
             type="button"
             onClick={() => setIsTimeModalOpen(true)}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group overflow-hidden relative focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary cursor-pointer"
           >
             <div className="relative z-10 flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-primary uppercase">REGISTRAR TIEMPO</p>
-              <p className="text-[10px] text-on-surface-variant tracking-widest uppercase">AÑADIR NUEVO RÉCORD DE VUELTA</p>
+              <p className="text-[10px] text-on-surface-variant tracking-widest uppercase">AÑADIR NUEVO RÉCORD DE VUELTA CON TICKET</p>
             </div>
             <span className="material-symbols-outlined text-primary group-hover:translate-x-2 transition-transform">add_circle</span>
           </button>
@@ -350,7 +414,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={async () => await supabase.auth.signOut()}
-            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary"
+            className="bg-surface-container-highest p-6 rounded-sm text-left flex items-center justify-between active:scale-95 transition-all group focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary cursor-pointer"
           >
             <div className="flex flex-col gap-1">
               <p className="font-headline font-bold tracking-[0.1em] text-error uppercase">CERRAR SESIÓN</p>
@@ -365,6 +429,13 @@ export default function Profile() {
         isOpen={isTimeModalOpen}
         onClose={() => setIsTimeModalOpen(false)}
         onSuccess={handleTimeRegistered}
+      />
+
+      <ProofReviewModal
+        isOpen={isProofModalOpen}
+        onClose={() => setIsProofModalOpen(false)}
+        logTimeData={selectedProofLog}
+        onDeleteSuccess={handleTimeRegistered}
       />
     </div>
   );

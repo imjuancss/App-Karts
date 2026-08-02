@@ -12,6 +12,9 @@ import GlassCard from '../../components/ui/GlassCard';
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
+import RegisterTimeModal from '../../components/modals/RegisterTimeModal';
+import ProofReviewModal from '../../components/modals/ProofReviewModal';
+import { FileCheck } from 'lucide-react';
 
 const formatSchedule = (sched) => {
   if (!sched) return 'Horario no definido';
@@ -58,6 +61,15 @@ export default function TrackDetail() {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const [selectedProofLog, setSelectedProofLog] = useState(null);
+  const [isProofModalOpen, setIsProofModalOpen] = useState(false);
+
+  const refreshTimes = async () => {
+    if (!id) return;
+    const times = await getRecentTrackLapTimes(id);
+    setRecentTimes(times || []);
+  };
 
   const handleAddReview = async (e) => {
     e.preventDefault();
@@ -283,17 +295,29 @@ export default function TrackDetail() {
                   <p className="text-on-surface-variant text-sm">Aún no hay tiempos registrados.</p>
                 ) : (
                   recentTimes.slice(0, 4).map((time, idx) => (
-                    <div key={time.id} className={`flex items-center justify-between p-3 rounded-sm group transition-colors ${idx === 0 ? 'bg-surface-container-highest hover:bg-tertiary/10' : 'bg-surface-container-highest/50'}`}>
-                      <div className="flex items-center gap-4">
+                    <div 
+                      key={time.id}
+                      onClick={() => {
+                        setSelectedProofLog({ ...time, tracks: track });
+                        setIsProofModalOpen(true);
+                      }}
+                      className={`flex items-center justify-between p-3 rounded-sm group transition-colors cursor-pointer ${idx === 0 ? 'bg-surface-container-highest hover:bg-tertiary/10' : 'bg-surface-container-highest/50 hover:bg-surface-container-highest'}`}
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
                         <span className={`font-headline font-bold ${idx === 0 ? 'text-tertiary-fixed' : 'text-on-surface-variant'}`}>
                           {String(idx + 1).padStart(2, '0')}
                         </span>
-                        <div className="flex flex-col gap-0.5">
-                          <p className={`text-sm ${idx === 0 ? 'font-medium text-on-surface' : 'text-on-surface'}`}>@{time.profiles?.username || 'piloto'}</p>
-                          <p className="text-[11px] text-on-surface-variant uppercase tracking-tighter">{time.profiles?.full_name || 'Piloto Nuevo'}</p>
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <p className={`text-sm ${idx === 0 ? 'font-medium text-on-surface' : 'text-on-surface'} truncate`}>@{time.profiles?.username || 'piloto'}</p>
+                            {time.proof_image_url && (
+                              <FileCheck size={13} className="text-tertiary-fixed shrink-0" title="Ticket comprobado" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-on-surface-variant uppercase tracking-tighter truncate">{time.profiles?.full_name || 'Piloto Nuevo'}</p>
                         </div>
                       </div>
-                      <span className={`font-mono font-bold ${idx === 0 ? 'text-tertiary-fixed' : 'text-on-surface'}`}>{formatMsToTime(time.lap_time_ms)}</span>
+                      <span className={`font-mono font-bold shrink-0 ${idx === 0 ? 'text-tertiary-fixed' : 'text-on-surface'}`}>{formatMsToTime(time.lap_time_ms)}</span>
                     </div>
                   ))
                 )}
@@ -306,7 +330,7 @@ export default function TrackDetail() {
                   setActiveTab('info');
                   window.scrollTo({ top: document.querySelector('.grid.grid-cols-12')?.offsetTop - 100, behavior: 'smooth' });
                 }}
-                className="w-full py-2 text-xs font-headline font-bold tracking-widest uppercase text-tertiary-fixed hover:text-white transition-colors"
+                className="w-full py-2 text-xs font-headline font-bold tracking-widest uppercase text-tertiary-fixed hover:text-white transition-colors cursor-pointer"
               >
                 Ver Tabla Completa
               </button>
@@ -346,11 +370,23 @@ export default function TrackDetail() {
                       <p className="py-4 text-on-surface-variant text-sm italic">Aún no hay tiempos registrados en este circuito.</p>
                     ) : (
                       recentTimes.map((time, idx) => (
-                        <div key={time.id} className="grid grid-cols-12 gap-2 py-3 items-center group hover:bg-surface-container-highest/30 transition-colors px-2 rounded-sm">
+                        <div 
+                          key={time.id} 
+                          onClick={() => {
+                            setSelectedProofLog({ ...time, tracks: track });
+                            setIsProofModalOpen(true);
+                          }}
+                          className="grid grid-cols-12 gap-2 py-3 items-center group hover:bg-surface-container-highest/50 transition-colors px-2 rounded-sm cursor-pointer"
+                        >
                           <div className={`col-span-2 md:col-span-1 font-headline font-bold ${idx === 0 ? 'text-tertiary-fixed text-glow-neon' : 'text-on-surface-variant'}`}>{idx + 1}</div>
-                          <div className="col-span-6 md:col-span-8 flex flex-col gap-0.5">
-                            <span className="text-sm font-bold">@{time.profiles?.username || 'piloto'}</span>
-                            <span className="text-[11px] text-on-surface-variant uppercase font-label tracking-wide">{time.profiles?.full_name || 'Piloto Nuevo'}</span>
+                          <div className="col-span-6 md:col-span-8 flex flex-col gap-0.5 min-w-0">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-sm font-bold truncate">@{time.profiles?.username || 'piloto'}</span>
+                              {time.proof_image_url && (
+                                <FileCheck size={13} className="text-tertiary-fixed shrink-0" title="Ticket comprobado" />
+                              )}
+                            </div>
+                            <span className="text-[11px] text-on-surface-variant uppercase font-label tracking-wide truncate">{time.profiles?.full_name || 'Piloto Nuevo'}</span>
                           </div>
                           <div className={`col-span-4 md:col-span-3 text-right font-mono ${idx === 0 ? 'text-tertiary-fixed font-bold' : 'text-on-surface'}`}>{formatMsToTime(time.lap_time_ms)}</div>
                         </div>
@@ -458,39 +494,18 @@ export default function TrackDetail() {
         </ContentSection>
       </PageContainer>
 
-      {isTimeModalOpen && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 pb-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:pb-4">
-          <div className="bg-surface-container rounded-sm shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md p-6 flex flex-col gap-6">
-            <h3 className="font-headline font-bold text-xl uppercase tracking-widest">Registrar Mi Tiempo</h3>
-            {timeError && (
-              <p className="text-error text-sm bg-error/10 p-3 rounded-sm border border-error/20">{timeError}</p>
-            )}
-            <form onSubmit={handleRegisterTime} className="flex flex-col gap-6">
-              <FormSection maxWidth="full">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-widest text-on-surface-variant">Tu mejor tiempo (mm:ss.SSS o ss.SSS)</label>
-                  <Input
-                    type="text"
-                    placeholder="Ej: 00:44.520 o 44.520"
-                    value={timeInput}
-                    onChange={e => setTimeInput(formatTimeInput(e.target.value))}
-                    required
-                    className="w-full font-mono"
-                  />
-                </div>
-              </FormSection>
-              <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setIsTimeModalOpen(false)} disabled={isSubmittingTime} className="px-4 py-2 border border-outline-variant/50 rounded-sm text-xs font-headline font-bold uppercase tracking-widest hover:bg-surface-variant transition-colors disabled:opacity-50">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={isSubmittingTime} className="bg-primary text-on-primary px-6 py-2 rounded-sm text-xs font-headline font-bold uppercase tracking-widest hover:brightness-110 transition-colors disabled:opacity-50 flex items-center gap-2">
-                  {isSubmittingTime ? <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span> : 'Registrar'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <RegisterTimeModal
+        isOpen={isTimeModalOpen}
+        onClose={() => setIsTimeModalOpen(false)}
+        initialTrackId={track?.id || id}
+        onSuccess={refreshTimes}
+      />
+
+      <ProofReviewModal
+        isOpen={isProofModalOpen}
+        onClose={() => setIsProofModalOpen(false)}
+        logTimeData={selectedProofLog}
+      />
     </div>
   );
 }
