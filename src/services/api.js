@@ -184,22 +184,65 @@ export async function addTrackReview(trackId, rating, comment) {
 // ========================================
 // LAP TIMES (Tiempos generales por pista)
 // ========================================
-export async function registerLapTime(trackId, lapTimeMs) {
+const LAP_PROOF_BUCKET = 'lap-proofs';
+const MAX_PROOF_SIZE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+export async function uploadLapProof(file) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error('Debes iniciar sesión para subir el comprobante');
+
+  if (!ALLOWED_PROOF_TYPES.includes(file.type)) {
+    throw new Error('Formato no válido. Usa JPG, PNG o WebP.');
+  }
+  if (file.size > MAX_PROOF_SIZE_BYTES) {
+    throw new Error('La imagen del ticket supera el límite de 10 MB.');
+  }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const filePath = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(LAP_PROOF_BUCKET)
+    .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) {
+    console.error("Storage upload error:", uploadError);
+    throw new Error("No se pudo subir la imagen del ticket. Verifica que el archivo sea una imagen válida.");
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from(LAP_PROOF_BUCKET)
+    .getPublicUrl(filePath);
+
+  return publicUrl;
+}
+
+export async function registerLapTime(trackId, lapTimeMs, proofImageUrl) {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
   if (!user) throw new Error("No autenticado");
   if (!lapTimeMs || lapTimeMs <= 0 || lapTimeMs > 600000) throw new Error("Tiempo inválido (máximo 10 minutos)");
-  const { data, error } = await supabase
-    .from('lap_times')
-    .insert([{
-      track_id: trackId,
-      user_id: user.id,
-      lap_time_ms: lapTimeMs
-    }])
-    .select()
-    .single();
-  if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor. Por favor, inténtalo de nuevo."); }
-  return data;
+  if (!proofImageUrl) throw new Error("El comprobante fotográfico del ticket es obligatorio para registrar un tiempo.");
+
+  const performInsert = async (payload) => {
+    const { data, error } = await supabase
+      .from('lap_times')
+      .insert([payload])
+      .select()
+      .single();
+    if (error) { console.error(error); throw new Error("Ocurrió un error en el servidor al guardar el tiempo."); }
+    return data;
+  };
+
+  return executeWithSchemaFallback(performInsert, {
+    track_id: trackId,
+    user_id: user.id,
+    lap_time_ms: lapTimeMs,
+    proof_image_url: proofImageUrl,
+    verification_status: 'pending'
+  });
 }
 
 export async function getUserLapTimes(userId) {
@@ -233,6 +276,24 @@ export async function getRecentTrackLapTimes(trackId) {
     return [];
   }
   return data;
+}
+
+export async function deleteLapTime(id) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) throw new Error("No autenticado");
+
+  const { error } = await supabase
+    .from('lap_times')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error("Error deleting lap time:", error);
+    throw new Error("Ocurrió un error al eliminar el tiempo.");
+  }
+  return true;
 }
 
 // ========================================
