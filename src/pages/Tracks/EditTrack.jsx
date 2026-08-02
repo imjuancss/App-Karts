@@ -14,6 +14,7 @@ import CreateFormLayout from '../../components/layout/CreateFormLayout';
 import FormSection from '../../components/layout/FormSection';
 import FormField from '../../components/forms/FormField';
 import CoverImageField from '../../components/forms/CoverImageField';
+import ConfirmModal from '../../components/modals/ConfirmModal';
 
 const DEFAULT_COVER = 'https://images.unsplash.com/photo-1547844390-50dffdb01956?w=600&h=400&fit=crop';
 
@@ -110,11 +111,10 @@ export default function EditTrack() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este circuito? Esta acción no se puede deshacer y eliminará todos los tiempos de vuelta y campeonatos asociados.')) {
-      return;
-    }
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const confirmDeleteTrack = async () => {
+    setShowDeleteModal(false);
     setIsDeleting(true);
     setErrorMsg('');
 
@@ -280,13 +280,25 @@ export default function EditTrack() {
             variant="contained"
             color="error"
             disabled={isSubmitting || isUploadingCover || isDeleting}
-            onClick={handleDelete}
-            className="flex-1 min-h-12 md:min-h-14 font-headline font-bold uppercase tracking-widest"
+            onClick={() => setShowDeleteModal(true)}
+            className="flex-1 min-h-12 md:min-h-14 font-headline font-bold uppercase tracking-widest cursor-pointer"
           >
             {isDeleting ? <Loader2 className="animate-spin" size={24} /> : 'Eliminar circuito'}
           </KineticButton>
         </div>
       </form>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteTrack}
+        isLoading={isDeleting}
+        title="ELIMINAR CIRCUITO"
+        description="¿Estás seguro de que deseas eliminar este circuito? Esta acción no se puede deshacer y eliminará todos los tiempos de vuelta y campeonatos asociados."
+        confirmText="ELIMINAR CIRCUITO"
+        cancelText="CANCELAR"
+        variant="destructive"
+      />
     </CreateFormLayout>
   );
 }

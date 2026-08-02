@@ -11,6 +11,7 @@ import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import RegisterTimeModal from '../../components/modals/RegisterTimeModal';
 import ProofReviewModal from '../../components/modals/ProofReviewModal';
+import ConfirmModal from '../../components/modals/ConfirmModal';
 import Auth from '../Auth/Auth';
 import { useToast } from '../../components/ui/toast';
 
@@ -181,6 +182,8 @@ export default function Profile() {
 
   const [selectedProofLog, setSelectedProofLog] = useState(null);
   const [isProofModalOpen, setIsProofModalOpen] = useState(false);
+  const [timeToDeleteId, setTimeToDeleteId] = useState(null);
+  const [isDeletingTime, setIsDeletingTime] = useState(false);
 
   const handleTimeRegistered = async () => {
     if (sessionUser) {
@@ -190,16 +193,24 @@ export default function Profile() {
     window.dispatchEvent(new Event('lap-times-updated'));
   };
 
-  const handleDeleteLapTime = async (timeId) => {
-    if (!window.confirm('¿Deseas eliminar este registro de tiempo?')) return;
+  const confirmDeleteLapTime = async () => {
+    if (!timeToDeleteId) return;
+    setIsDeletingTime(true);
     try {
-      await deleteLapTime(timeId);
+      await deleteLapTime(timeToDeleteId);
       toast({ title: 'Tiempo eliminado', description: 'El tiempo fue eliminado de tu perfil.', variant: 'success' });
+      setTimeToDeleteId(null);
       await handleTimeRegistered();
     } catch (err) {
       console.error(err);
       toast({ title: 'Error', description: err.message || 'No se pudo eliminar el tiempo.', variant: 'destructive' });
+    } finally {
+      setIsDeletingTime(false);
     }
+  };
+
+  const handleDeleteLapTime = (timeId) => {
+    setTimeToDeleteId(timeId);
   };
 
   const handleAcceptInvite = async (inviteId, champId, name) => {
@@ -436,6 +447,18 @@ export default function Profile() {
         onClose={() => setIsProofModalOpen(false)}
         logTimeData={selectedProofLog}
         onDeleteSuccess={handleTimeRegistered}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(timeToDeleteId)}
+        onClose={() => setTimeToDeleteId(null)}
+        onConfirm={confirmDeleteLapTime}
+        isLoading={isDeletingTime}
+        title="ELIMINAR TIEMPO"
+        description="¿Estás seguro de que deseas eliminar este registro de tiempo? Esta acción no se puede deshacer."
+        confirmText="ELIMINAR"
+        cancelText="CANCELAR"
+        variant="destructive"
       />
     </div>
   );

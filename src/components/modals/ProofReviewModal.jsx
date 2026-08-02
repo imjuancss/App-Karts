@@ -5,6 +5,7 @@ import { formatMsToTime } from '../../lib/formatters';
 import { supabase } from '../../lib/supabase';
 import { deleteLapTime } from '../../services/api';
 import { useToast } from '../ui/toast';
+import ConfirmModal from './ConfirmModal';
 
 export default function ProofReviewModal({
   isOpen,
@@ -15,6 +16,7 @@ export default function ProofReviewModal({
   const [isZoomed, setIsZoomed] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,8 +37,8 @@ export default function ProofReviewModal({
 
   if (!isOpen || !logTimeData) return null;
 
-  const proofUrl = logTimeData.proof_image_url || logTimeData.proofImageUrl;
-  const driverName = logTimeData.profiles?.full_name || logTimeData.profiles?.username || logTimeData.name || 'Piloto';
+  const proofUrl = logTimeData.proof_image_url || logTimeData.proofImageUrl || null;
+  const driverName = logTimeData.profiles?.username || logTimeData.driverName || 'Piloto Anónimo';
   const avatarUrl = logTimeData.profiles?.avatar_url || null;
   const trackName = logTimeData.tracks?.name || logTimeData.trackName || 'Circuito de Karting';
   const trackLocation = logTimeData.tracks?.location || logTimeData.trackLocation || '';
@@ -56,12 +58,9 @@ export default function ProofReviewModal({
     logTimeData.profiles?.id === currentUserId
   );
 
-  const handleDelete = async () => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este tiempo registrado?')) {
-      return;
-    }
-
+  const handleConfirmDelete = async () => {
     setIsDeleting(true);
+    setShowConfirmDelete(false);
     try {
       await deleteLapTime(logTimeData.id);
       toast({
@@ -85,6 +84,13 @@ export default function ProofReviewModal({
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <ConfirmModal
+        isOpen={showConfirmDelete}
+        onClose={() => setShowConfirmDelete(false)}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar tiempo"
+        message="¿Estás seguro de que deseas eliminar este tiempo registrado? Esta acción no se puede deshacer."
+      />
       <div className="bg-surface-container-high w-full max-w-2xl sm:max-w-3xl md:max-w-4xl rounded-sm border border-outline-variant/30 fade-in shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden my-auto max-h-[92vh]">
         {/* Modal Header */}
         <div className="flex items-center justify-between p-3.5 sm:p-5 border-b border-outline-variant/20 bg-surface-container-highest/50 shrink-0 gap-3 min-w-0">
@@ -240,7 +246,7 @@ export default function ProofReviewModal({
             {isOwner && (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setShowConfirmDelete(true)}
                 disabled={isDeleting}
                 className="w-full sm:w-auto px-4 py-2.5 bg-error/10 hover:bg-error/20 text-error border border-error/30 font-headline font-bold uppercase tracking-wider text-xs rounded-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
               >

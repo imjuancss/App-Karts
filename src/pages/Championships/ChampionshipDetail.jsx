@@ -11,6 +11,7 @@ import HeroHeader from '../../components/ui/HeroHeader';
 import PageContainer from '../../components/layout/PageContainer';
 import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
+import ConfirmModal from '../../components/modals/ConfirmModal';
 
 export default function ChampionshipDetail() {
   const { id } = useParams();
@@ -23,6 +24,9 @@ export default function ChampionshipDetail() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedRoundIdx, setSelectedRoundIdx] = useState(0);
   const [roundTimes, setRoundTimes] = useState([]);
+  
+  const [confirmCompleteRoundId, setConfirmCompleteRoundId] = useState(null);
+  const [showDeleteChampModal, setShowDeleteChampModal] = useState(false);
   const [isLoadingTimes, setIsLoadingTimes] = useState(false);
 
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -146,21 +150,25 @@ export default function ChampionshipDetail() {
     }
   };
 
-  const handleCompleteRound = async (roundId) => {
-    if (!window.confirm("¿Estás seguro de finalizar esta fecha? Esto calculará los puntos de la ronda para todos los pilotos y actualizará el Leaderboard general del torneo.")) {
-      return;
-    }
+  const executeCompleteRound = async () => {
+    if (!confirmCompleteRoundId) return;
+    const roundId = confirmCompleteRoundId;
+    setConfirmCompleteRoundId(null);
     setIsCompletingRound(true);
     try {
       await completeRound(champ.id, roundId);
       toast({ title: '¡Ronda finalizada!', description: 'Leaderboard general actualizado', variant: 'success' });
-      await setTimeout(() => loadChampionshipData(), 0);
+      await loadChampionshipData();
     } catch (err) {
       console.error(err);
       toast({ title: 'Error', description: 'Error al finalizar la ronda', variant: 'error' });
     } finally {
       setIsCompletingRound(false);
     }
+  };
+
+  const handleCompleteRound = (roundId) => {
+    setConfirmCompleteRoundId(roundId);
   };
 
   if (isLoading) {
@@ -252,17 +260,8 @@ export default function ChampionshipDetail() {
                 type="button"
                 aria-label="Eliminar campeonato"
                 title="Eliminar campeonato"
-                onClick={async () => {
-                  if (!window.confirm('¿Eliminar este campeonato? Esta acción no se puede deshacer.')) return;
-                  try {
-                    await deleteChampionship(champ.id);
-                    toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
-                    navigate('/championships');
-                  } catch {
-                    toast({ title: 'Error', description: 'No se pudo eliminar', variant: 'error' });
-                  }
-                }}
-                className="text-error hover:text-error/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-sm p-1"
+                onClick={() => setShowDeleteChampModal(true)}
+                className="text-error hover:text-error/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error rounded-sm p-1 cursor-pointer"
               >
                 <span className="material-symbols-outlined">delete</span>
               </button>
@@ -672,6 +671,40 @@ export default function ChampionshipDetail() {
           </div>
         </div>
       )}
+
+      {/* Modal para confirmar finalización de fecha */}
+      <ConfirmModal
+        isOpen={Boolean(confirmCompleteRoundId)}
+        onClose={() => setConfirmCompleteRoundId(null)}
+        onConfirm={executeCompleteRound}
+        isLoading={isCompletingRound}
+        title="FINALIZAR FECHA"
+        description="¿Estás seguro de finalizar esta fecha? Esto calculará los puntos de la ronda para todos los pilotos y actualizará el Leaderboard general del torneo."
+        confirmText="FINALIZAR FECHA"
+        cancelText="CANCELAR"
+        variant="warning"
+      />
+
+      {/* Modal para eliminar campeonato */}
+      <ConfirmModal
+        isOpen={showDeleteChampModal}
+        onClose={() => setShowDeleteChampModal(false)}
+        onConfirm={async () => {
+          setShowDeleteChampModal(false);
+          try {
+            await deleteChampionship(champ.id);
+            toast({ title: 'Campeonato eliminado', description: 'El campeonato fue eliminado correctamente', variant: 'success' });
+            navigate('/championships');
+          } catch {
+            toast({ title: 'Error', description: 'No se pudo eliminar el campeonato', variant: 'error' });
+          }
+        }}
+        title="ELIMINAR CAMPEONATO"
+        description="¿Estás seguro de eliminar este campeonato? Esta acción no se puede deshacer y borrará todas las rondas y puntuaciones registradas."
+        confirmText="ELIMINAR CAMPEONATO"
+        cancelText="CANCELAR"
+        variant="destructive"
+      />
     </div>
   );
 }

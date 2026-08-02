@@ -14,6 +14,7 @@ import ContentSection from '../../components/layout/ContentSection';
 import FormSection from '../../components/layout/FormSection';
 import RegisterTimeModal from '../../components/modals/RegisterTimeModal';
 import ProofReviewModal from '../../components/modals/ProofReviewModal';
+import ConfirmModal from '../../components/modals/ConfirmModal';
 import { FileCheck } from 'lucide-react';
 
 const formatSchedule = (sched) => {
@@ -64,6 +65,7 @@ export default function TrackDetail() {
 
   const [selectedProofLog, setSelectedProofLog] = useState(null);
   const [isProofModalOpen, setIsProofModalOpen] = useState(false);
+  const [showDeleteTrackModal, setShowDeleteTrackModal] = useState(false);
 
   const refreshTimes = async () => {
     if (!id) return;
@@ -211,17 +213,8 @@ export default function TrackDetail() {
                 type="button"
                 aria-label="Eliminar pista"
                 title="Eliminar pista"
-                onClick={async () => {
-                  if (!window.confirm('¿Eliminar esta pista? Esta acción no se puede deshacer.')) return;
-                  try {
-                    await deleteTrack(track.id);
-                    toast({ title: 'Pista eliminada', description: 'La pista fue eliminada correctamente', variant: 'success' });
-                    navigate('/tracks');
-                  } catch {
-                    toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
-                  }
-                }}
-                className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm"
+                onClick={() => setShowDeleteTrackModal(true)}
+                className="active:scale-95 duration-150 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-primary rounded-sm cursor-pointer"
               >
                 <span className="material-symbols-outlined text-error" aria-hidden="true">delete</span>
               </button>
@@ -505,6 +498,26 @@ export default function TrackDetail() {
         isOpen={isProofModalOpen}
         onClose={() => setIsProofModalOpen(false)}
         logTimeData={selectedProofLog}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteTrackModal}
+        onClose={() => setShowDeleteTrackModal(false)}
+        onConfirm={async () => {
+          setShowDeleteTrackModal(false);
+          try {
+            await deleteTrack(track.id);
+            toast({ title: 'Pista eliminada', description: 'La pista fue eliminada correctamente', variant: 'success' });
+            navigate('/tracks');
+          } catch {
+            toast({ title: 'Error', description: 'No se pudo eliminar la pista', variant: 'error' });
+          }
+        }}
+        title="ELIMINAR PISTA"
+        description="¿Estás seguro de que deseas eliminar esta pista? Esta acción no se puede deshacer y borrará todos los tiempos asociados."
+        confirmText="ELIMINAR PISTA"
+        cancelText="CANCELAR"
+        variant="destructive"
       />
     </div>
   );
