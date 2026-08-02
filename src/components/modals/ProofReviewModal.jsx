@@ -248,7 +248,7 @@ export default function ProofReviewModal({
                 type="button"
                 onClick={() => setShowConfirmDelete(true)}
                 disabled={isDeleting}
-                className="w-full sm:w-auto px-4 py-2.5 bg-error/10 hover:bg-error/20 text-error border border-error/30 font-headline font-bold uppercase tracking-wider text-xs rounded-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                className="w-full sm:w-auto px-4 py-2.5 bg-[#FF3100]/15 hover:bg-[#FF3100]/25 text-[#FF3100] border border-[#FF3100]/40 font-headline font-bold uppercase tracking-wider text-xs rounded-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0 shadow-[0_0_12px_rgba(255,49,0,0.15)]"
               >
                 {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                 <span>ELIMINAR MI TIEMPO</span>
@@ -259,7 +259,7 @@ export default function ProofReviewModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2.5 bg-surface-container-highest text-white hover:bg-surface-variant font-headline font-bold uppercase tracking-widest text-xs rounded-sm transition-colors cursor-pointer whitespace-nowrap shrink-0 flex items-center justify-center"
+            className="w-full sm:w-auto px-6 py-2.5 bg-surface-container-highest text-white hover:bg-surface-variant border border-outline-variant/30 font-headline font-bold uppercase tracking-widest text-xs rounded-sm transition-colors cursor-pointer whitespace-nowrap shrink-0 flex items-center justify-center"
           >
             CERRAR REVISIÓN
           </button>

@@ -58,7 +58,7 @@ export default function ConfirmModal({
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="w-full sm:w-auto px-5 py-2.5 text-xs font-headline font-bold uppercase tracking-widest text-on-surface hover:bg-surface-variant transition-colors rounded-sm cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0 flex items-center justify-center"
+            className="w-full sm:w-auto px-5 py-2.5 text-xs font-headline font-bold uppercase tracking-widest text-white bg-surface-container-highest hover:bg-surface-variant border border-outline-variant/30 transition-colors rounded-sm cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0 flex items-center justify-center"
           >
             {cancelText}
           </button>
@@ -69,8 +69,8 @@ export default function ConfirmModal({
             disabled={isLoading}
             className={`w-full sm:w-auto px-6 py-2.5 font-headline font-bold uppercase tracking-widest text-xs rounded-sm transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap shrink-0 cursor-pointer ${
               variant === 'destructive'
-                ? 'bg-error text-white hover:bg-error/90 shadow-[0_0_15px_rgba(255,49,0,0.3)]'
-                : 'bg-primary text-black hover:opacity-90 shadow-[0_0_15px_rgba(255,49,0,0.4)]'
+                ? 'bg-error text-white hover:bg-error-container shadow-[0_0_20px_rgba(255,49,0,0.4)]'
+                : 'bg-primary text-white hover:bg-primary-dim shadow-[0_0_20px_rgba(255,49,0,0.4)]'
             }`}
           >
             {isLoading ? (

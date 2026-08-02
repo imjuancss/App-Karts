@@ -167,8 +167,8 @@ export default function UploadTimeForm({
               <button
                 type="button"
                 onClick={() => setTimeMode('fields')}
-                className={`px-2 sm:px-2.5 py-1 rounded-sm transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                  timeMode === 'fields' ? 'bg-primary text-black font-bold' : 'text-on-surface-variant hover:text-white'
+                className={`px-2 sm:px-2.5 py-1 rounded-sm transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                  timeMode === 'fields' ? 'bg-primary text-white font-bold shadow-[0_0_12px_rgba(255,49,0,0.4)]' : 'text-on-surface-variant hover:text-white hover:bg-surface-container-low'
                 }`}
               >
                 Casillas (Min : Seg . Ms)
@@ -176,8 +176,8 @@ export default function UploadTimeForm({
               <button
                 type="button"
                 onClick={() => setTimeMode('text')}
-                className={`px-2 sm:px-2.5 py-1 rounded-sm transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                  timeMode === 'text' ? 'bg-primary text-black font-bold' : 'text-on-surface-variant hover:text-white'
+                className={`px-2 sm:px-2.5 py-1 rounded-sm transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                  timeMode === 'text' ? 'bg-primary text-white font-bold shadow-[0_0_12px_rgba(255,49,0,0.4)]' : 'text-on-surface-variant hover:text-white hover:bg-surface-container-low'
                 }`}
               >
                 Texto Libre
@@ -377,7 +377,7 @@ export default function UploadTimeForm({
             type="button"
             onClick={onCancel}
             disabled={isSubmitting || isUploadingImage}
-            className="w-full sm:w-auto px-5 py-3 sm:py-2.5 font-headline font-bold uppercase tracking-widest text-xs text-on-surface hover:bg-surface-variant transition-colors rounded-sm cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0 flex items-center justify-center"
+            className="w-full sm:w-auto px-5 py-3 sm:py-2.5 font-headline font-bold uppercase tracking-widest text-xs text-white bg-surface-container-highest hover:bg-surface-variant border border-outline-variant/30 transition-colors rounded-sm cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0 flex items-center justify-center"
           >
             CANCELAR
           </button>
@@ -388,7 +388,7 @@ export default function UploadTimeForm({
           disabled={!isFormValid}
           className={`w-full sm:w-auto px-6 py-3 sm:py-2.5 font-headline font-bold uppercase tracking-widest text-xs rounded-sm transition-all duration-200 flex items-center justify-center gap-2 min-w-0 sm:min-w-[150px] whitespace-nowrap shrink-0 ${
             isFormValid
-              ? 'bg-primary text-on-primary hover:opacity-90 active:scale-95 shadow-[0_0_15px_rgba(255,49,0,0.4)] cursor-pointer'
+              ? 'bg-primary text-white hover:bg-primary-dim active:scale-95 shadow-[0_0_20px_rgba(255,49,0,0.4)] cursor-pointer'
               : 'bg-surface-container-highest text-on-surface-variant/40 cursor-not-allowed border border-outline-variant/20'
           }`}
         >

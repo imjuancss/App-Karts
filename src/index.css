@@ -34,10 +34,10 @@
   --color-tertiary-fixed: #CAFD00;
   --color-tertiary-container: #CAFD00;
 
-  --color-secondary: #e5e2e1;
-  --color-error: #ff6e84;
-  --color-error-container: #a70138;
-  --color-on-primary-container: #4b0700;
+  --color-secondary: #1F1F1F;
+  --color-error: #FF3100;
+  --color-error-container: #e12a00;
+  --color-on-primary-container: #FFFFFF;
   --color-surface-container: #121212;
 }
 
