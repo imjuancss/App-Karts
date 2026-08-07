@@ -15,3 +15,7 @@
 **Vulnerability:** The `upsert_motorsport_news` function was created as `SECURITY DEFINER` and could be executed by any authenticated user. Because it blindly iterated over a JSON payload to upsert rows in `motorsport_news`, any standard user could bypass the intended RSS feed mechanism and inject arbitrary or malicious news content into the application.
 **Learning:** `SECURITY DEFINER` functions in Supabase bypass Row Level Security (RLS). Therefore, they must implement strict authorization checks natively within the function block, especially if the execute permission is granted to `authenticated` or `anon` roles.
 **Prevention:** Always validate the user's privilege level (e.g., checking for an `admin` role) at the very beginning of any `SECURITY DEFINER` function that performs sensitive write operations.
+## 2026-08-03 - Points Column RLS Bypass on INSERT
+**Vulnerability:** Users could manipulate their championship points upon insertion because the trigger preventing points escalation only fired on `UPDATE`, ignoring `INSERT`.
+**Learning:** Security triggers meant to protect specific columns from IDOR/tampering must cover both `INSERT` and `UPDATE` operations if users have permissions to insert rows.
+**Prevention:** Always define restrictive column protection triggers as `BEFORE INSERT OR UPDATE` instead of just `BEFORE UPDATE`.
