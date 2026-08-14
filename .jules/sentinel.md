@@ -19,3 +19,7 @@
 **Vulnerability:** Users could manipulate their championship points upon insertion because the trigger preventing points escalation only fired on `UPDATE`, ignoring `INSERT`.
 **Learning:** Security triggers meant to protect specific columns from IDOR/tampering must cover both `INSERT` and `UPDATE` operations if users have permissions to insert rows.
 **Prevention:** Always define restrictive column protection triggers as `BEFORE INSERT OR UPDATE` instead of just `BEFORE UPDATE`.
+## 2026-08-14 - XSS via Unsanitized Link Output
+**Vulnerability:** Found a Cross-Site Scripting (XSS) vulnerability in `ProofReviewModal.jsx` where a user-controlled URL (`proofUrl`) was used directly in the `href` attribute of an anchor tag, allowing for malicious `javascript:` URI execution.
+**Learning:** Directly binding unsanitized URLs into the `href` of `<a>` tags in React opens an attack vector for XSS if the data originates from untrusted user input.
+**Prevention:** Always validate and sanitize external URLs to ensure they use safe protocols (e.g., enforcing that the URL string starts with `http` or `https`) before inserting them into an anchor's `href` attribute.
