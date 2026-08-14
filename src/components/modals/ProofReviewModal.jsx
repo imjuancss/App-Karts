@@ -38,6 +38,7 @@ export default function ProofReviewModal({
   if (!isOpen || !logTimeData) return null;
 
   const proofUrl = logTimeData.proof_image_url || logTimeData.proofImageUrl || null;
+  const safeProofUrl = proofUrl?.startsWith('http') ? proofUrl : '#';
   const driverName = logTimeData.profiles?.username || logTimeData.driverName || 'Piloto Anónimo';
   const avatarUrl = logTimeData.profiles?.avatar_url || null;
   const trackName = logTimeData.tracks?.name || logTimeData.trackName || 'Circuito de Karting';
@@ -152,7 +153,7 @@ export default function ProofReviewModal({
                     }`}
                   />
                   <a
-                    href={proofUrl}
+                    href={safeProofUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="absolute bottom-2.5 right-2.5 bg-black/80 hover:bg-black text-white text-[11px] font-bold px-2.5 py-1.5 rounded-sm border border-outline-variant/40 flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
